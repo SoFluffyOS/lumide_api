@@ -1,0 +1,30 @@
+id: lumide_demo_plugin
+name: 'Demo Plugin'
+description: 'A comprehensive demo showcasing all Lumide plugin API features.'
+version: '0.2.0'
+author: 'Lumide Team'
+license: 'MIT'
+entry_point: 'bin/main.dart'
+
+permissions:
+  - fileSystem:
+      - '${workspace}/**'
+  - network:
+      - 'https://httpbin.org/*'
+  - shell:
+      - echo
+      - date
+
+configuration:
+  - key: lumide_demo_plugin.greeting
+    type: string
+    description: 'Custom greeting message shown on activation.'
+    default: 'Hello from Demo Plugin!'
+  - key: lumide_demo_plugin.heartbeatInterval
+    type: integer
+    description: 'Interval (in seconds) between heartbeat reports.'
+    default: 30
+  - key: lumide_demo_plugin.logDocumentEvents
+    type: boolean
+    description: 'Log document open/close/change events to stderr.'
+    default: true
