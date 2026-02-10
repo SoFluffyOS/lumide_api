@@ -1,0 +1,14 @@
+name: lumide_demo_plugin
+description: A demo plugin for Lumide IDE demonstrating the plugin API.
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  lumide_api:
+    path: ..
+
+dev_dependencies:
+  lints: ^6.0.0
