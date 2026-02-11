@@ -18,6 +18,9 @@ class HostMethods {
   static const didOpenTextDocument = 'workspace/didOpenTextDocument';
   static const didCloseTextDocument = 'workspace/didCloseTextDocument';
   static const didChangeTextDocument = 'workspace/didChangeTextDocument';
+
+  // Commands (IDE → Plugin)
+  static const commandsExecute = 'commands/execute';
 }
 
 /// Method names for Plugin-to-IDE communication.
@@ -59,4 +62,7 @@ class PluginMethods {
   static const workspaceGetConfiguration = 'workspace/getConfiguration';
   static const workspaceOnDidChangeConfiguration =
       'workspace/onDidChangeConfiguration';
+
+  // Commands (Plugin → IDE)
+  static const commandsRegister = 'commands/register';
 }

@@ -27,6 +27,9 @@ class RpcLumideContext implements LumideContext {
 
   @override
   late final LumideWorkspace workspace = _RpcWorkspace(_session);
+
+  @override
+  late final LumideCommands commands = _RpcCommands(_session);
 }
 
 class _RpcFileSystem implements LumideFileSystem {
@@ -271,5 +274,37 @@ class _RpcWorkspace implements LumideWorkspace {
     void Function(DocumentChangeEvent event) callback,
   ) {
     _changeCallbacks.add(callback);
+  }
+}
+
+class _RpcCommands implements LumideCommands {
+  _RpcCommands(this._session) {
+    _session.registerMethod(HostMethods.commandsExecute, (params) async {
+      final data = params.value as Map<String, dynamic>;
+      final commandId = data['id'] as String;
+      final callback = _callbacks[commandId];
+      if (callback != null) {
+        await callback();
+      }
+      return null;
+    });
+  }
+
+  final RpcSession _session;
+  final _callbacks = <String, Future<void> Function()>{};
+
+  @override
+  Future<void> registerCommand({
+    required String id,
+    required String title,
+    String? category,
+    required Future<void> Function() callback,
+  }) async {
+    _callbacks[id] = callback;
+    await _session.sendRequest(PluginMethods.commandsRegister, {
+      'id': id,
+      'title': title,
+      if (category != null) 'category': category,
+    });
   }
 }
