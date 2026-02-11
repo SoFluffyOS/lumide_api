@@ -8,6 +8,8 @@
 /// - Shell API (run commands)
 /// - HTTP API (GET / POST requests)
 /// - Workspace API (getConfiguration, document events)
+/// - Commands API (register commands for the Command Palette)
+/// - Status Bar API (create, update, dispose status bar items)
 /// - Logging via stderr (stdout is reserved for JSON-RPC)
 library;
 
@@ -20,15 +22,16 @@ void main() => DemoPlugin().run();
 class DemoPlugin extends LumidePlugin {
   Timer? _heartbeat;
   late LumideContext _context;
+  late DateTime _activatedAt;
 
-  // ── Configuration values (loaded from settings) ──────────────────
   String _greeting = 'Hello from Demo Plugin!';
-  int _heartbeatInterval = 30;
+  int _heartbeatInterval = 1;
   bool _logDocumentEvents = true;
 
   @override
   Future<void> onActivate(LumideContext context) async {
     _context = context;
+    _activatedAt = DateTime.now();
     log('🔌 Demo Plugin activated!');
 
     // ── 1. Configuration API ───────────────────────────────────────
@@ -46,20 +49,60 @@ class DemoPlugin extends LumidePlugin {
     // ── 5. File System API: list + read active file ────────────────
     await _demonstrateFileSystem();
 
-    // ── 6. Editor API: report active document + selections ─────────
-    await _reportActiveDocument();
+    // ── 6. Commands API: register commands for the Command Palette ──
+    await _registerCommands();
 
-    // ── 7. Heartbeat (interval from config) ────────────────────────
-    _heartbeat = Timer.periodic(
-      Duration(seconds: _heartbeatInterval),
-      (_) async => _reportActiveDocument(),
-    );
+    // ── 7. Status Bar API: create status bar items ─────────────────
+    await _createStatusBarItems();
+
+    // ── 8. Editor event listeners (event-driven, no polling) ────────
+    _context.editor.onDidChangeSelections(_onSelectionsChanged);
+    _context.editor.onDidChangeActiveDocument(_onActiveDocumentChanged);
+    _context.workspace.onDidSaveTextDocument(_onDocumentSaved);
+    _context.workspace.onDidChangeConfiguration(_onConfigChanged);
+
+    // ── 9. Heartbeat (status bar uptime updater) ────────────────────
+    _startHeartbeat();
   }
 
   @override
   Future<void> onDeactivate() async {
     _heartbeat?.cancel();
     log('👋 Demo Plugin deactivated');
+  }
+
+  void _startHeartbeat() {
+    _heartbeat?.cancel();
+    log('❤️  Heartbeat: every ${_heartbeatInterval}s');
+    _heartbeat = Timer.periodic(
+      Duration(seconds: _heartbeatInterval),
+      (_) {
+        final uptime = DateTime.now().difference(_activatedAt);
+        final minutes = uptime.inMinutes;
+        final seconds = uptime.inSeconds % 60;
+        _context.statusBar.updateItem(
+          'greeting',
+          text: '🦊 Demo ${minutes}m${seconds}s',
+          tooltip: 'Demo Plugin uptime: ${minutes}m ${seconds}s',
+        );
+      },
+    );
+  }
+
+  void _onConfigChanged(Map<String, Object?> settings) {
+    log('⚙️  Configuration changed: $settings');
+
+    if (settings['lumide_demo_plugin.greeting'] case final String val) {
+      _greeting = val;
+    }
+    if (settings['lumide_demo_plugin.logDocumentEvents'] case final bool val) {
+      _logDocumentEvents = val;
+    }
+    if (settings['lumide_demo_plugin.heartbeatInterval'] case final int val
+        when val != _heartbeatInterval) {
+      _heartbeatInterval = val;
+      _startHeartbeat();
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -164,41 +207,21 @@ class DemoPlugin extends LumidePlugin {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 5. Editor API (activeDocument, selections, insertText, replaceText)
+  // 5. Editor Event Callbacks
   // ═══════════════════════════════════════════════════════════════════
 
-  Future<void> _reportActiveDocument() async {
-    try {
-      final uri = await _context.editor.getActiveDocumentUri();
-      if (uri == null) {
-        log('📄 No active document');
-        return;
-      }
-
-      final path = Uri.parse(uri).toFilePath();
-      log('� Active: ${path.split('/').last}');
-
-      // fs.exists
-      final exists = await _context.fs.exists(path);
-      log('   Exists: $exists');
-
-      // editor.getSelections
-      final selections = await _context.editor.getSelections();
-      for (final sel in selections) {
-        final anchor = sel['anchor'] as Map<String, dynamic>;
-        final focus = sel['focus'] as Map<String, dynamic>;
-        final isCollapsed = anchor['line'] == focus['line'] &&
-            anchor['column'] == focus['column'];
-        if (isCollapsed) {
-          log('   Cursor: L${focus['line']}:${focus['column']}');
-        } else {
-          log('   Selection: L${anchor['line']}:${anchor['column']} → '
-              'L${focus['line']}:${focus['column']}');
-        }
-      }
-    } catch (error) {
-      log('⚠ Error: $error');
+  void _onActiveDocumentChanged(String? uri) {
+    if (uri == null) {
+      log('📄 Active document: none');
+      return;
     }
+    final filename = Uri.parse(uri).pathSegments.last;
+    log('📄 Active document changed: $filename');
+  }
+
+  void _onDocumentSaved(String uri) {
+    final filename = Uri.parse(uri).pathSegments.last;
+    log('💾 Document saved: $filename');
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -262,6 +285,115 @@ class DemoPlugin extends LumidePlugin {
       log('✍️  Moved cursor to start of file');
     } catch (error) {
       log('⚠ Editor manipulation: $error');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 9. Commands API (register commands for the Command Palette)
+  // ═══════════════════════════════════════════════════════════════════
+
+  Future<void> _registerCommands() async {
+    try {
+      await _context.commands.registerCommand(
+        id: 'lumide_demo_plugin.sayHello',
+        title: 'Demo: Say Hello',
+        category: 'Demo Plugin',
+        callback: () async {
+          await _context.window.showMessage(_greeting);
+        },
+      );
+
+      await _context.commands.registerCommand(
+        id: 'lumide_demo_plugin.showActiveFile',
+        title: 'Demo: Show Active File',
+        category: 'Demo Plugin',
+        callback: () async {
+          final uri = await _context.editor.getActiveDocumentUri();
+          await _context.window.showMessage(
+            uri != null ? 'Active: $uri' : 'No active file',
+          );
+        },
+      );
+
+      await _context.commands.registerCommand(
+        id: 'lumide_demo_plugin.insertTimestamp',
+        title: 'Demo: Insert Timestamp',
+        category: 'Demo Plugin',
+        callback: () async {
+          final now = DateTime.now().toIso8601String();
+          await _context.editor.insertText('// $now\n');
+          log('⏱️  Inserted timestamp');
+        },
+      );
+
+      await _context.commands.registerCommand(
+        id: 'lumide_demo_plugin.toggleStatusBar',
+        title: 'Demo: Toggle Status Bar Items',
+        category: 'Demo Plugin',
+        callback: () async {
+          _statusBarVisible = !_statusBarVisible;
+          if (_statusBarVisible) {
+            await _context.statusBar.show('greeting');
+            await _context.statusBar.show('cursor');
+          } else {
+            await _context.statusBar.hide('greeting');
+            await _context.statusBar.hide('cursor');
+          }
+          log('📊 Status bar items ${_statusBarVisible ? 'shown' : 'hidden'}');
+        },
+      );
+
+      log('🎯 Registered 4 commands');
+    } catch (error) {
+      log('⚠ Commands demo: $error');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 10. Status Bar API (create, update, show/hide, dispose)
+  // ═══════════════════════════════════════════════════════════════════
+
+  bool _statusBarVisible = true;
+
+  Future<void> _createStatusBarItems() async {
+    try {
+      // Left-aligned item showing plugin status
+      await _context.statusBar.createItem(
+        id: 'greeting',
+        text: '🦊 Demo Plugin',
+        tooltip: 'Demo Plugin is running',
+        command: 'lumide_demo_plugin.sayHello',
+        alignment: 'left',
+        priority: 10,
+      );
+
+      // Right-aligned item showing cursor info (updated via selection events)
+      await _context.statusBar.createItem(
+        id: 'cursor',
+        text: 'L-:-',
+        tooltip: 'Cursor position (via Demo Plugin)',
+        alignment: 'right',
+        priority: 5,
+      );
+
+      log('📊 Created 2 status bar items');
+    } catch (error) {
+      log('⚠ StatusBar demo: $error');
+    }
+  }
+
+  void _onSelectionsChanged(List<Map<String, dynamic>> selections) {
+    if (selections.isEmpty) return;
+    try {
+      final focus = selections.first['focus'] as Map<String, dynamic>;
+      final line = focus['line'] as int;
+      final column = focus['column'] as int;
+      _context.statusBar.updateItem(
+        'cursor',
+        text: 'L${line + 1}:${column + 1}',
+      );
+    } catch (error) {
+      log('⚠ Cursor status bar update: $error');
     }
   }
 }
