@@ -61,6 +61,12 @@ class PluginMethods {
   static const editorGetSelections = 'editor/getSelections';
   static const editorSetSelections = 'editor/setSelections';
 
+  // Output Channels
+  static const windowCreateOutputChannel = 'window/createOutputChannel';
+  static const windowAppendOutput = 'window/appendOutput';
+  static const windowShowOutput = 'window/showOutput';
+  static const windowDisposeOutputChannel = 'window/disposeOutputChannel';
+
   // UI Panels
   static const uiCreatePanel = 'ui/createPanel';
   static const uiUpdatePanel = 'ui/updatePanel';
