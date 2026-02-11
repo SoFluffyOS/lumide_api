@@ -81,6 +81,9 @@ abstract class LumideContext {
 
   /// Workspace operations (configuration, events).
   LumideWorkspace get workspace;
+
+  /// Command registration.
+  LumideCommands get commands;
 }
 
 /// File system operations.
@@ -241,4 +244,19 @@ class DocumentContentChange {
 
   /// End column of the changed range.
   final int? endColumn;
+}
+
+/// Command registration API.
+abstract class LumideCommands {
+  /// Registers a command that can be invoked from the Command Palette.
+  ///
+  /// [id] must be a unique command identifier (e.g. 'myPlugin.formatCode').
+  /// [title] is the human-readable name shown in the Command Palette.
+  /// [callback] is called when the command is executed.
+  Future<void> registerCommand({
+    required String id,
+    required String title,
+    String? category,
+    required Future<void> Function() callback,
+  });
 }

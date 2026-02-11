@@ -16,6 +16,8 @@ class LumideManifest {
     this.permissions = const [],
     this.uiCapabilities = const [],
     this.configuration = const [],
+    this.commands = const [],
+    this.keybindings = const [],
     this.iconTheme,
     this.colorTheme,
   });
@@ -101,6 +103,47 @@ class LumideManifest {
       }
     }
 
+    // Parse contributes.commands
+    final commands = <ManifestCommand>[];
+    final contributes = doc['contributes'];
+    if (contributes case final YamlMap contributesMap) {
+      if (contributesMap['commands'] case final YamlList commandList) {
+        for (final item in commandList) {
+          if (item case final YamlMap commandMap) {
+            final commandId = commandMap['id']?.toString();
+            final title = commandMap['title']?.toString();
+            if (commandId != null && title != null) {
+              commands.add(ManifestCommand(
+                id: commandId,
+                title: title,
+                category: commandMap['category']?.toString(),
+              ));
+            }
+          }
+        }
+      }
+    }
+
+    // Parse contributes.keybindings
+    final keybindings = <ManifestKeybinding>[];
+    if (contributes case final YamlMap contributesMap) {
+      if (contributesMap['keybindings'] case final YamlList keybindingList) {
+        for (final item in keybindingList) {
+          if (item case final YamlMap keybindingMap) {
+            final commandId = keybindingMap['command']?.toString();
+            final key = keybindingMap['key']?.toString();
+            if (commandId != null && key != null) {
+              keybindings.add(ManifestKeybinding(
+                command: commandId,
+                key: key,
+                when: keybindingMap['when']?.toString(),
+              ));
+            }
+          }
+        }
+      }
+    }
+
     return LumideManifest(
       id: id,
       name: name,
@@ -110,6 +153,8 @@ class LumideManifest {
       permissions: permissions,
       uiCapabilities: uiCapabilities,
       configuration: configuration,
+      commands: commands,
+      keybindings: keybindings,
       iconTheme: doc['icon_theme']?.toString(),
       colorTheme: doc['color_theme']?.toString(),
     );
@@ -144,4 +189,36 @@ class LumideManifest {
 
   /// Path to color theme JSON file (relative to plugin directory).
   final String? colorTheme;
+
+  /// Commands contributed by this plugin.
+  final List<ManifestCommand> commands;
+
+  /// Keybindings contributed by this plugin.
+  final List<ManifestKeybinding> keybindings;
+}
+
+/// A command declared in a plugin manifest.
+class ManifestCommand {
+  const ManifestCommand({
+    required this.id,
+    required this.title,
+    this.category,
+  });
+
+  final String id;
+  final String title;
+  final String? category;
+}
+
+/// A keybinding declared in a plugin manifest.
+class ManifestKeybinding {
+  const ManifestKeybinding({
+    required this.command,
+    required this.key,
+    this.when,
+  });
+
+  final String command;
+  final String key;
+  final String? when;
 }
