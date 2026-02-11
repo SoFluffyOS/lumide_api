@@ -134,6 +134,26 @@ class HttpResponse {
 abstract class LumideShell {
   /// Runs a shell command.
   Future<ProcessResult> run(String command, List<String> arguments);
+
+  /// Spawns a persistent shell process.
+  ///
+  /// Returns the process ID (pid) of the spawned process.
+  Future<int> spawn(String command, List<String> arguments);
+
+  /// Writes data to the stdin of the process with the given [pid].
+  Future<void> writeStdin(int pid, String text);
+
+  /// Kills the process with the given [pid].
+  Future<bool> kill(int pid);
+
+  /// Registers a callback for process stdout.
+  void onStdout(void Function(int pid, String data) callback);
+
+  /// Registers a callback for process stderr.
+  void onStderr(void Function(int pid, String data) callback);
+
+  /// Registers a callback for process exit.
+  void onExit(void Function(int pid, int exitCode) callback);
 }
 
 /// Process execution result.
@@ -162,6 +182,34 @@ abstract class LumideWindow {
 
   /// Creates a new output channel.
   Future<LumideOutputChannel> createOutputChannel(String name);
+
+  /// Creates a new terminal.
+  ///
+  /// [name] is the title of the terminal.
+  /// [shellPath] is the path to the shell executable (optional).
+  /// [shellArgs] are arguments for the shell (optional).
+  Future<LumideTerminal> createTerminal({
+    String? name,
+    String? shellPath,
+    List<String>? shellArgs,
+  });
+}
+
+/// A terminal instance in the IDE.
+abstract class LumideTerminal {
+  /// Sends text to the terminal.
+  ///
+  /// [addNewLine] determines whether to append a newline character (default true).
+  Future<void> sendText(String text, {bool addNewLine = true});
+
+  /// Shows the terminal panel.
+  Future<void> show({bool preserveFocus = false});
+
+  /// Disposes the terminal.
+  Future<void> dispose();
+
+  /// Registers a callback for data received from the terminal process (if supported).
+  void onData(void Function(String data) callback);
 }
 
 /// A channel for streaming output (logs) to the UI.

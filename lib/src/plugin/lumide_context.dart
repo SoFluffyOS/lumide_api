@@ -107,8 +107,37 @@ class _RpcHttp implements LumideHttp {
 }
 
 class _RpcShell implements LumideShell {
-  _RpcShell(this._session);
+  _RpcShell(this._session) {
+    _session.registerMethod(HostMethods.shellOnStdout, (params) async {
+      final pid = params['pid'].asInt;
+      final data = params['data'].asString;
+      for (final cb in _stdoutCallbacks) {
+        cb(pid, data);
+      }
+      return null;
+    });
+    _session.registerMethod(HostMethods.shellOnStderr, (params) async {
+      final pid = params['pid'].asInt;
+      final data = params['data'].asString;
+      for (final cb in _stderrCallbacks) {
+        cb(pid, data);
+      }
+      return null;
+    });
+    _session.registerMethod(HostMethods.shellOnExit, (params) async {
+      final pid = params['pid'].asInt;
+      final exitCode = params['exitCode'].asInt;
+      for (final cb in _exitCallbacks) {
+        cb(pid, exitCode);
+      }
+      return null;
+    });
+  }
+
   final RpcSession _session;
+  final _stdoutCallbacks = <void Function(int, String)>[];
+  final _stderrCallbacks = <void Function(int, String)>[];
+  final _exitCallbacks = <void Function(int, int)>[];
 
   @override
   Future<ProcessResult> run(String command, List<String> arguments) async {
@@ -122,6 +151,46 @@ class _RpcShell implements LumideShell {
       stdout: json['stdout'] as String,
       stderr: json['stderr'] as String,
     );
+  }
+
+  @override
+  Future<int> spawn(String command, List<String> arguments) async {
+    final result = await _session.sendRequest(PluginMethods.shellSpawn, {
+      'command': command,
+      'arguments': arguments,
+    });
+    return result as int;
+  }
+
+  @override
+  Future<void> writeStdin(int pid, String text) async {
+    await _session.sendRequest(PluginMethods.shellWriteStdin, {
+      'pid': pid,
+      'text': text,
+    });
+  }
+
+  @override
+  Future<bool> kill(int pid) async {
+    final result = await _session.sendRequest(PluginMethods.shellKill, {
+      'pid': pid,
+    });
+    return result as bool;
+  }
+
+  @override
+  void onStdout(void Function(int pid, String data) callback) {
+    _stdoutCallbacks.add(callback);
+  }
+
+  @override
+  void onStderr(void Function(int pid, String data) callback) {
+    _stderrCallbacks.add(callback);
+  }
+
+  @override
+  void onExit(void Function(int pid, int exitCode) callback) {
+    _exitCallbacks.add(callback);
   }
 }
 
@@ -165,6 +234,67 @@ class _RpcWindow implements LumideWindow {
         .sendRequest(PluginMethods.windowCreateOutputChannel, {'name': name});
     final id = result as String;
     return _RpcOutputChannel(id, _session);
+  }
+
+  @override
+  Future<LumideTerminal> createTerminal({
+    String? name,
+    String? shellPath,
+    List<String>? shellArgs,
+  }) async {
+    final result = await _session.sendRequest(PluginMethods.terminalCreate, {
+      if (name != null) 'name': name,
+      if (shellPath != null) 'shellPath': shellPath,
+      if (shellArgs != null) 'shellArgs': shellArgs,
+    });
+    final id = result as String;
+    return _RpcTerminal(id, _session);
+  }
+}
+
+class _RpcTerminal implements LumideTerminal {
+  _RpcTerminal(this._id, this._session) {
+    _session.registerMethod(PluginMethods.terminalOnData, (params) async {
+      final id = params['id'].asString;
+      if (id == _id) {
+        final data = params['data'].asString;
+        for (final cb in _dataCallbacks) {
+          cb(data);
+        }
+      }
+      return null;
+    });
+  }
+
+  final String _id;
+  final RpcSession _session;
+  final _dataCallbacks = <void Function(String)>[];
+
+  @override
+  Future<void> sendText(String text, {bool addNewLine = true}) async {
+    await _session.sendRequest(PluginMethods.terminalSendText, {
+      'id': _id,
+      'text': text,
+      'addNewLine': addNewLine,
+    });
+  }
+
+  @override
+  Future<void> show({bool preserveFocus = false}) async {
+    await _session.sendRequest(PluginMethods.terminalShow, {
+      'id': _id,
+      'preserveFocus': preserveFocus,
+    });
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _session.sendRequest(PluginMethods.terminalDispose, {'id': _id});
+  }
+
+  @override
+  void onData(void Function(String data) callback) {
+    _dataCallbacks.add(callback);
   }
 }
 

@@ -29,6 +29,11 @@ class HostMethods {
   static const didChangeSelections = 'editor/didChangeSelections';
   static const didChangeActiveDocument = 'editor/didChangeActiveDocument';
   static const didSaveTextDocument = 'workspace/didSaveTextDocument';
+
+  // Shell Events (IDE → Plugin)
+  static const shellOnStdout = 'shell/onStdout';
+  static const shellOnStderr = 'shell/onStderr';
+  static const shellOnExit = 'shell/onExit';
 }
 
 /// Method names for Plugin-to-IDE communication.
@@ -48,6 +53,16 @@ class PluginMethods {
 
   // Shell
   static const shellRun = 'shell/run';
+  static const shellSpawn = 'shell/spawn';
+  static const shellWriteStdin = 'shell/writeStdin';
+  static const shellKill = 'shell/kill';
+
+  // Terminal
+  static const terminalCreate = 'terminal/create';
+  static const terminalSendText = 'terminal/sendText';
+  static const terminalShow = 'terminal/show';
+  static const terminalDispose = 'terminal/dispose';
+  static const terminalOnData = 'terminal/onData';
 
   // Window/UI
   static const windowShowMessage = 'window/showMessage';
