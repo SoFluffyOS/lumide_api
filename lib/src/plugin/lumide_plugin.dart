@@ -210,6 +210,14 @@ abstract class LumideWorkspace {
   void onDidChangeTextDocument(
     void Function(DocumentChangeEvent event) callback,
   );
+
+  /// Registers a callback for when plugin configuration changes.
+  ///
+  /// The callback receives a map of changed configuration keys and their
+  /// new values.
+  void onDidChangeConfiguration(
+    void Function(Map<String, Object?> settings) callback,
+  );
 }
 
 /// Event fired when a document's content changes.
