@@ -1,7 +1,7 @@
 id: lumide_demo_plugin
 name: 'Demo Plugin'
 description: 'A comprehensive demo showcasing all Lumide plugin API features.'
-version: '0.2.0'
+version: '0.3.0'
 author: 'Lumide Team'
 license: 'MIT'
 entry_point: 'bin/main.dart'
@@ -23,8 +23,29 @@ configuration:
   - key: lumide_demo_plugin.heartbeatInterval
     type: integer
     description: 'Interval (in seconds) between heartbeat reports.'
-    default: 30
+    default: 5
   - key: lumide_demo_plugin.logDocumentEvents
     type: boolean
     description: 'Log document open/close/change events to stderr.'
     default: true
+
+contributes:
+  commands:
+    - id: lumide_demo_plugin.sayHello
+      title: 'Demo: Say Hello'
+      category: 'Demo Plugin'
+    - id: lumide_demo_plugin.showActiveFile
+      title: 'Demo: Show Active File'
+      category: 'Demo Plugin'
+    - id: lumide_demo_plugin.insertTimestamp
+      title: 'Demo: Insert Timestamp'
+      category: 'Demo Plugin'
+    - id: lumide_demo_plugin.toggleStatusBar
+      title: 'Demo: Toggle Status Bar Item'
+      category: 'Demo Plugin'
+
+  keybindings:
+    - command: lumide_demo_plugin.sayHello
+      key: 'ctrl+shift+h'
+    - command: lumide_demo_plugin.insertTimestamp
+      key: 'ctrl+shift+t'
