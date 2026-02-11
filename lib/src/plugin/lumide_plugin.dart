@@ -159,6 +159,24 @@ abstract class LumideWindow {
 
   /// Shows an input box.
   Future<String?> showInputBox({String? prompt, String? value});
+
+  /// Creates a new output channel.
+  Future<LumideOutputChannel> createOutputChannel(String name);
+}
+
+/// A channel for streaming output (logs) to the UI.
+abstract class LumideOutputChannel {
+  /// Appends text to the channel.
+  Future<void> append(String value);
+
+  /// Appends a line of text to the channel.
+  Future<void> appendLine(String value);
+
+  /// Shows the channel in the UI.
+  Future<void> show({bool preserveFocus = false});
+
+  /// Disposes the channel.
+  Future<void> dispose();
 }
 
 /// Message types for window messages.

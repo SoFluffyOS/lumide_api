@@ -158,6 +158,51 @@ class _RpcWindow implements LumideWindow {
     });
     return result as String?;
   }
+
+  @override
+  Future<LumideOutputChannel> createOutputChannel(String name) async {
+    final result = await _session
+        .sendRequest(PluginMethods.windowCreateOutputChannel, {'name': name});
+    final id = result as String;
+    return _RpcOutputChannel(id, _session);
+  }
+}
+
+class _RpcOutputChannel implements LumideOutputChannel {
+  _RpcOutputChannel(this._id, this._session);
+
+  final String _id;
+  final RpcSession _session;
+
+  @override
+  Future<void> append(String value) async {
+    await _session.sendRequest(PluginMethods.windowAppendOutput, {
+      'id': _id,
+      'value': value,
+    });
+  }
+
+  @override
+  Future<void> appendLine(String value) async {
+    await _session.sendRequest(PluginMethods.windowAppendOutput, {
+      'id': _id,
+      'value': '$value\n',
+    });
+  }
+
+  @override
+  Future<void> show({bool preserveFocus = false}) async {
+    await _session.sendRequest(PluginMethods.windowShowOutput, {
+      'id': _id,
+      'preserveFocus': preserveFocus,
+    });
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _session
+        .sendRequest(PluginMethods.windowDisposeOutputChannel, {'id': _id});
+  }
 }
 
 class _RpcEditor implements LumideEditor {
