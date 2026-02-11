@@ -24,6 +24,11 @@ class HostMethods {
 
   // Configuration (IDE → Plugin)
   static const didChangeConfiguration = 'workspace/onDidChangeConfiguration';
+
+  // Editor Events (IDE → Plugin)
+  static const didChangeSelections = 'editor/didChangeSelections';
+  static const didChangeActiveDocument = 'editor/didChangeActiveDocument';
+  static const didSaveTextDocument = 'workspace/didSaveTextDocument';
 }
 
 /// Method names for Plugin-to-IDE communication.

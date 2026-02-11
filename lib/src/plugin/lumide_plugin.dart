@@ -191,6 +191,20 @@ abstract class LumideEditor {
   ///
   /// Each selection should be `{anchor: {line, column}, focus: {line, column}}`.
   Future<void> setSelections(List<Map<String, dynamic>> selections);
+
+  /// Registers a callback for when selections/cursors change.
+  ///
+  /// The callback receives the list of current selections in the same format
+  /// as [getSelections].
+  void onDidChangeSelections(
+    void Function(List<Map<String, dynamic>> selections) callback,
+  );
+
+  /// Registers a callback for when the active document changes.
+  ///
+  /// The callback receives the URI of the newly active document, or `null`
+  /// if no document is active.
+  void onDidChangeActiveDocument(void Function(String? uri) callback);
 }
 
 /// Workspace operations (configuration, project context).
@@ -218,6 +232,9 @@ abstract class LumideWorkspace {
   void onDidChangeConfiguration(
     void Function(Map<String, Object?> settings) callback,
   );
+
+  /// Registers a callback for when a text document is saved.
+  void onDidSaveTextDocument(void Function(String uri) callback);
 }
 
 /// Event fired when a document's content changes.
