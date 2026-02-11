@@ -246,12 +246,21 @@ class _RpcWorkspace implements LumideWorkspace {
       }
       return null;
     });
+    _session.registerMethod(HostMethods.didChangeConfiguration, (params) async {
+      final data = params.value as Map<String, dynamic>;
+      final settings = data['settings'] as Map<String, dynamic>? ?? {};
+      for (final cb in _configCallbacks) {
+        cb(settings);
+      }
+      return null;
+    });
   }
 
   final RpcSession _session;
   final _openCallbacks = <void Function(String)>[];
   final _closeCallbacks = <void Function(String)>[];
   final _changeCallbacks = <void Function(DocumentChangeEvent)>[];
+  final _configCallbacks = <void Function(Map<String, Object?>)>[];
 
   @override
   Future<Object?> getConfiguration(String section) async {
@@ -277,6 +286,13 @@ class _RpcWorkspace implements LumideWorkspace {
     void Function(DocumentChangeEvent event) callback,
   ) {
     _changeCallbacks.add(callback);
+  }
+
+  @override
+  void onDidChangeConfiguration(
+    void Function(Map<String, Object?> settings) callback,
+  ) {
+    _configCallbacks.add(callback);
   }
 }
 

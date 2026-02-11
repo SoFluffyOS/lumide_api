@@ -21,6 +21,9 @@ class HostMethods {
 
   // Commands (IDE → Plugin)
   static const commandsExecute = 'commands/execute';
+
+  // Configuration (IDE → Plugin)
+  static const didChangeConfiguration = 'workspace/onDidChangeConfiguration';
 }
 
 /// Method names for Plugin-to-IDE communication.
@@ -60,8 +63,6 @@ class PluginMethods {
 
   // Workspace / Configuration
   static const workspaceGetConfiguration = 'workspace/getConfiguration';
-  static const workspaceOnDidChangeConfiguration =
-      'workspace/onDidChangeConfiguration';
 
   // Commands (Plugin → IDE)
   static const commandsRegister = 'commands/register';
