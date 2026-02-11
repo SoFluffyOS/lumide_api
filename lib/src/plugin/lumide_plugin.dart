@@ -84,6 +84,9 @@ abstract class LumideContext {
 
   /// Command registration.
   LumideCommands get commands;
+
+  /// Status bar operations.
+  LumideStatusBar get statusBar;
 }
 
 /// File system operations.
@@ -259,4 +262,42 @@ abstract class LumideCommands {
     String? category,
     required Future<void> Function() callback,
   });
+}
+
+/// Status bar operations API.
+abstract class LumideStatusBar {
+  /// Creates a status bar item.
+  ///
+  /// [id] must be unique for this plugin.
+  /// [alignment] is either 'left' or 'right' (defaults to 'right').
+  /// [priority] controls ordering (higher = further from center).
+  Future<void> createItem({
+    required String id,
+    required String text,
+    String? tooltip,
+    String? command,
+    String? color,
+    String? iconName,
+    String alignment,
+    int priority,
+  });
+
+  /// Updates properties of an existing status bar item.
+  Future<void> updateItem(
+    String id, {
+    String? text,
+    String? tooltip,
+    String? command,
+    String? color,
+    String? iconName,
+  });
+
+  /// Removes a status bar item.
+  Future<void> disposeItem(String id);
+
+  /// Shows a previously hidden status bar item.
+  Future<void> show(String id);
+
+  /// Hides a status bar item without removing it.
+  Future<void> hide(String id);
 }
