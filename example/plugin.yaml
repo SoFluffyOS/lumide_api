@@ -1,7 +1,7 @@
 id: lumide_demo_plugin
 name: 'Demo Plugin'
 description: 'A comprehensive demo showcasing all Lumide plugin API features.'
-version: '0.3.0'
+version: '0.2.0'
 author: 'Lumide Team'
 license: 'MIT'
 entry_point: 'bin/main.dart'
