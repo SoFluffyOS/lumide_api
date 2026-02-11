@@ -9,12 +9,13 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 ## Features
 
 - **Plugin Lifecycle**: Seamlessly handle plugin activation and deactivation.
-- **Editor API**: Full access to the active editor, selections, and real-time text manipulation.
-- **FileSystem API**: Secure file and directory operations within the user's workspace.
-- **Window API**: Rich UI interactions including messages, quick picks, and custom input boxes.
-- **Workspace API**: Access user configurations and listen to global document events.
-- **Shell API**: Controlled execution of host shell commands.
-- **HTTP API**: Built-in standardized network request handling.
+- **Commands API**: Register commands for the Command Palette with optional keybindings.
+- **Status Bar API**: Create and manage custom status bar items.
+- **Editor API**: Access active editor, selections, and handle real-time events.
+- **Workspace API**: Access configurations and listen to file events (open, change, save, close).
+- **FileSystem API**: Secure file operations within the workspace.
+- **Window API**: UI interactions (messages, quick picks, input boxes).
+- **Shell & HTTP APIs**: Controlled execution of shell commands and standardized network requests.
 
 ## Getting Started
 
@@ -22,7 +23,7 @@ Add `lumide_api` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lumide_api: ^0.1.0
+  lumide_api: ^0.2.0+1
 ```
 
 ## Basic Usage
@@ -37,14 +38,22 @@ void main() => MyPlugin().run();
 class MyPlugin extends LumidePlugin {
   @override
   Future<void> onActivate(LumideContext context) async {
-    log('Hello from my plugin!');
-    
-    // Show a message to the user
+    // Show a message
     await context.window.showMessage('Plugin activated!');
-    
-    // Read the active document URI
-    final uri = await context.editor.getActiveDocumentUri();
-    log('Currently editing: $uri');
+
+    // Register a command
+    await context.commands.registerCommand(
+      id: 'my_plugin.hello',
+      title: 'Hello World',
+      callback: () async => log('Command executed!'),
+    );
+
+    // Create a status bar item
+    await context.statusBar.createItem(
+      id: 'status',
+      text: 'Ready',
+      alignment: 'right',
+    );
   }
 }
 ```
