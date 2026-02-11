@@ -30,6 +30,9 @@ class RpcLumideContext implements LumideContext {
 
   @override
   late final LumideCommands commands = _RpcCommands(_session);
+
+  @override
+  late final LumideStatusBar statusBar = _RpcStatusBar(_session);
 }
 
 class _RpcFileSystem implements LumideFileSystem {
@@ -305,6 +308,74 @@ class _RpcCommands implements LumideCommands {
       'id': id,
       'title': title,
       if (category != null) 'category': category,
+    });
+  }
+}
+
+class _RpcStatusBar implements LumideStatusBar {
+  _RpcStatusBar(this._session);
+  final RpcSession _session;
+
+  @override
+  Future<void> createItem({
+    required String id,
+    required String text,
+    String? tooltip,
+    String? command,
+    String? color,
+    String? iconName,
+    String alignment = 'right',
+    int priority = 0,
+  }) async {
+    await _session.sendRequest(PluginMethods.statusBarCreate, {
+      'id': id,
+      'text': text,
+      if (tooltip != null) 'tooltip': tooltip,
+      if (command != null) 'command': command,
+      if (color != null) 'color': color,
+      if (iconName != null) 'iconName': iconName,
+      'alignment': alignment,
+      'priority': priority,
+    });
+  }
+
+  @override
+  Future<void> updateItem(
+    String id, {
+    String? text,
+    String? tooltip,
+    String? command,
+    String? color,
+    String? iconName,
+  }) async {
+    await _session.sendRequest(PluginMethods.statusBarUpdate, {
+      'id': id,
+      if (text != null) 'text': text,
+      if (tooltip != null) 'tooltip': tooltip,
+      if (command != null) 'command': command,
+      if (color != null) 'color': color,
+      if (iconName != null) 'iconName': iconName,
+    });
+  }
+
+  @override
+  Future<void> disposeItem(String id) async {
+    await _session.sendRequest(PluginMethods.statusBarDispose, {'id': id});
+  }
+
+  @override
+  Future<void> show(String id) async {
+    await _session.sendRequest(PluginMethods.statusBarUpdate, {
+      'id': id,
+      'visible': true,
+    });
+  }
+
+  @override
+  Future<void> hide(String id) async {
+    await _session.sendRequest(PluginMethods.statusBarUpdate, {
+      'id': id,
+      'visible': false,
     });
   }
 }

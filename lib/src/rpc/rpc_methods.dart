@@ -65,4 +65,9 @@ class PluginMethods {
 
   // Commands (Plugin → IDE)
   static const commandsRegister = 'commands/register';
+
+  // Status Bar (Plugin → IDE)
+  static const statusBarCreate = 'statusBar/create';
+  static const statusBarUpdate = 'statusBar/update';
+  static const statusBarDispose = 'statusBar/dispose';
 }
