@@ -161,8 +161,32 @@ class _RpcWindow implements LumideWindow {
 }
 
 class _RpcEditor implements LumideEditor {
-  _RpcEditor(this._session);
+  _RpcEditor(this._session) {
+    _session.registerMethod(HostMethods.didChangeSelections, (params) async {
+      final data = params.value as Map<String, dynamic>;
+      final raw = data['selections'] as List? ?? [];
+      final selections = raw.cast<Map<String, dynamic>>();
+      for (final cb in _selectionCallbacks) {
+        cb(selections);
+      }
+      return null;
+    });
+    _session.registerMethod(
+      HostMethods.didChangeActiveDocument,
+      (params) async {
+        final data = params.value as Map<String, dynamic>;
+        final uri = data['uri'] as String?;
+        for (final cb in _activeDocCallbacks) {
+          cb(uri);
+        }
+        return null;
+      },
+    );
+  }
+
   final RpcSession _session;
+  final _selectionCallbacks = <void Function(List<Map<String, dynamic>>)>[];
+  final _activeDocCallbacks = <void Function(String?)>[];
 
   @override
   Future<String?> getActiveDocumentUri() async {
@@ -206,6 +230,18 @@ class _RpcEditor implements LumideEditor {
     await _session.sendRequest(PluginMethods.editorSetSelections, {
       'selections': selections,
     });
+  }
+
+  @override
+  void onDidChangeSelections(
+    void Function(List<Map<String, dynamic>> selections) callback,
+  ) {
+    _selectionCallbacks.add(callback);
+  }
+
+  @override
+  void onDidChangeActiveDocument(void Function(String? uri) callback) {
+    _activeDocCallbacks.add(callback);
   }
 }
 
@@ -254,6 +290,13 @@ class _RpcWorkspace implements LumideWorkspace {
       }
       return null;
     });
+    _session.registerMethod(HostMethods.didSaveTextDocument, (params) async {
+      final uri = (params.value as Map<String, dynamic>)['uri'] as String;
+      for (final cb in _saveCallbacks) {
+        cb(uri);
+      }
+      return null;
+    });
   }
 
   final RpcSession _session;
@@ -261,6 +304,7 @@ class _RpcWorkspace implements LumideWorkspace {
   final _closeCallbacks = <void Function(String)>[];
   final _changeCallbacks = <void Function(DocumentChangeEvent)>[];
   final _configCallbacks = <void Function(Map<String, Object?>)>[];
+  final _saveCallbacks = <void Function(String)>[];
 
   @override
   Future<Object?> getConfiguration(String section) async {
@@ -293,6 +337,11 @@ class _RpcWorkspace implements LumideWorkspace {
     void Function(Map<String, Object?> settings) callback,
   ) {
     _configCallbacks.add(callback);
+  }
+
+  @override
+  void onDidSaveTextDocument(void Function(String uri) callback) {
+    _saveCallbacks.add(callback);
   }
 }
 
@@ -381,7 +430,7 @@ class _RpcStatusBar implements LumideStatusBar {
 
   @override
   Future<void> show(String id) async {
-    await _session.sendRequest(PluginMethods.statusBarUpdate, {
+    _session.sendNotification(PluginMethods.statusBarUpdate, {
       'id': id,
       'visible': true,
     });
@@ -389,7 +438,7 @@ class _RpcStatusBar implements LumideStatusBar {
 
   @override
   Future<void> hide(String id) async {
-    await _session.sendRequest(PluginMethods.statusBarUpdate, {
+    _session.sendNotification(PluginMethods.statusBarUpdate, {
       'id': id,
       'visible': false,
     });
