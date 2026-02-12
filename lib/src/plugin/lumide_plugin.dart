@@ -447,6 +447,13 @@ abstract class LumideStatusBar {
   Future<void> hide(String id);
 }
 
+/// Alignment for toolbar items.
+enum ToolbarItemAlignment {
+  left,
+  center,
+  right,
+}
+
 /// Toolbar operations API.
 abstract class LumideToolbar {
   /// Registers a toolbar item.
@@ -454,10 +461,14 @@ abstract class LumideToolbar {
   /// [id] must be unique for this plugin.
   /// [icon] is the name of the icon (e.g. 'play', 'stop', 'refresh').
   /// [tooltip] is the text shown on hover.
+  /// [alignment] controls horizontal position (defaults to right).
+  /// [priority] controls ordering (higher = further from center).
   Future<void> registerItem({
     required String id,
     required String icon,
     String? tooltip,
+    ToolbarItemAlignment alignment = ToolbarItemAlignment.right,
+    int priority = 0,
   });
 
   /// Unregisters a toolbar item.
