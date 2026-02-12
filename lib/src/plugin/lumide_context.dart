@@ -447,6 +447,19 @@ class _RpcEditor implements LumideEditor {
   void onDidChangeActiveDocument(void Function(String? uri) callback) {
     _activeDocCallbacks.add(callback);
   }
+
+  @override
+  Future<String?> getSelectedText() async {
+    final result = await _session.sendRequest(PluginMethods.editorGetSelectedText);
+    return result as String?;
+  }
+
+  @override
+  Future<void> replaceSelection(String text) async {
+    await _session.sendRequest(PluginMethods.editorReplaceSelection, {
+      'text': text,
+    });
+  }
 }
 
 class _RpcWorkspace implements LumideWorkspace {
