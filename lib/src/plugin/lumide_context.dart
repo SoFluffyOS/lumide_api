@@ -33,7 +33,7 @@ class RpcLumideContext implements LumideContext {
 
   @override
   late final LumideStatusBar statusBar = _RpcStatusBar(_session);
-  
+
   @override
   late final LumideToolbar toolbar = _RpcToolbar(_session);
 }
@@ -200,17 +200,17 @@ class _RpcShell implements LumideShell {
 class _RpcWindow implements LumideWindow {
   _RpcWindow(this._session) {
     _session.registerMethod(PluginMethods.terminalOnData, (params) async {
-       final id = params['id'].asString;
-       final data = params['data'].asString;
-       
-       final terminal = _terminals[id];
-       if (terminal != null) {
-         terminal._emitData(data);
-       }
-       return null;
+      final id = params['id'].asString;
+      final data = params['data'].asString;
+
+      final terminal = _terminals[id];
+      if (terminal != null) {
+        terminal._emitData(data);
+      }
+      return null;
     });
   }
-  
+
   final RpcSession _session;
   final _terminals = <String, _RpcTerminal>{};
 
@@ -239,23 +239,23 @@ class _RpcWindow implements LumideWindow {
       'matchOnDetail': matchOnDetail,
       if (position != null) 'position': position,
     });
-    
+
     if (result == null) return null;
-    
+
     if (result is Map) {
-       return QuickPickItem(
-         label: result['label'] ?? '',
-         payload: result,
-       );
+      return QuickPickItem(
+        label: result['label'] ?? '',
+        payload: result,
+      );
     }
     return QuickPickItem(label: result.toString(), payload: result);
   }
 
   @override
   Future<String?> showInputBox({
-    String? prompt, 
-    String? value, 
-    String? placeHolder, 
+    String? prompt,
+    String? value,
+    String? placeHolder,
     bool password = false,
     String? title,
   }) async {
@@ -302,7 +302,7 @@ class _RpcTerminal implements LumideTerminal {
   final String _id;
   final RpcSession _session;
   final _dataCallbacks = <void Function(String)>[];
-  
+
   void _emitData(String data) {
     for (final cb in _dataCallbacks) {
       cb(data);
@@ -460,7 +460,8 @@ class _RpcEditor implements LumideEditor {
 
   @override
   Future<String?> getSelectedText() async {
-    final result = await _session.sendRequest(PluginMethods.editorGetSelectedText);
+    final result =
+        await _session.sendRequest(PluginMethods.editorGetSelectedText);
     return result as String?;
   }
 
@@ -676,23 +677,23 @@ class _RpcStatusBar implements LumideStatusBar {
 class _RpcToolbar implements LumideToolbar {
   _RpcToolbar(this._session) {
     _session.registerMethod(PluginMethods.toolbarOnTap, (params) async {
-       final args = params.value as Map<String, dynamic>;
-       final id = args['id'] as String;
+      final args = params.value as Map<String, dynamic>;
+      final id = args['id'] as String;
 
-       final positionMap = args['position'] as Map?;
-       final position = <String, int>{};
-       if (positionMap != null) {
-         final x = positionMap['x'];
-         final y = positionMap['y'];
-         if (x is int && y is int) {
-           position['x'] = x;
-           position['y'] = y;
-         }
-       }
+      final positionMap = args['position'] as Map?;
+      final position = <String, int>{};
+      if (positionMap != null) {
+        final x = positionMap['x'];
+        final y = positionMap['y'];
+        if (x is int && y is int) {
+          position['x'] = x;
+          position['y'] = y;
+        }
+      }
 
-       for (final cb in _onTapCallbacks) {
-         cb(id, position);
-       }
+      for (final cb in _onTapCallbacks) {
+        cb(id, position);
+      }
     });
   }
 

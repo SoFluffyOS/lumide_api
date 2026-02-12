@@ -217,7 +217,7 @@ abstract class LumideWindow {
   Future<void> showMessage(String message, {MessageType type});
 
   /// Shows a quick pick dialog.
-  /// 
+  ///
   /// Returns the selected [QuickPickItem], or `null` if dismissed.
   /// If [items] contains simple strings, they are wrapped in [QuickPickItem].
   Future<QuickPickItem?> showQuickPick(
@@ -230,9 +230,9 @@ abstract class LumideWindow {
 
   /// Shows an input box.
   Future<String?> showInputBox({
-    String? prompt, 
-    String? value, 
-    String? placeHolder, 
+    String? prompt,
+    String? value,
+    String? placeHolder,
     bool password = false,
     String? title,
   });

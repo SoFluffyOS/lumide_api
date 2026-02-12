@@ -99,7 +99,7 @@ class TextToolsPlugin extends LumidePlugin {
       alignment: ToolbarItemAlignment.left,
       priority: 100,
     );
-    
+
     _context.toolbar.onTap((id, position) {
       if (id == 'text_tools_menu') {
         _showToolsMenu(position);
@@ -186,7 +186,8 @@ class TextToolsPlugin extends LumidePlugin {
   Future<void> _transformText(String Function(String) transformer) async {
     final text = await _context.editor.getSelectedText();
     if (text == null || text.isEmpty) {
-      await _context.window.showMessage('Select some text first', type: MessageType.warning);
+      await _context.window
+          .showMessage('Select some text first', type: MessageType.warning);
       return;
     }
 
@@ -195,15 +196,13 @@ class TextToolsPlugin extends LumidePlugin {
     log('✨ Transformed text');
   }
 
-
-
   Future<void> _insertLoremIpsum() async {
     try {
       log('🌐 Fetching Lorem Ipsum...');
       final response = await _context.http.get(
         'https://baconipsum.com/api/?type=meat-and-filler&sentences=1&start-with-lorem=1',
       );
-      
+
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         if (data.isNotEmpty) {
@@ -212,18 +211,22 @@ class TextToolsPlugin extends LumidePlugin {
           log('✍️ Inserted Lorem Ipsum');
         }
       } else {
-        await _context.window.showMessage('Failed to fetch text: ${response.statusCode}', type: MessageType.error);
+        await _context.window.showMessage(
+            'Failed to fetch text: ${response.statusCode}',
+            type: MessageType.error);
       }
     } catch (e) {
       log('⚠ HTTP Error: $e');
-      await _context.window.showMessage('Error fetching text: $e', type: MessageType.error);
+      await _context.window
+          .showMessage('Error fetching text: $e', type: MessageType.error);
     }
   }
 
   Future<void> _showDocumentStats() async {
     final uri = await _context.editor.getActiveDocumentUri();
     if (uri == null) {
-      await _context.window.showMessage('No active document', type: MessageType.warning);
+      await _context.window
+          .showMessage('No active document', type: MessageType.warning);
       return;
     }
 
@@ -250,7 +253,7 @@ class TextToolsPlugin extends LumidePlugin {
     final dir = path.substring(0, path.lastIndexOf('/'));
 
     final files = await _context.fs.list(dir);
-    
+
     // Show in a QuickPick
     await _context.window.showQuickPick(
       files.map((f) => QuickPickItem(label: f)).toList(),
@@ -278,7 +281,6 @@ class TextToolsPlugin extends LumidePlugin {
     await channel.appendLine('Timestamp: ${DateTime.now()}');
     await channel.appendLine('Ready to log events...');
   }
-
 
   // ═══════════════════════════════════════════════════════════════════
   // 5. Status Bar & Commands
@@ -322,8 +324,8 @@ class TextToolsPlugin extends LumidePlugin {
     final aCol = (anchor['column'] as int) + 1;
 
     if (aLine != line || aCol != col) {
-       _context.statusBar.updateItem('selection_count', text: '(Selecting)');
-       _context.statusBar.show('selection_count');
+      _context.statusBar.updateItem('selection_count', text: '(Selecting)');
+      _context.statusBar.show('selection_count');
     } else {
       _context.statusBar.hide('selection_count');
     }
@@ -337,10 +339,10 @@ class TextToolsPlugin extends LumidePlugin {
       callback: ([args]) {
         // If triggered from command palette, we don't have a toolbar position.
         // Pass null or a default behavior.
-        return _showToolsMenu({}); 
+        return _showToolsMenu({});
       },
     );
-    
+
     await _context.commands.registerCommand(
       id: 'text_tools.lorem',
       title: 'Text Tools: Insert Lorem Ipsum',
