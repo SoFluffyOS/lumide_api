@@ -715,6 +715,7 @@ class _RpcToolbar implements LumideToolbar {
   Future<void> registerItem({
     required String id,
     required String icon,
+    String? iconPath,
     String? label,
     String? tooltip,
     ToolbarItemAlignment alignment = ToolbarItemAlignment.right,
@@ -723,6 +724,7 @@ class _RpcToolbar implements LumideToolbar {
     await _session.sendRequest(PluginMethods.toolbarRegisterItem, {
       'id': id,
       'icon': icon,
+      if (iconPath != null) 'iconPath': iconPath,
       if (label != null) 'label': label,
       if (tooltip != null) 'tooltip': tooltip,
       'alignment': alignment.name,

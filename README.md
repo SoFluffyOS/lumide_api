@@ -51,11 +51,12 @@ class MyPlugin extends LumidePlugin {
       callback: () async => log('Command executed!'),
     );
 
-    // Create a status bar item
+    // Create a status bar item with an icon
     await context.statusBar.createItem(
       id: 'status',
       text: 'Ready',
       alignment: 'right',
+      iconPath: 'assets/my_icon.svg', // Optional SVG icon
     );
   }
 }
@@ -87,6 +88,7 @@ Add buttons to the IDE toolbar:
 await context.toolbar.registerItem(
   id: 'play_button',
   icon: 'play', // maps to Lucide.play if not provided in icon theme
+  iconPath: 'assets/play.svg', // Optional: use custom SVG
   tooltip: 'Run App',
   alignment: 'left',
   priority: 100, // higher priority = further left
