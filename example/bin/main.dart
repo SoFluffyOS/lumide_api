@@ -336,7 +336,7 @@ class DemoPlugin extends LumidePlugin {
         id: 'lumide_demo_plugin.sayHello',
         title: 'Demo: Say Hello',
         category: 'Demo Plugin',
-        callback: () async {
+        callback: ([args]) async {
           await _context.window.showMessage(_greeting);
         },
       );
@@ -345,7 +345,7 @@ class DemoPlugin extends LumidePlugin {
         id: 'lumide_demo_plugin.showActiveFile',
         title: 'Demo: Show Active File',
         category: 'Demo Plugin',
-        callback: () async {
+        callback: ([args]) async {
           final uri = await _context.editor.getActiveDocumentUri();
           await _context.window.showMessage(
             uri != null ? 'Active: $uri' : 'No active file',
@@ -357,7 +357,7 @@ class DemoPlugin extends LumidePlugin {
         id: 'lumide_demo_plugin.insertTimestamp',
         title: 'Demo: Insert Timestamp',
         category: 'Demo Plugin',
-        callback: () async {
+        callback: ([args]) async {
           final now = DateTime.now().toIso8601String();
           await _context.editor.insertText('// $now\n');
           log('⏱️  Inserted timestamp');
@@ -368,7 +368,7 @@ class DemoPlugin extends LumidePlugin {
         id: 'lumide_demo_plugin.toggleStatusBar',
         title: 'Demo: Toggle Status Bar Items',
         category: 'Demo Plugin',
-        callback: () async {
+        callback: ([args]) async {
           _statusBarVisible = !_statusBarVisible;
           if (_statusBarVisible) {
             await _context.statusBar.show('greeting');
