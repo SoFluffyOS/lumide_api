@@ -216,6 +216,7 @@ class _RpcWindow implements LumideWindow {
     String? placeholder,
     bool matchOnDescription = true,
     bool matchOnDetail = true,
+    Map<String, int>? position,
   }) async {
     final result =
         await _session.sendRequest(PluginMethods.windowShowQuickPick, {
@@ -223,6 +224,7 @@ class _RpcWindow implements LumideWindow {
       if (placeholder != null) 'placeHolder': placeholder,
       'matchOnDescription': matchOnDescription,
       'matchOnDetail': matchOnDetail,
+      if (position != null) 'position': position,
     });
     
     if (result == null) return null;
