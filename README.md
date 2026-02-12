@@ -122,6 +122,17 @@ await context.output.append(channelId, 'Starting build process...\n');
 
 // Show it
 await context.output.show(channelId);
+
+// Write structured logs
+await context.output.appendLog(
+  channelId,
+  LumideLogRecord(
+    level: 'ERROR',
+    message: 'Build failed',
+    error: 'SyntaxError: unexpected token',
+    stackTrace: '...',
+  ),
+);
 ```
 
 > **Note**: Always use the `log()` method for debugging. `stdout` is reserved for JSON-RPC communication between the IDE and your plugin.
