@@ -59,7 +59,23 @@ class MyPlugin extends LumidePlugin {
     );
   }
 }
+
+### Activation Events
+
+Plugins are lazy-loaded by default to improve startup performance. You can specify `activation_events` in your `plugin.yaml` to control when your plugin should be loaded.
+
+```yaml
+name: my_plugin
+version: 0.0.1
+activation_events:
+  - onCommand:my_plugin.hello
+  - workspaceContains:pubspec.yaml
 ```
+
+Supported events:
+- `*`: Activate immediately on startup.
+- `onCommand:<commandId>`: Activate when a command is executed.
+- `workspaceContains:<fileName>`: Activate if the workspace contains a specific file pattern.
 
 ### Toolbar
 
