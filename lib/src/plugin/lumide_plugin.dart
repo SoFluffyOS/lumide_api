@@ -404,7 +404,7 @@ abstract class LumideCommands {
     required String id,
     required String title,
     String? category,
-    required Future<void> Function() callback,
+    required Future<void> Function([Map<String, dynamic>? args]) callback,
   });
 }
 
