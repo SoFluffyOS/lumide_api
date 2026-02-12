@@ -97,4 +97,9 @@ class PluginMethods {
   static const statusBarCreate = 'statusBar/create';
   static const statusBarUpdate = 'statusBar/update';
   static const statusBarDispose = 'statusBar/dispose';
+
+  // Toolbar (Plugin → IDE)
+  static const toolbarRegisterItem = 'toolbar/registerItem';
+  static const toolbarUnregisterItem = 'toolbar/unregisterItem';
+  static const toolbarOnTap = 'toolbar/onTap';
 }
