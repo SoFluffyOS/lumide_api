@@ -655,14 +655,26 @@ class _RpcToolbar implements LumideToolbar {
     _session.registerMethod(PluginMethods.toolbarOnTap, (params) async {
        final args = params.value as Map<String, dynamic>;
        final id = args['id'] as String;
+
+       final positionMap = args['position'] as Map?;
+       final position = <String, int>{};
+       if (positionMap != null) {
+         final x = positionMap['x'];
+         final y = positionMap['y'];
+         if (x is int && y is int) {
+           position['x'] = x;
+           position['y'] = y;
+         }
+       }
+
        for (final cb in _onTapCallbacks) {
-         cb(id);
+         cb(id, position);
        }
     });
   }
 
   final RpcSession _session;
-  final _onTapCallbacks = <void Function(String)>[];
+  final _onTapCallbacks = <void Function(String, Map<String, int>)>[];
 
   @override
   Future<void> registerItem({
@@ -683,7 +695,7 @@ class _RpcToolbar implements LumideToolbar {
   }
 
   @override
-  void onTap(void Function(String id) callback) {
+  void onTap(void Function(String id, Map<String, int> position) callback) {
     _onTapCallbacks.add(callback);
   }
 }

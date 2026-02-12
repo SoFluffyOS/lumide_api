@@ -301,9 +301,9 @@ class DemoPlugin extends LumidePlugin {
         tooltip: 'Run Demo Action',
       );
 
-      _context.toolbar.onTap((id) {
+      _context.toolbar.onTap((id, position) {
         if (id == 'demo_action') {
-          demonstrateWindowDialogs();
+          demonstrateWindowDialogs({'position': position});
         }
       });
       
