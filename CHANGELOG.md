@@ -2,11 +2,10 @@
 
 ### New features
 
-- **Activation Events** — `LumideManifest` now supports `activationEvents` to control plugin loading (e.g., `onCommand`, `workspaceContains`).
+- **Activation Events** — `LumideManifest` now supports `activation_events` to control plugin loading (e.g., `onCommand`, `workspaceContains`).
 - **Quick Pick Icons** — `QuickPickItem` now supports `iconPath` (SVG/Image), `enabled` state, and `isSeparator`.
 - **Status Bar Icons** — `LumideStatusBar` items now support `iconPath` for rendering SVGs.
 - **Toolbar Icons** — `LumideToolbar` items now support `iconPath` for rendering SVGs.
-- **Strict Snake Case** — `activation_events` in `plugin.yaml` must now use strict snake_case.
 
 # 0.4.0
 
