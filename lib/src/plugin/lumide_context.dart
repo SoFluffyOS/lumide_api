@@ -198,8 +198,21 @@ class _RpcShell implements LumideShell {
 }
 
 class _RpcWindow implements LumideWindow {
-  _RpcWindow(this._session);
+  _RpcWindow(this._session) {
+    _session.registerMethod(PluginMethods.terminalOnData, (params) async {
+       final id = params['id'].asString;
+       final data = params['data'].asString;
+       
+       final terminal = _terminals[id];
+       if (terminal != null) {
+         terminal._emitData(data);
+       }
+       return null;
+    });
+  }
+  
   final RpcSession _session;
+  final _terminals = <String, _RpcTerminal>{};
 
   @override
   Future<void> showMessage(String message,
@@ -228,7 +241,7 @@ class _RpcWindow implements LumideWindow {
     });
     
     if (result == null) return null;
-
+    
     if (result is Map) {
        return QuickPickItem(
          label: result['label'] ?? '',
@@ -277,27 +290,24 @@ class _RpcWindow implements LumideWindow {
       if (shellArgs != null) 'shellArgs': shellArgs,
     });
     final id = result as String;
-    return _RpcTerminal(id, _session);
+    final terminal = _RpcTerminal(id, _session);
+    _terminals[id] = terminal;
+    return terminal;
   }
 }
 
 class _RpcTerminal implements LumideTerminal {
-  _RpcTerminal(this._id, this._session) {
-    _session.registerMethod(PluginMethods.terminalOnData, (params) async {
-      final id = params['id'].asString;
-      if (id == _id) {
-        final data = params['data'].asString;
-        for (final cb in _dataCallbacks) {
-          cb(data);
-        }
-      }
-      return null;
-    });
-  }
+  _RpcTerminal(this._id, this._session);
 
   final String _id;
   final RpcSession _session;
   final _dataCallbacks = <void Function(String)>[];
+  
+  void _emitData(String data) {
+    for (final cb in _dataCallbacks) {
+      cb(data);
+    }
+  }
 
   @override
   Future<void> sendText(String text, {bool addNewLine = true}) async {

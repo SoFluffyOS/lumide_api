@@ -10,7 +10,8 @@ permissions:
   - fileSystem:
       - '${workspace}/**'
   - network:
-      - 'https://httpbin.org/*'
+      - 'httpbin.org'
+      - 'baconipsum.com'
   - shell:
       - echo
       - date
