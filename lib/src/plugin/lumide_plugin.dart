@@ -476,6 +476,7 @@ abstract class LumideToolbar {
   Future<void> registerItem({
     required String id,
     required String icon,
+    String? label,
     String? tooltip,
     ToolbarItemAlignment alignment = ToolbarItemAlignment.right,
     int priority = 0,
