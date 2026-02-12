@@ -625,6 +625,7 @@ class _RpcStatusBar implements LumideStatusBar {
     String? command,
     String? color,
     String? iconName,
+    String? iconPath,
     String alignment = 'right',
     int priority = 0,
   }) async {
@@ -635,6 +636,7 @@ class _RpcStatusBar implements LumideStatusBar {
       if (command != null) 'command': command,
       if (color != null) 'color': color,
       if (iconName != null) 'iconName': iconName,
+      if (iconPath != null) 'iconPath': iconPath,
       'alignment': alignment,
       'priority': priority,
     });
@@ -648,6 +650,7 @@ class _RpcStatusBar implements LumideStatusBar {
     String? command,
     String? color,
     String? iconName,
+    String? iconPath,
   }) async {
     await _session.sendRequest(PluginMethods.statusBarUpdate, {
       'id': id,
@@ -656,6 +659,7 @@ class _RpcStatusBar implements LumideStatusBar {
       if (command != null) 'command': command,
       if (color != null) 'color': color,
       if (iconName != null) 'iconName': iconName,
+      if (iconPath != null) 'iconPath': iconPath,
     });
   }
 
