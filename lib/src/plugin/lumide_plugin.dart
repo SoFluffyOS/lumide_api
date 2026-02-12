@@ -465,6 +465,6 @@ abstract class LumideToolbar {
 
   /// Registers a callback for when a toolbar item is tapped.
   ///
-  /// The callback receives the [id] of the tapped item.
-  void onTap(void Function(String id) callback);
+  /// The callback receives the [id] of the tapped item and screen [position].
+  void onTap(void Function(String id, Map<String, int> position) callback);
 }
