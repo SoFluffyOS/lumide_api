@@ -40,16 +40,17 @@ class ConfigurationProperty {
   const ConfigurationProperty({
     required this.key,
     required this.type,
+    this.title,
     required this.description,
     this.defaultValue,
     this.enumValues,
   });
 
-  /// Parses a configuration property from a JSON/YAML map.
   factory ConfigurationProperty.fromMap(Map<String, dynamic> map) {
     return ConfigurationProperty(
       key: map['key'] as String,
       type: _parseType(map['type'] as String?),
+      title: map['title'] as String?,
       description: map['description'] as String? ?? '',
       defaultValue: map['default'],
       enumValues: switch (map['enum']) {
@@ -64,6 +65,9 @@ class ConfigurationProperty {
 
   /// The data type of this setting.
   final ConfigPropertyType type;
+
+  /// Optional human-readable title. If null, UI may use [key].
+  final String? title;
 
   /// Human-readable description shown in the settings UI.
   final String description;
@@ -80,6 +84,7 @@ class ConfigurationProperty {
   Map<String, dynamic> toJson() => {
         'key': key,
         'type': type.name,
+        if (title != null) 'title': title,
         'description': description,
         if (defaultValue != null) 'default': defaultValue,
         if (enumValues != null) 'enum': enumValues,
