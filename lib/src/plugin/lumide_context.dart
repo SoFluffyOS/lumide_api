@@ -681,11 +681,15 @@ class _RpcToolbar implements LumideToolbar {
     required String id,
     required String icon,
     String? tooltip,
+    ToolbarItemAlignment alignment = ToolbarItemAlignment.right,
+    int priority = 0,
   }) async {
     await _session.sendRequest(PluginMethods.toolbarRegisterItem, {
       'id': id,
       'icon': icon,
       if (tooltip != null) 'tooltip': tooltip,
+      'alignment': alignment.name,
+      'priority': priority,
     });
   }
 
