@@ -16,6 +16,9 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **FileSystem API**: Secure file operations within the workspace.
 - **Window API**: UI interactions (messages, quick picks, input boxes).
 - **Shell & HTTP APIs**: Controlled execution of shell commands and standardized network requests.
+- **Toolbar API**: Add custom buttons to the IDE toolbar.
+- **Terminal API**: Create and control integrated terminals.
+- **Output API**: Write logs and data to the Output Panel.
 
 ## Getting Started
 
@@ -23,7 +26,7 @@ Add `lumide_api` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lumide_api: ^0.2.0+1
+  lumide_api: ^0.3.0
 ```
 
 ## Basic Usage
@@ -56,6 +59,69 @@ class MyPlugin extends LumidePlugin {
     );
   }
 }
+```
+
+### Toolbar
+
+Add buttons to the IDE toolbar:
+
+```dart
+// Register a toolbar item
+// Icons are resolved from your plugin.yaml or fall back to Lucide icons
+await context.toolbar.registerItem(
+  id: 'play_button',
+  icon: 'play', // maps to Lucide.play if not provided in icon theme
+  tooltip: 'Run App',
+  alignment: 'left',
+  priority: 100, // higher priority = further left
+);
+
+// Listen to taps
+context.toolbar.onTap((id, position) {
+  if (id == 'play_button') {
+    log('Play button tapped at ${position['x']}, ${position['y']}');
+  }
+});
+```
+
+### Terminal
+
+Spawn and control terminals:
+
+```dart
+// Create a new terminal
+final terminalId = await context.window.createTerminal(
+  name: 'My Terminal',
+  shellPath: '/bin/zsh',
+);
+
+// Send text to it
+await context.terminal.sendText(terminalId, 'echo "Hello from Plugin"');
+
+// Show it to the user
+await context.terminal.show(terminalId);
+
+// Listen to output
+context.terminal.onData((id, data) {
+  if (id == terminalId) {
+    log('Terminal Output: $data');
+  }
+});
+```
+
+### Output Channels
+
+Write logs to a dedicated panel:
+
+```dart
+// Create a channel
+final channelId = await context.window.createOutputChannel('My Plugin Logs');
+
+// Write to it
+await context.output.append(channelId, 'Starting build process...\n');
+
+// Show it
+await context.output.show(channelId);
 ```
 
 > **Note**: Always use the `log()` method for debugging. `stdout` is reserved for JSON-RPC communication between the IDE and your plugin.

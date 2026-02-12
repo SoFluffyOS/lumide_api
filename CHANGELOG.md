@@ -1,3 +1,18 @@
+# 0.3.0
+
+### New features
+
+- **Toolbar API** — Register items in the top toolbar via `LumideToolbar`. Supports icons, tooltips, alignment, and priority.
+- **Terminal API** — Create, control, and interact with integrated terminals via `LumideTerminal`.
+- **Output API** — Create and write to output channels via `LumideOutputChannel`.
+- **Editor Selection API** — `getSelectedText` and `replaceSelection` for easier text manipulation.
+- **Quick Pick Improvements** — `showQuickPick` now supports rich `QuickPickItem` objects with descriptions, details, and icons.
+- **Window Positioning** — `showQuickPick` accepts an optional anchor position.
+
+### Breaking changes
+
+- **Commands API** — `LumideCommands.registerCommand` callback now accepts an optional `Map<String, dynamic>? args` parameter. Existing callbacks must be updated.
+
 # 0.2.0+1
 
 ### New features
