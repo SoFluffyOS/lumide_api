@@ -254,6 +254,15 @@ class DemoPlugin extends LumidePlugin {
     if (args != null) {
       log('🖱️ Command executed with args: $args');
     }
+    Map<String, int>? position;
+    if (args != null && args.containsKey('position')) {
+      final pos = args['position'] as Map;
+      position = {
+        'x': (pos['x'] as num).toInt(),
+        'y': (pos['y'] as num).toInt(),
+      };
+    }
+
     try {
       final choice = await _context.window.showQuickPick(
         [
@@ -262,6 +271,7 @@ class DemoPlugin extends LumidePlugin {
           const QuickPickItem(label: 'Option C', picked: true),
         ],
         placeholder: 'Pick something...',
+        position: position,
       );
       log('🪟 Quick pick: ${choice?.label}');
 

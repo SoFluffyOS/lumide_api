@@ -225,6 +225,7 @@ abstract class LumideWindow {
     String? placeholder,
     bool matchOnDescription = true,
     bool matchOnDetail = true,
+    Map<String, int>? position,
   });
 
   /// Shows an input box.
