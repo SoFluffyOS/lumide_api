@@ -231,7 +231,7 @@ class DemoPlugin extends LumidePlugin {
   // 6. HTTP API (GET / POST) — called on demand, not on activation
   // ═══════════════════════════════════════════════════════════════════
 
-  Future<void> demonstrateHttp() async {
+  Future<void> demonstrateHttp([Map<String, dynamic>? args]) async {
     try {
       final getResp = await _context.http.get('https://httpbin.org/get');
       log('🌐 GET status: ${getResp.statusCode}');
@@ -250,7 +250,10 @@ class DemoPlugin extends LumidePlugin {
   // 7. Window API (showMessage, quickPick, inputBox)
   // ═══════════════════════════════════════════════════════════════════
 
-  Future<void> demonstrateWindowDialogs() async {
+  Future<void> demonstrateWindowDialogs([Map<String, dynamic>? args]) async {
+    if (args != null) {
+      log('🖱️ Command executed with args: $args');
+    }
     try {
       final choice = await _context.window.showQuickPick(
         [
@@ -304,7 +307,7 @@ class DemoPlugin extends LumidePlugin {
   // 8. Editor Manipulation (insertText, replaceText, setSelections)
   // ═══════════════════════════════════════════════════════════════════
 
-  Future<void> demonstrateEditorManipulation() async {
+  Future<void> demonstrateEditorManipulation([Map<String, dynamic>? args]) async {
     try {
       // insertText
       await _context.editor.insertText('// Inserted by Demo Plugin\n');

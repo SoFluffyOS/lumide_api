@@ -552,23 +552,24 @@ class _RpcCommands implements LumideCommands {
     _session.registerMethod(HostMethods.commandsExecute, (params) async {
       final data = params.value as Map<String, dynamic>;
       final commandId = data['id'] as String;
+      final args = data['args'] as Map<String, dynamic>?;
       final callback = _callbacks[commandId];
       if (callback != null) {
-        await callback();
+        await callback(args);
       }
       return null;
     });
   }
 
   final RpcSession _session;
-  final _callbacks = <String, Future<void> Function()>{};
+  final _callbacks = <String, Future<void> Function([Map<String, dynamic>?])>{};
 
   @override
   Future<void> registerCommand({
     required String id,
     required String title,
     String? category,
-    required Future<void> Function() callback,
+    required Future<void> Function([Map<String, dynamic>? args]) callback,
   }) async {
     _callbacks[id] = callback;
     await _session.sendRequest(PluginMethods.commandsRegister, {
