@@ -182,6 +182,10 @@ class QuickPickItem {
     this.detail,
     this.picked = false,
     this.payload,
+    this.iconPath,
+    this.icon,
+    this.enabled = true,
+    this.isSeparator = false,
   });
 
   /// The label to display.
@@ -199,6 +203,18 @@ class QuickPickItem {
   /// Custom payload to return when selected.
   final Object? payload;
 
+  /// Path to a custom icon (e.g. SVG).
+  final String? iconPath;
+
+  /// Name of a themed icon (e.g. 'search').
+  final String? icon;
+
+  /// Whether the item is enabled.
+  final bool enabled;
+
+  /// Whether the item is a separator.
+  final bool isSeparator;
+
   Map<String, dynamic> toJson() {
     return {
       'label': label,
@@ -206,6 +222,10 @@ class QuickPickItem {
       if (detail != null) 'detail': detail,
       if (picked) 'picked': picked,
       if (payload != null) 'payload': payload,
+      if (iconPath != null) 'iconPath': iconPath,
+      if (icon != null) 'icon': icon,
+      if (!enabled) 'enabled': enabled,
+      if (isSeparator) 'isSeparator': isSeparator,
     };
   }
 }
@@ -433,6 +453,7 @@ abstract class LumideStatusBar {
     String? command,
     String? color,
     String? iconName,
+    String? iconPath,
     String alignment,
     int priority,
   });
@@ -445,6 +466,7 @@ abstract class LumideStatusBar {
     String? command,
     String? color,
     String? iconName,
+    String? iconPath,
   });
 
   /// Removes a status bar item.
