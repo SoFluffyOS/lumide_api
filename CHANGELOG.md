@@ -1,3 +1,9 @@
+# 0.4.0
+
+### New features
+
+- **Structured Logging** — `LumideOutputChannel.appendLog` allows appending structured log records (`LumideLogRecord`) with levels, error details, and stack traces.
+
 # 0.3.0
 
 ### New features
