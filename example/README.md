@@ -343,85 +343,54 @@ await context.statusBar.createItem(
   alignment: 'left',
   priority: 10,
 );
-
-// Update the text dynamically
-await context.statusBar.updateItem('status', text: '⏳ Working...');
-
-// Hide temporarily
-await context.statusBar.hide('status');
-
-// Show again
-await context.statusBar.show('status');
-
-// Remove when no longer needed
-await context.statusBar.disposeItem('status');
 ```
 
-> Status bar items are automatically cleaned up when the plugin is stopped.
+### Toolbar — `context.toolbar`
+
+| Method | Description |
+|--------|-------------|
+| `registerItem({id, icon, tooltip?, alignment?, priority?})` | Adds an item to the toolbar |
+| `onTap(callback)` | Called when a toolbar item is tapped |
+
+```dart
+await context.toolbar.registerItem(
+  id: 'run_app',
+  icon: 'play',
+  tooltip: 'Run App',
+  alignment: 'right',
+);
+
+context.toolbar.onTap((id, position) {
+  if (id == 'run_app') {
+    log('Run tapped!');
+  }
+});
+```
+
+### Terminal — `context.terminal`
+
+| Method | Description |
+|--------|-------------|
+| `create({name?, shellPath?, shellArgs?})` | Creates a new terminal |
+| `sendText(id, text, {addNewLine?})` | Sends text to a terminal |
+| `show(id, {preserveFocus?})` | Focuses a terminal |
+| `dispose(id)` | Closes a terminal |
+| `onData(callback)` | Called when terminal emits data |
+
+### Output — `context.output`
+
+| Method | Description |
+|--------|-------------|
+| `createChannel(name)` | Creates a new output channel |
+| `append(id, value)` | Appends text to a channel |
+| `show(id, {preserveFocus?})` | Shows the output panel |
+| `disposeChannel(id)` | Removes a channel |
 
 ---
 
 ## Manifest Reference (`plugin.yaml`)
 
-```yaml
-# ─── Required ───────────────────────────────────────────────
-id: unique_plugin_id          # must be unique across all plugins
-name: 'Human-Readable Name'
-description: 'One-line description.'
-version: '1.0.0'             # semver
-entry_point: 'bin/main.dart'  # relative path to main file
-
-# ─── Optional ───────────────────────────────────────────────
-author: 'Author Name'
-license: 'MIT'
-
-# ─── Permissions ────────────────────────────────────────────
-permissions:
-  - fileSystem:               # glob patterns for file access
-      - '${workspace}/**'     # all files in workspace
-      - '/tmp/my_plugin/**'   # specific external path
-  - network:                  # URL patterns for HTTP access
-      - 'https://api.example.com/*'
-      - 'https://*.github.com/*'
-  - shell:                    # allowed shell commands
-      - git
-      - dart
-      - echo
-
-# ─── Configuration ──────────────────────────────────────────
-configuration:
-  - key: my_plugin.settingName
-    type: string              # string | boolean | integer | number | filePath
-    description: 'What this setting controls.'
-    default: 'default value'
-
-  - key: my_plugin.enabled
-    type: boolean
-    description: 'Enable or disable the feature.'
-    default: true
-
-  - key: my_plugin.mode
-    type: string
-    description: 'Operating mode.'
-    default: 'auto'
-    enum:                     # renders as a dropdown in Settings UI
-      - auto
-      - manual
-      - disabled
-
-# ─── Contributions ──────────────────────────────────────────
-contributes:
-  commands:                   # appear in Command Palette (Cmd+Shift+P)
-    - id: my_plugin.doThing
-      title: 'My Plugin: Do Thing'
-      category: 'My Plugin'  # optional, groups commands in palette
-
-  keybindings:                # shortcut keys for commands
-    - command: my_plugin.doThing
-      key: 'ctrl+shift+d'    # format: "mod+mod+key"
-```
-
----
+(See main `README.md` for full reference)
 
 ## Tips & Best Practices
 
