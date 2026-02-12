@@ -87,6 +87,9 @@ abstract class LumideContext {
 
   /// Status bar operations.
   LumideStatusBar get statusBar;
+
+  /// Toolbar operations.
+  LumideToolbar get toolbar;
 }
 
 /// File system operations.
@@ -169,16 +172,69 @@ class ProcessResult {
   final String stderr;
 }
 
+/// Message types for window messages.
+enum MessageType { info, warning, error }
+
+/// An item in a quick pick list.
+class QuickPickItem {
+  const QuickPickItem({
+    required this.label,
+    this.description,
+    this.detail,
+    this.picked = false,
+    this.payload,
+  });
+
+  /// The label to display.
+  final String label;
+
+  /// A short description to display below the label.
+  final String? description;
+
+  /// A longer description to display (often to the right).
+  final String? detail;
+
+  /// Whether this item is selected by default.
+  final bool picked;
+
+  /// Custom payload to return when selected.
+  final Object? payload;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'label': label,
+      if (description != null) 'description': description,
+      if (detail != null) 'detail': detail,
+      if (picked) 'picked': picked,
+      if (payload != null) 'payload': payload,
+    };
+  }
+}
+
 /// Window/UI operations.
 abstract class LumideWindow {
   /// Shows a message to the user.
   Future<void> showMessage(String message, {MessageType type});
 
   /// Shows a quick pick dialog.
-  Future<String?> showQuickPick(List<String> items, {String? placeholder});
+  /// 
+  /// Returns the selected [QuickPickItem], or `null` if dismissed.
+  /// If [items] contains simple strings, they are wrapped in [QuickPickItem].
+  Future<QuickPickItem?> showQuickPick(
+    List<QuickPickItem> items, {
+    String? placeholder,
+    bool matchOnDescription = true,
+    bool matchOnDetail = true,
+  });
 
   /// Shows an input box.
-  Future<String?> showInputBox({String? prompt, String? value});
+  Future<String?> showInputBox({
+    String? prompt, 
+    String? value, 
+    String? placeHolder, 
+    bool password = false,
+    String? title,
+  });
 
   /// Creates a new output channel.
   Future<LumideOutputChannel> createOutputChannel(String name);
@@ -226,9 +282,6 @@ abstract class LumideOutputChannel {
   /// Disposes the channel.
   Future<void> dispose();
 }
-
-/// Message types for window messages.
-enum MessageType { info, warning, error }
 
 /// Editor operations.
 abstract class LumideEditor {
@@ -391,4 +444,26 @@ abstract class LumideStatusBar {
 
   /// Hides a status bar item without removing it.
   Future<void> hide(String id);
+}
+
+/// Toolbar operations API.
+abstract class LumideToolbar {
+  /// Registers a toolbar item.
+  ///
+  /// [id] must be unique for this plugin.
+  /// [icon] is the name of the icon (e.g. 'play', 'stop', 'refresh').
+  /// [tooltip] is the text shown on hover.
+  Future<void> registerItem({
+    required String id,
+    required String icon,
+    String? tooltip,
+  });
+
+  /// Unregisters a toolbar item.
+  Future<void> unregisterItem(String id);
+
+  /// Registers a callback for when a toolbar item is tapped.
+  ///
+  /// The callback receives the [id] of the tapped item.
+  void onTap(void Function(String id) callback);
 }

@@ -33,6 +33,9 @@ class RpcLumideContext implements LumideContext {
 
   @override
   late final LumideStatusBar statusBar = _RpcStatusBar(_session);
+  
+  @override
+  late final LumideToolbar toolbar = _RpcToolbar(_session);
 }
 
 class _RpcFileSystem implements LumideFileSystem {
@@ -208,22 +211,46 @@ class _RpcWindow implements LumideWindow {
   }
 
   @override
-  Future<String?> showQuickPick(List<String> items,
-      {String? placeholder}) async {
+  Future<QuickPickItem?> showQuickPick(
+    List<QuickPickItem> items, {
+    String? placeholder,
+    bool matchOnDescription = true,
+    bool matchOnDetail = true,
+  }) async {
     final result =
         await _session.sendRequest(PluginMethods.windowShowQuickPick, {
-      'items': items,
-      if (placeholder != null) 'placeholder': placeholder,
+      'items': items.map((e) => e.toJson()).toList(),
+      if (placeholder != null) 'placeHolder': placeholder,
+      'matchOnDescription': matchOnDescription,
+      'matchOnDetail': matchOnDetail,
     });
-    return result as String?;
+    
+    if (result == null) return null;
+
+    if (result is Map) {
+       return QuickPickItem(
+         label: result['label'] ?? '',
+         payload: result,
+       );
+    }
+    return QuickPickItem(label: result.toString(), payload: result);
   }
 
   @override
-  Future<String?> showInputBox({String? prompt, String? value}) async {
+  Future<String?> showInputBox({
+    String? prompt, 
+    String? value, 
+    String? placeHolder, 
+    bool password = false,
+    String? title,
+  }) async {
     final result =
         await _session.sendRequest(PluginMethods.windowShowInputBox, {
       if (prompt != null) 'prompt': prompt,
       if (value != null) 'value': value,
+      if (placeHolder != null) 'placeHolder': placeHolder,
+      'password': password,
+      if (title != null) 'title': title,
     });
     return result as String?;
   }
@@ -617,5 +644,43 @@ class _RpcStatusBar implements LumideStatusBar {
       'id': id,
       'visible': false,
     });
+  }
+}
+
+class _RpcToolbar implements LumideToolbar {
+  _RpcToolbar(this._session) {
+    _session.registerMethod(PluginMethods.toolbarOnTap, (params) async {
+       final args = params.value as Map<String, dynamic>;
+       final id = args['id'] as String;
+       for (final cb in _onTapCallbacks) {
+         cb(id);
+       }
+    });
+  }
+
+  final RpcSession _session;
+  final _onTapCallbacks = <void Function(String)>[];
+
+  @override
+  Future<void> registerItem({
+    required String id,
+    required String icon,
+    String? tooltip,
+  }) async {
+    await _session.sendRequest(PluginMethods.toolbarRegisterItem, {
+      'id': id,
+      'icon': icon,
+      if (tooltip != null) 'tooltip': tooltip,
+    });
+  }
+
+  @override
+  Future<void> unregisterItem(String id) async {
+    await _session.sendRequest(PluginMethods.toolbarUnregisterItem, {'id': id});
+  }
+
+  @override
+  void onTap(void Function(String id) callback) {
+    _onTapCallbacks.add(callback);
   }
 }
