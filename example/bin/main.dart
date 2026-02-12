@@ -136,13 +136,26 @@ class TextToolsPlugin extends LumidePlugin {
           payload: 'ls',
         ),
         const QuickPickItem(
-            label: 'Run System Command',
-            description: 'Run "date" (Shell API)',
-            payload: 'date'),
+          label: 'Run System Command',
+          description: 'Run "date" (Shell API)',
+          payload: 'date',
+        ),
+        const QuickPickItem(
+          label: 'Open Terminal',
+          description: 'Create and show a new terminal',
+          payload: 'term',
+        ),
+        const QuickPickItem(
+          label: 'Log to Output',
+          description: 'Write to an output channel',
+          payload: 'log',
+        ),
       ],
       placeholder: 'Select a tool...',
-      position: position, // Show menu at the toolbar button
+      position: position,
     );
+
+    log('Selected tool: ${choice?.label} (payload: ${choice?.payload})');
 
     if (choice == null) return;
 
@@ -159,6 +172,10 @@ class TextToolsPlugin extends LumidePlugin {
         await _listFiles();
       case 'date':
         await _runDateCommand();
+      case 'term':
+        await _demonstrateTerminal();
+      case 'log':
+        await _demonstrateOutput();
     }
   }
 
@@ -167,9 +184,18 @@ class TextToolsPlugin extends LumidePlugin {
   // ═══════════════════════════════════════════════════════════════════
 
   Future<void> _transformText(String Function(String) transformer) async {
-    await _context.editor.insertText(transformer('Hello Lumide'));
-    log('✍️ Inserted transformed text');
+    final text = await _context.editor.getSelectedText();
+    if (text == null || text.isEmpty) {
+      await _context.window.showMessage('Select some text first', type: MessageType.warning);
+      return;
+    }
+
+    final newText = transformer(text);
+    await _context.editor.replaceSelection(newText);
+    log('✨ Transformed text');
   }
+
+
 
   Future<void> _insertLoremIpsum() async {
     try {
@@ -186,7 +212,7 @@ class TextToolsPlugin extends LumidePlugin {
           log('✍️ Inserted Lorem Ipsum');
         }
       } else {
-        await _context.window.showMessage('Failed to fetch text', type: MessageType.error);
+        await _context.window.showMessage('Failed to fetch text: ${response.statusCode}', type: MessageType.error);
       }
     } catch (e) {
       log('⚠ HTTP Error: $e');
@@ -214,7 +240,7 @@ class TextToolsPlugin extends LumidePlugin {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 4. System Operations (Shell & FS)
+  // 4. System Operations (Shell, FS, Terminal, Output)
   // ═══════════════════════════════════════════════════════════════════
 
   Future<void> _listFiles() async {
@@ -236,6 +262,23 @@ class TextToolsPlugin extends LumidePlugin {
     final result = await _context.shell.run('date', []);
     await _context.window.showMessage('System Date: ${result.stdout.trim()}');
   }
+
+  Future<void> _demonstrateTerminal() async {
+    final terminal = await _context.window.createTerminal(
+      name: 'Demo Terminal',
+    );
+    await terminal.show();
+    await terminal.sendText('echo "Hello from Text Tools Plugin!"');
+  }
+
+  Future<void> _demonstrateOutput() async {
+    final channel = await _context.window.createOutputChannel('Text Tools Log');
+    await channel.show();
+    await channel.appendLine('Text Tools Plugin Log initialized.');
+    await channel.appendLine('Timestamp: ${DateTime.now()}');
+    await channel.appendLine('Ready to log events...');
+  }
+
 
   // ═══════════════════════════════════════════════════════════════════
   // 5. Status Bar & Commands

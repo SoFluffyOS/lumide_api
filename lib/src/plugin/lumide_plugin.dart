@@ -325,6 +325,14 @@ abstract class LumideEditor {
   /// The callback receives the URI of the newly active document, or `null`
   /// if no document is active.
   void onDidChangeActiveDocument(void Function(String? uri) callback);
+
+  /// Gets the text currently selected in the active editor.
+  ///
+  /// Returns `null` if no editor is active or no selection is made (though usually returns empty string if just cursor).
+  Future<String?> getSelectedText();
+
+  /// Replaces the current selection with [text].
+  Future<void> replaceSelection(String text);
 }
 
 /// Workspace operations (configuration, project context).

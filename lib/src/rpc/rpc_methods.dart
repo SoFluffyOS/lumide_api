@@ -75,6 +75,8 @@ class PluginMethods {
   static const editorReplaceText = 'editor/replaceText';
   static const editorGetSelections = 'editor/getSelections';
   static const editorSetSelections = 'editor/setSelections';
+  static const editorGetSelectedText = 'editor/getSelectedText';
+  static const editorReplaceSelection = 'editor/replaceSelection';
 
   // Output Channels
   static const windowCreateOutputChannel = 'window/createOutputChannel';
