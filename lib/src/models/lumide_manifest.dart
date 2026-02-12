@@ -18,6 +18,7 @@ class LumideManifest {
     this.configuration = const [],
     this.commands = const [],
     this.keybindings = const [],
+    this.activationEvents = const [],
     this.iconTheme,
     this.colorTheme,
   });
@@ -144,6 +145,13 @@ class LumideManifest {
       }
     }
 
+    final activationEvents = <String>[];
+    if (doc['activation_events'] case final YamlList events) {
+      for (final event in events) {
+        activationEvents.add(event.toString());
+      }
+    }
+
     return LumideManifest(
       id: id,
       name: name,
@@ -157,6 +165,7 @@ class LumideManifest {
       keybindings: keybindings,
       iconTheme: doc['icon_theme']?.toString(),
       colorTheme: doc['color_theme']?.toString(),
+      activationEvents: activationEvents,
     );
   }
 
@@ -180,6 +189,9 @@ class LumideManifest {
 
   /// Requested UI capabilities (e.g., 'webview', 'treeview').
   final List<String> uiCapabilities;
+
+  /// Events that trigger plugin activation (e.g., 'workspaceContains:pubspec.yaml').
+  final List<String> activationEvents;
 
   /// Configuration properties exposed by this plugin.
   final List<ConfigurationProperty> configuration;
