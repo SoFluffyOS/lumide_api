@@ -1,8 +1,7 @@
 /// LumideContext implementation using RPC.
 library;
 
-import 'package:lumide_api/src/plugin/lumide_plugin.dart';
-import 'package:lumide_api/src/rpc/rpc.dart';
+import 'package:lumide_api/lumide_api.dart';
 
 /// RPC-backed implementation of [LumideContext].
 class RpcLumideContext implements LumideContext {
@@ -356,6 +355,14 @@ class _RpcOutputChannel implements LumideOutputChannel {
     await _session.sendRequest(PluginMethods.windowAppendOutput, {
       'id': _id,
       'value': '$value\n',
+    });
+  }
+
+  @override
+  Future<void> appendLog(LumideLogRecord record) async {
+    await _session.sendRequest(PluginMethods.windowAppendLog, {
+      'id': _id,
+      'record': record.toJson(),
     });
   }
 

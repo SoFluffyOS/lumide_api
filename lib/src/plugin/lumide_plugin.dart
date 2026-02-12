@@ -4,8 +4,7 @@ library;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:lumide_api/src/plugin/lumide_context.dart';
-import 'package:lumide_api/src/rpc/rpc.dart';
+import 'package:lumide_api/lumide_api.dart';
 
 /// Abstract base class for external Lumide plugins.
 ///
@@ -276,6 +275,9 @@ abstract class LumideOutputChannel {
 
   /// Appends a line of text to the channel.
   Future<void> appendLine(String value);
+
+  /// Appends a structured log record to the channel.
+  Future<void> appendLog(LumideLogRecord record);
 
   /// Shows the channel in the UI.
   Future<void> show({bool preserveFocus = false});
