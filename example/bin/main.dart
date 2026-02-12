@@ -55,7 +55,10 @@ class DemoPlugin extends LumidePlugin {
     // ── 7. Status Bar API: create status bar items ─────────────────
     await _createStatusBarItems();
 
-    // ── 8. Editor event listeners (event-driven, no polling) ────────
+    // ── 8. Toolbar API ──────────────────────────────────────────────
+    await _demonstrateToolbar();
+
+    // ── 9. Editor event listeners (event-driven, no polling) ────────
     _context.editor.onDidChangeSelections(_onSelectionsChanged);
     _context.editor.onDidChangeActiveDocument(_onActiveDocumentChanged);
     _context.workspace.onDidSaveTextDocument(_onDocumentSaved);
@@ -250,18 +253,50 @@ class DemoPlugin extends LumidePlugin {
   Future<void> demonstrateWindowDialogs() async {
     try {
       final choice = await _context.window.showQuickPick(
-        ['Option A', 'Option B', 'Option C'],
+        [
+          const QuickPickItem(label: 'Option A', description: 'Description A'),
+          const QuickPickItem(label: 'Option B', detail: 'Detail B'),
+          const QuickPickItem(label: 'Option C', picked: true),
+        ],
         placeholder: 'Pick something...',
       );
-      log('🪟 Quick pick: $choice');
+      log('🪟 Quick pick: ${choice?.label}');
 
       final input = await _context.window.showInputBox(
         prompt: 'Enter something:',
         value: 'default',
+        placeHolder: 'Type here...',
+        title: 'Input Demo',
       );
       log('🪟 Input box: $input');
     } catch (error) {
       log('⚠ Window demo: $error');
+    }
+  }
+
+  // ... (existing code) ...
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 11. Toolbar API (registerItem, unregisterItem, onTap)
+  // ═══════════════════════════════════════════════════════════════════
+
+  Future<void> _demonstrateToolbar() async {
+    try {
+      await _context.toolbar.registerItem(
+        id: 'demo_action',
+        icon: 'play',
+        tooltip: 'Run Demo Action',
+      );
+
+      _context.toolbar.onTap((id) {
+        if (id == 'demo_action') {
+          demonstrateWindowDialogs();
+        }
+      });
+      
+      log('🛠️ Registered toolbar item');
+    } catch (error) {
+     log('⚠ Toolbar demo: $error');
     }
   }
 
@@ -343,7 +378,28 @@ class DemoPlugin extends LumidePlugin {
         },
       );
 
-      log('🎯 Registered 4 commands');
+      await _context.commands.registerCommand(
+        id: 'lumide_demo_plugin.showWindowDemo',
+        title: 'Demo: Window Dialogs (Quick Pick, Input)',
+        category: 'Demo Plugin',
+        callback: demonstrateWindowDialogs,
+      );
+
+      await _context.commands.registerCommand(
+        id: 'lumide_demo_plugin.showHttpDemo',
+        title: 'Demo: HTTP Requests',
+        category: 'Demo Plugin',
+        callback: demonstrateHttp,
+      );
+
+      await _context.commands.registerCommand(
+        id: 'lumide_demo_plugin.editorManipulation',
+        title: 'Demo: Editor Manipulation',
+        category: 'Demo Plugin',
+        callback: demonstrateEditorManipulation,
+      );
+
+      log('🎯 Registered demo commands');
     } catch (error) {
       log('⚠ Commands demo: $error');
     }
