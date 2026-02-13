@@ -14,6 +14,9 @@ class HostMethods {
   /// Plugin is ready.
   static const ready = 'ready';
 
+  /// Get process information (memory, etc).
+  static const getProcessInfo = 'getProcessInfo';
+
   // Document Events (IDE → Plugin notifications)
   static const didOpenTextDocument = 'workspace/didOpenTextDocument';
   static const didCloseTextDocument = 'workspace/didCloseTextDocument';

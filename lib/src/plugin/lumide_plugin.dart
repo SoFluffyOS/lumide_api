@@ -54,6 +54,12 @@ abstract class LumidePlugin {
       return null;
     });
 
+    session.registerMethod(HostMethods.getProcessInfo, (params) async {
+      return {
+        'rss': ProcessInfo.currentRss,
+      };
+    });
+
     await session.listen();
   }
 }
