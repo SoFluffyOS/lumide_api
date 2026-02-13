@@ -263,7 +263,10 @@ abstract class LumideWindow {
   });
 
   /// Creates a new output channel.
-  Future<LumideOutputChannel> createOutputChannel(String name);
+  ///
+  /// [maxEntries] limits the number of log entries kept in memory (default 5000 in IDE).
+  Future<LumideOutputChannel> createOutputChannel(String name,
+      {int? maxEntries});
 
   /// Creates a new terminal.
   ///
@@ -307,6 +310,9 @@ abstract class LumideOutputChannel {
 
   /// Appends a structured log record to the channel.
   Future<void> appendLog(LumideLogRecord record);
+
+  /// Clears the output channel.
+  Future<void> clear();
 
   /// Shows the channel in the UI.
   Future<void> show({bool preserveFocus = false});

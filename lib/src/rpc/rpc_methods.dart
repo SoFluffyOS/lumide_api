@@ -86,6 +86,7 @@ class PluginMethods {
   static const windowCreateOutputChannel = 'window/createOutputChannel';
   static const windowAppendOutput = 'window/appendOutput';
   static const windowAppendLog = 'window/appendLog';
+  static const windowClearOutput = 'window/clearOutput';
   static const windowShowOutput = 'window/showOutput';
   static const windowDisposeOutputChannel = 'window/disposeOutputChannel';
 

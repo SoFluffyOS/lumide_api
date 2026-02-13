@@ -270,9 +270,13 @@ class _RpcWindow implements LumideWindow {
   }
 
   @override
-  Future<LumideOutputChannel> createOutputChannel(String name) async {
-    final result = await _session
-        .sendRequest(PluginMethods.windowCreateOutputChannel, {'name': name});
+  Future<LumideOutputChannel> createOutputChannel(String name,
+      {int? maxEntries}) async {
+    final result =
+        await _session.sendRequest(PluginMethods.windowCreateOutputChannel, {
+      'name': name,
+      if (maxEntries != null) 'maxEntries': maxEntries,
+    });
     final id = result as String;
     return _RpcOutputChannel(id, _session);
   }
@@ -372,6 +376,11 @@ class _RpcOutputChannel implements LumideOutputChannel {
       'id': _id,
       'record': record.toJson(),
     });
+  }
+
+  @override
+  Future<void> clear() async {
+    await _session.sendRequest(PluginMethods.windowClearOutput, {'id': _id});
   }
 
   @override
