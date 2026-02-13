@@ -293,6 +293,14 @@ class _RpcWindow implements LumideWindow {
     _terminals[id] = terminal;
     return terminal;
   }
+
+  @override
+  Future<bool> openUrl(String url) async {
+    final result = await _session.sendRequest(PluginMethods.windowOpenUrl, {
+      'url': url,
+    });
+    return result as bool;
+  }
 }
 
 class _RpcTerminal implements LumideTerminal {

@@ -71,6 +71,7 @@ class PluginMethods {
   static const windowShowMessage = 'window/showMessage';
   static const windowShowQuickPick = 'window/showQuickPick';
   static const windowShowInputBox = 'window/showInputBox';
+  static const windowOpenUrl = 'window/openUrl';
 
   // Editor
   static const editorGetActiveDocument = 'editor/getActiveDocument';

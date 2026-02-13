@@ -275,6 +275,9 @@ abstract class LumideWindow {
     String? shellPath,
     List<String>? shellArgs,
   });
+
+  /// Opens an external URL in the default browser.
+  Future<bool> openUrl(String url);
 }
 
 /// A terminal instance in the IDE.
