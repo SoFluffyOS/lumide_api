@@ -1,3 +1,11 @@
+# 0.6.0
+
+### New features
+
+- **WebViews** — Create and manage custom UI panels via `window.createWebviewPanel`.
+- **URL Opening** — Open external URLs via `window.openUrl`.
+- **Output Control** — Added `LumideOutputChannel.clear()` to clear logs programmatically.
+
 # 0.5.0
 
 ### New features
