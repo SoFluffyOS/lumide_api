@@ -26,7 +26,7 @@ Add `lumide_api` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lumide_api: ^0.3.0
+  lumide_api: ^0.6.0
 ```
 
 ## Basic Usage
@@ -60,6 +60,7 @@ class MyPlugin extends LumidePlugin {
     );
   }
 }
+```
 
 ### Activation Events
 
@@ -110,7 +111,7 @@ Spawn and control terminals:
 // Create a new terminal
 final terminalId = await context.window.createTerminal(
   name: 'My Terminal',
-  shellPath: '/bin/zsh',
+  shellPath: '/bin/zsh', // Optional: defaults to system shell
 );
 
 // Send text to it
@@ -151,6 +152,30 @@ await context.output.appendLog(
     stackTrace: '...',
   ),
 );
+
+// Clear logs
+await context.output.clear(channelId);
+```
+
+### WebViews
+
+Create custom UI panels using WebViews:
+
+```dart
+// Create a webview panel
+final panelId = await context.window.createWebviewPanel(
+  title: 'My Dashboard',
+  viewType: 'my_plugin.dashboard',
+  options: {'url': 'https://lumide.dev'},
+);
+```
+
+### Utilities
+
+Open external URLs:
+
+```dart
+await context.window.openUrl('https://lumide.dev');
 ```
 
 > **Note**: Always use the `log()` method for debugging. `stdout` is reserved for JSON-RPC communication between the IDE and your plugin.
