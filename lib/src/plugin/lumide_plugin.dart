@@ -281,6 +281,13 @@ abstract class LumideWindow {
 
   /// Opens an external URL in the default browser.
   Future<bool> openUrl(String url);
+
+  /// Creates and shows a webview panel.
+  Future<LumideWebviewPanel> createWebviewPanel(
+    String viewType,
+    String title, {
+    Map<String, dynamic>? options,
+  });
 }
 
 /// A terminal instance in the IDE.
@@ -318,6 +325,18 @@ abstract class LumideOutputChannel {
   Future<void> show({bool preserveFocus = false});
 
   /// Disposes the channel.
+  Future<void> dispose();
+}
+
+/// A webview panel.
+abstract class LumideWebviewPanel {
+  /// Posts a message to the webview.
+  Future<void> postMessage(Object message);
+
+  /// Registers a callback for messages received from the webview.
+  void onDidReceiveMessage(void Function(Object message) callback);
+
+  /// Disposes the webview panel.
   Future<void> dispose();
 }
 

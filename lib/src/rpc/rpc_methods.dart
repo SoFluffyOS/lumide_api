@@ -72,6 +72,12 @@ class PluginMethods {
   static const windowShowQuickPick = 'window/showQuickPick';
   static const windowShowInputBox = 'window/showInputBox';
   static const windowOpenUrl = 'window/openUrl';
+  static const windowCreateWebviewPanel = 'window/createWebviewPanel';
+
+  // Webview API
+  static const webviewPostMessage = 'webview/postMessage';
+  static const webviewOnDidReceiveMessage = 'webview/onDidReceiveMessage';
+  static const webviewDispose = 'webview/dispose';
 
   // Editor
   static const editorGetActiveDocument = 'editor/getActiveDocument';

@@ -1,6 +1,8 @@
 /// LumideContext implementation using RPC.
 library;
 
+import 'dart:async';
+
 import 'package:lumide_api/lumide_api.dart';
 
 /// RPC-backed implementation of [LumideContext].
@@ -304,6 +306,58 @@ class _RpcWindow implements LumideWindow {
       'url': url,
     });
     return result as bool;
+  }
+
+  @override
+  Future<LumideWebviewPanel> createWebviewPanel(
+    String viewType,
+    String title, {
+    Map<String, dynamic>? options,
+  }) async {
+    final result =
+        await _session.sendRequest(PluginMethods.windowCreateWebviewPanel, {
+      'viewType': viewType,
+      'title': title,
+      if (options != null) 'options': options,
+    });
+    final id = result as String;
+    return _RpcWebviewPanel(id, _session);
+  }
+}
+
+class _RpcWebviewPanel implements LumideWebviewPanel {
+  _RpcWebviewPanel(this._id, this._session) {
+    _session.registerNotificationHandler(
+      PluginMethods.webviewOnDidReceiveMessage,
+      (params) {
+        if (params['id'] == _id) {
+          _messageController.add(params['message']);
+        }
+      },
+    );
+  }
+
+  final String _id;
+  final RpcSession _session;
+  final _messageController = StreamController<Object>.broadcast();
+
+  @override
+  Future<void> postMessage(Object message) async {
+    await _session.sendRequest(PluginMethods.webviewPostMessage, {
+      'id': _id,
+      'message': message,
+    });
+  }
+
+  @override
+  void onDidReceiveMessage(void Function(Object message) callback) {
+    _messageController.stream.listen(callback);
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _session.sendRequest(PluginMethods.webviewDispose, {'id': _id});
+    await _messageController.close();
   }
 }
 
