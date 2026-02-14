@@ -18,6 +18,11 @@ class RpcSession {
     _peer.registerMethod(name, callback);
   }
 
+  /// Registers a notification handler.
+  void registerNotificationHandler(String name, Function callback) {
+    _peer.registerMethod(name, callback);
+  }
+
   /// Sends a request and waits for response.
   Future<dynamic> sendRequest(String method, [dynamic params]) {
     return _peer.sendRequest(method, params);
