@@ -83,7 +83,7 @@ class LumideManifest {
     // Extract id with fallback to name
     final id = doc['id']?.toString() ?? name;
 
-    // Extract version with fallback
+    // Extract version (optional, can be overridden by loaders)
     final version = doc['version']?.toString() ?? '0.0.0';
 
     // Extract entry point with fallback
@@ -207,6 +207,39 @@ class LumideManifest {
 
   /// Keybindings contributed by this plugin.
   final List<ManifestKeybinding> keybindings;
+
+  /// Creates a copy of this manifest with some fields replaced.
+  LumideManifest copyWith({
+    String? id,
+    String? name,
+    String? version,
+    String? description,
+    String? entryPoint,
+    List<Permission>? permissions,
+    List<String>? uiCapabilities,
+    List<String>? activationEvents,
+    List<ConfigurationProperty>? configuration,
+    String? iconTheme,
+    String? colorTheme,
+    List<ManifestCommand>? commands,
+    List<ManifestKeybinding>? keybindings,
+  }) {
+    return LumideManifest(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      version: version ?? this.version,
+      description: description ?? this.description,
+      entryPoint: entryPoint ?? this.entryPoint,
+      permissions: permissions ?? this.permissions,
+      uiCapabilities: uiCapabilities ?? this.uiCapabilities,
+      activationEvents: activationEvents ?? this.activationEvents,
+      configuration: configuration ?? this.configuration,
+      iconTheme: iconTheme ?? this.iconTheme,
+      colorTheme: colorTheme ?? this.colorTheme,
+      commands: commands ?? this.commands,
+      keybindings: keybindings ?? this.keybindings,
+    );
+  }
 }
 
 /// A command declared in a plugin manifest.
