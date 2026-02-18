@@ -19,8 +19,8 @@ class LumideManifest {
     this.commands = const [],
     this.keybindings = const [],
     this.activationEvents = const [],
-    this.iconTheme,
-    this.colorTheme,
+    this.themes = const [],
+    this.iconThemes = const [],
   });
 
   /// Parses a manifest from YAML content.
@@ -145,6 +145,76 @@ class LumideManifest {
       }
     }
 
+    // Parse contributes.themes
+    final themes = <ManifestTheme>[];
+    if (contributes case final YamlMap contributesMap) {
+      if (contributesMap['themes'] case final YamlList themeList) {
+        for (final item in themeList) {
+          if (item case final YamlMap themeMap) {
+            final themeId = themeMap['id']?.toString();
+            final label = themeMap['label']?.toString();
+            final uiTheme = themeMap['uiTheme']?.toString();
+            final path = themeMap['path']?.toString();
+            if (themeId != null &&
+                label != null &&
+                uiTheme != null &&
+                path != null) {
+              themes.add(ManifestTheme(
+                id: themeId,
+                label: label,
+                uiTheme: uiTheme,
+                path: path,
+              ));
+            }
+          }
+        }
+      }
+    }
+
+    // Backward compat: convert legacy top-level color_theme to single-item list
+    if (themes.isEmpty) {
+      if (doc['color_theme']?.toString() case final String legacyPath) {
+        themes.add(ManifestTheme(
+          id: '$id.color-theme',
+          label: name,
+          uiTheme: 'dark',
+          path: legacyPath,
+        ));
+      }
+    }
+
+    // Parse contributes.iconThemes
+    final iconThemes = <ManifestIconTheme>[];
+    if (contributes case final YamlMap contributesMap) {
+      if (contributesMap['iconThemes'] case final YamlList iconThemeList) {
+        for (final item in iconThemeList) {
+          if (item case final YamlMap iconThemeMap) {
+            final themeId = iconThemeMap['id']?.toString();
+            final label = iconThemeMap['label']?.toString();
+            final path = iconThemeMap['path']?.toString();
+            if (themeId != null && label != null && path != null) {
+              iconThemes.add(ManifestIconTheme(
+                id: themeId,
+                label: label,
+                path: path,
+              ));
+            }
+          }
+        }
+      }
+    }
+
+    // Backward compat: convert legacy top-level icon_theme to single-item list
+    if (iconThemes.isEmpty) {
+      if (doc['icon_theme']?.toString() case final String legacyPath) {
+        iconThemes.add(ManifestIconTheme(
+          id: '$id.icon-theme',
+          label: name,
+          path: legacyPath,
+        ));
+      }
+    }
+
     final activationEvents = <String>[];
     if (doc['activation_events'] case final YamlList events) {
       for (final event in events) {
@@ -163,8 +233,8 @@ class LumideManifest {
       configuration: configuration,
       commands: commands,
       keybindings: keybindings,
-      iconTheme: doc['icon_theme']?.toString(),
-      colorTheme: doc['color_theme']?.toString(),
+      themes: themes,
+      iconThemes: iconThemes,
       activationEvents: activationEvents,
     );
   }
@@ -196,11 +266,11 @@ class LumideManifest {
   /// Configuration properties exposed by this plugin.
   final List<ConfigurationProperty> configuration;
 
-  /// Path to icon theme JSON file (relative to plugin directory).
-  final String? iconTheme;
+  /// Color themes contributed by this plugin.
+  final List<ManifestTheme> themes;
 
-  /// Path to color theme JSON file (relative to plugin directory).
-  final String? colorTheme;
+  /// Icon themes contributed by this plugin.
+  final List<ManifestIconTheme> iconThemes;
 
   /// Commands contributed by this plugin.
   final List<ManifestCommand> commands;
@@ -219,8 +289,8 @@ class LumideManifest {
     List<String>? uiCapabilities,
     List<String>? activationEvents,
     List<ConfigurationProperty>? configuration,
-    String? iconTheme,
-    String? colorTheme,
+    List<ManifestTheme>? themes,
+    List<ManifestIconTheme>? iconThemes,
     List<ManifestCommand>? commands,
     List<ManifestKeybinding>? keybindings,
   }) {
@@ -234,8 +304,8 @@ class LumideManifest {
       uiCapabilities: uiCapabilities ?? this.uiCapabilities,
       activationEvents: activationEvents ?? this.activationEvents,
       configuration: configuration ?? this.configuration,
-      iconTheme: iconTheme ?? this.iconTheme,
-      colorTheme: colorTheme ?? this.colorTheme,
+      themes: themes ?? this.themes,
+      iconThemes: iconThemes ?? this.iconThemes,
       commands: commands ?? this.commands,
       keybindings: keybindings ?? this.keybindings,
     );
@@ -266,4 +336,44 @@ class ManifestKeybinding {
   final String command;
   final String key;
   final String? when;
+}
+
+/// A color theme declared in a plugin manifest under `contributes.themes`.
+class ManifestTheme {
+  const ManifestTheme({
+    required this.id,
+    required this.label,
+    required this.uiTheme,
+    required this.path,
+  });
+
+  /// Unique theme identifier (e.g., 'dracula').
+  final String id;
+
+  /// Human-readable theme name.
+  final String label;
+
+  /// Base UI theme type: 'light', 'dark', 'high-contrast'.
+  final String uiTheme;
+
+  /// Relative path to the theme JSON file.
+  final String path;
+}
+
+/// An icon theme declared in a plugin manifest under `contributes.iconThemes`.
+class ManifestIconTheme {
+  const ManifestIconTheme({
+    required this.id,
+    required this.label,
+    required this.path,
+  });
+
+  /// Unique icon theme identifier.
+  final String id;
+
+  /// Human-readable icon theme name.
+  final String label;
+
+  /// Relative path to the icon theme JSON file.
+  final String path;
 }
