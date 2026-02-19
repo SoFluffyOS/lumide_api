@@ -1,3 +1,10 @@
+# 0.7.0
+
+### New features
+
+- **Theming system** — Support contributing color themes and icon themes via `contributes.themes` and `contributes.iconThemes` in `plugin.yaml`.
+- **Manifest improvements** — Added `copyWith` to `LumideManifest` for easier state modification.
+
 # 0.6.0
 
 ### New features
