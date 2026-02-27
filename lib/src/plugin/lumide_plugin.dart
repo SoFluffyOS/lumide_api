@@ -60,7 +60,19 @@ abstract class LumidePlugin {
       };
     });
 
-    await session.listen();
+    try {
+      await session.listen();
+    } catch (e, st) {
+      log('Plugin session error: $e\n$st');
+    } finally {
+      log('Plugin session ended, deactivating...');
+      try {
+        await onDeactivate();
+      } catch (e) {
+        log('Error during plugin deactivation: $e');
+      }
+      exit(0);
+    }
   }
 }
 
