@@ -257,10 +257,8 @@ class TextToolsPlugin extends LumidePlugin {
 
     final lines = content.split('\n').length;
     final chars = content.length;
-    final words = content
-        .split(RegExp(r'\s+'))
-        .where((w) => w.isNotEmpty)
-        .length;
+    final words =
+        content.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
 
     await _context.window.showMessage(
       'Lines: $lines\nWords: $words\nCharacters: $chars',
@@ -384,8 +382,7 @@ class TextToolsPlugin extends LumidePlugin {
   }
 
   Future<void> _demonstrateOutput() async {
-    final channel =
-        await _context.window.createOutputChannel('Text Tools Log');
+    final channel = await _context.window.createOutputChannel('Text Tools Log');
     await channel.show();
     await channel.appendLine('Text Tools Plugin Log initialized.');
     await channel.appendLine('Timestamp: ${DateTime.now()}');

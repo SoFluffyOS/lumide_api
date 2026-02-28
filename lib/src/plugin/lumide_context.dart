@@ -74,8 +74,8 @@ class _RpcFileSystem implements LumideFileSystem {
 
   @override
   Future<bool> isDirectory(String path) async {
-    final result = await _session
-        .sendRequest(PluginMethods.fsIsDirectory, {'path': path});
+    final result =
+        await _session.sendRequest(PluginMethods.fsIsDirectory, {'path': path});
     return result as bool;
   }
 }
@@ -582,8 +582,7 @@ class _RpcEditor implements LumideEditor {
 
   @override
   Future<void> openDocument(String uri) async {
-    await _session
-        .sendRequest(PluginMethods.editorOpenDocument, {'uri': uri});
+    await _session.sendRequest(PluginMethods.editorOpenDocument, {'uri': uri});
   }
 
   @override
