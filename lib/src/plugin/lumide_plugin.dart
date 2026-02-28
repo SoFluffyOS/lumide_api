@@ -213,6 +213,7 @@ class QuickPickItem {
     this.icon,
     this.enabled = true,
     this.isSeparator = false,
+    this.tooltip,
   });
 
   /// The label to display.
@@ -242,6 +243,9 @@ class QuickPickItem {
   /// Whether the item is a separator.
   final bool isSeparator;
 
+  /// Optional tooltip text to show on hover.
+  final String? tooltip;
+
   Map<String, dynamic> toJson() {
     return {
       'label': label,
@@ -253,6 +257,7 @@ class QuickPickItem {
       if (icon != null) 'icon': icon,
       if (!enabled) 'enabled': enabled,
       if (isSeparator) 'isSeparator': isSeparator,
+      if (tooltip != null) 'tooltip': tooltip,
     };
   }
 }
