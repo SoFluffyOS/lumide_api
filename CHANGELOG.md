@@ -1,3 +1,9 @@
+# 0.9.0
+
+### New features
+
+- **Quick Pick Improvements** — `QuickPickItem` now supports a `tooltip` field for rendering rich hover tooltips on individual options.
+
 # 0.8.0
 
 ### New features
