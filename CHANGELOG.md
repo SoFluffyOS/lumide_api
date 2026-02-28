@@ -1,3 +1,9 @@
+# 0.7.1
+
+### Improvements
+
+- **Plugin lifecycle** — `LumidePlugin.run()` now guarantees `onDeactivate()` is called even when the host IDE crashes or the stdio pipe breaks unexpectedly. This prevents orphaned child processes from plugins that spawn external processes.
+
 # 0.7.0
 
 ### New features
