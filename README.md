@@ -11,11 +11,11 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Plugin Lifecycle**: Seamlessly handle plugin activation and deactivation.
 - **Commands API**: Register commands for the Command Palette with optional keybindings.
 - **Status Bar API**: Create and manage custom status bar items.
-- **Editor API**: Access active editor, selections, and handle real-time events.
-- **Workspace API**: Access configurations and listen to file events (open, change, save, close).
-- **FileSystem API**: Secure file operations within the workspace.
-- **Window API**: UI interactions (messages, quick picks, input boxes).
-- **Shell & HTTP APIs**: Controlled execution of shell commands and standardized network requests.
+- **Editor API**: Access active editor, selections, navigate to locations, and handle real-time events.
+- **Workspace API**: Access configurations, get workspace root, find files by glob, and listen to file events.
+- **FileSystem API**: Secure file operations within the workspace, including directory checks.
+- **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs).
+- **Shell & HTTP APIs**: Controlled execution of shell commands (with working directory support) and standardized network requests.
 - **Toolbar API**: Add custom buttons to the IDE toolbar.
 - **Terminal API**: Create and control integrated terminals.
 - **Output API**: Write logs and data to the Output Panel.
@@ -26,7 +26,7 @@ Add `lumide_api` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lumide_api: ^0.6.0
+  lumide_api: ^0.8.0
 ```
 
 ## Basic Usage
@@ -41,8 +41,11 @@ void main() => MyPlugin().run();
 class MyPlugin extends LumidePlugin {
   @override
   Future<void> onActivate(LumideContext context) async {
-    // Show a message
-    await context.window.showMessage('Plugin activated!');
+    // Show a message with a title
+    await context.window.showMessage(
+      'Plugin activated!',
+      title: 'My Plugin',
+    );
 
     // Register a command
     await context.commands.registerCommand(
@@ -79,26 +82,132 @@ Supported events:
 - `onCommand:<commandId>`: Activate when a command is executed.
 - `workspaceContains:<fileName>`: Activate if the workspace contains a specific file pattern.
 
+### Workspace
+
+Query the workspace root and search for files:
+
+```dart
+// Get the workspace root path
+final root = await context.workspace.getRootUri();
+
+// Find all pubspec.yaml files in the workspace
+final pubspecs = await context.workspace.findFiles(
+  '**/pubspec.yaml',
+  maxResults: 50,
+);
+
+// Read a configuration value
+final tabSize = await context.workspace.getConfiguration('editor.tabSize');
+
+// Listen to file events
+context.workspace.onDidSaveTextDocument((uri) {
+  log('File saved: $uri');
+});
+```
+
+### Editor
+
+Navigate, read, and manipulate documents:
+
+```dart
+// Open a document
+await context.editor.openDocument('file:///path/to/file.dart');
+
+// Navigate to a specific line
+await context.editor.revealRange(
+  uri: 'file:///path/to/file.dart',
+  line: 42,
+  column: 10,
+);
+
+// Read the full text of an open document
+final text = await context.editor.getDocumentText(
+  'file:///path/to/file.dart',
+);
+
+// Get or set selections
+final selections = await context.editor.getSelections();
+final selectedText = await context.editor.getSelectedText();
+await context.editor.insertText('Hello!');
+```
+
+### File System
+
+Read, write, and inspect files:
+
+```dart
+// Check if a path is a directory
+if (await context.fs.isDirectory('/some/path')) {
+  final entries = await context.fs.list('/some/path');
+}
+
+// Read and write files
+final content = await context.fs.readString('/path/to/file.txt');
+await context.fs.writeString('/path/to/output.txt', content);
+```
+
+### Shell
+
+Execute commands with optional working directory:
+
+```dart
+// Run a command in a specific directory
+final result = await context.shell.run(
+  'flutter',
+  ['pub', 'get'],
+  workingDirectory: '/path/to/project',
+);
+
+if (result.exitCode == 0) {
+  log('stdout: ${result.stdout}');
+}
+```
+
+### Window & Dialogs
+
+Show messages, confirmations, quick picks, and input boxes:
+
+```dart
+// Message with a title
+await context.window.showMessage(
+  'Build completed successfully',
+  title: 'Flutter',
+);
+
+// Confirmation dialog
+final confirmed = await context.window.showConfirmDialog(
+  'Are you sure you want to clean the build?',
+  title: 'Flutter Clean',
+);
+
+// Quick pick
+final selected = await context.window.showQuickPick([
+  QuickPickItem(label: 'Option A', payload: 'a'),
+  QuickPickItem(label: 'Option B', payload: 'b'),
+], placeholder: 'Choose an option');
+
+// Input box
+final name = await context.window.showInputBox(
+  prompt: 'Enter project name',
+);
+```
+
 ### Toolbar
 
 Add buttons to the IDE toolbar:
 
 ```dart
-// Register a toolbar item
-// Icons are resolved from your plugin.yaml or fall back to Lucide icons
 await context.toolbar.registerItem(
   id: 'play_button',
-  icon: 'play', // maps to Lucide.play if not provided in icon theme
-  iconPath: 'assets/play.svg', // Optional: use custom SVG
+  icon: 'play',
   tooltip: 'Run App',
-  alignment: 'left',
-  priority: 100, // higher priority = further left
+  alignment: ToolbarItemAlignment.right,
+  priority: 100,
 );
 
-// Listen to taps
 context.toolbar.onTap((id, position) {
   if (id == 'play_button') {
-    log('Play button tapped at ${position['x']}, ${position['y']}');
+    log('Play button tapped');
   }
 });
 ```
@@ -108,23 +217,16 @@ context.toolbar.onTap((id, position) {
 Spawn and control terminals:
 
 ```dart
-// Create a new terminal
-final terminalId = await context.window.createTerminal(
+final terminal = await context.window.createTerminal(
   name: 'My Terminal',
-  shellPath: '/bin/zsh', // Optional: defaults to system shell
+  shellPath: '/bin/zsh',
 );
 
-// Send text to it
-await context.terminal.sendText(terminalId, 'echo "Hello from Plugin"');
+await terminal.sendText('echo "Hello from Plugin"');
+await terminal.show();
 
-// Show it to the user
-await context.terminal.show(terminalId);
-
-// Listen to output
-context.terminal.onData((id, data) {
-  if (id == terminalId) {
-    log('Terminal Output: $data');
-  }
+terminal.onData((data) {
+  log('Terminal Output: $data');
 });
 ```
 
@@ -133,18 +235,13 @@ context.terminal.onData((id, data) {
 Write logs to a dedicated panel:
 
 ```dart
-// Create a channel
-final channelId = await context.window.createOutputChannel('My Plugin Logs');
+final channel = await context.window.createOutputChannel('My Plugin Logs');
 
-// Write to it
-await context.output.append(channelId, 'Starting build process...\n');
-
-// Show it
-await context.output.show(channelId);
+await channel.append('Starting build process...\n');
+await channel.show();
 
 // Write structured logs
-await context.output.appendLog(
-  channelId,
+await channel.appendLog(
   LumideLogRecord(
     level: 'ERROR',
     message: 'Build failed',
@@ -153,8 +250,7 @@ await context.output.appendLog(
   ),
 );
 
-// Clear logs
-await context.output.clear(channelId);
+await channel.clear();
 ```
 
 ### WebViews
@@ -162,10 +258,9 @@ await context.output.clear(channelId);
 Create custom UI panels using WebViews:
 
 ```dart
-// Create a webview panel
-final panelId = await context.window.createWebviewPanel(
-  title: 'My Dashboard',
-  viewType: 'my_plugin.dashboard',
+final panel = await context.window.createWebviewPanel(
+  'my_plugin.dashboard',
+  'My Dashboard',
   options: {'url': 'https://lumide.dev'},
 );
 ```
@@ -182,7 +277,7 @@ await context.window.openUrl('https://lumide.dev');
 
 ## Documentation & Examples
 
-For a comprehensive walkthrough of what you can build, check out the [example directory](https://github.com/SoFluffyOS/lumide_api/tree/main/example) which exercises all 18 available APIs.
+For a comprehensive walkthrough of what you can build, check out the [example directory](https://github.com/SoFluffyOS/lumide_api/tree/main/example) which exercises all available APIs.
 
 For more information about the Lumide ecosystem, visit [lumide.dev](https://lumide.dev).
 
