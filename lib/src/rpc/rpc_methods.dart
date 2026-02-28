@@ -47,6 +47,7 @@ class PluginMethods {
   static const fsReadString = 'fs/readString';
   static const fsWriteString = 'fs/writeString';
   static const fsExists = 'fs/exists';
+  static const fsIsDirectory = 'fs/isDirectory';
   static const fsList = 'fs/list';
   static const fsDownloadFile = 'fs/downloadFile';
 
@@ -73,6 +74,7 @@ class PluginMethods {
   static const windowShowInputBox = 'window/showInputBox';
   static const windowOpenUrl = 'window/openUrl';
   static const windowCreateWebviewPanel = 'window/createWebviewPanel';
+  static const windowShowConfirmDialog = 'window/showConfirmDialog';
 
   // Webview API
   static const webviewPostMessage = 'webview/postMessage';
@@ -87,6 +89,9 @@ class PluginMethods {
   static const editorSetSelections = 'editor/setSelections';
   static const editorGetSelectedText = 'editor/getSelectedText';
   static const editorReplaceSelection = 'editor/replaceSelection';
+  static const editorGetDocumentText = 'editor/getDocumentText';
+  static const editorOpenDocument = 'editor/openDocument';
+  static const editorRevealRange = 'editor/revealRange';
 
   // Output Channels
   static const windowCreateOutputChannel = 'window/createOutputChannel';
@@ -103,6 +108,8 @@ class PluginMethods {
 
   // Workspace / Configuration
   static const workspaceGetConfiguration = 'workspace/getConfiguration';
+  static const workspaceGetRootUri = 'workspace/getRootUri';
+  static const workspaceFindFiles = 'workspace/findFiles';
 
   // Commands (Plugin → IDE)
   static const commandsRegister = 'commands/register';

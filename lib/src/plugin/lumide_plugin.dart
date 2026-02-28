@@ -120,6 +120,9 @@ abstract class LumideFileSystem {
   /// Checks if a path exists.
   Future<bool> exists(String path);
 
+  /// Checks if a path is a directory.
+  Future<bool> isDirectory(String path);
+
   /// Lists directory contents.
   Future<List<String>> list(String path);
 }
@@ -153,7 +156,13 @@ class HttpResponse {
 /// Shell command operations.
 abstract class LumideShell {
   /// Runs a shell command.
-  Future<ProcessResult> run(String command, List<String> arguments);
+  ///
+  /// If [workingDirectory] is provided, the command runs in that directory.
+  Future<ProcessResult> run(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+  });
 
   /// Spawns a persistent shell process.
   ///
@@ -251,7 +260,9 @@ class QuickPickItem {
 /// Window/UI operations.
 abstract class LumideWindow {
   /// Shows a message to the user.
-  Future<void> showMessage(String message, {MessageType type});
+  ///
+  /// [title] is an optional heading displayed above the message.
+  Future<void> showMessage(String message, {MessageType type, String? title});
 
   /// Shows a quick pick dialog.
   ///
@@ -300,6 +311,11 @@ abstract class LumideWindow {
     String title, {
     Map<String, dynamic>? options,
   });
+
+  /// Shows a confirmation dialog with OK/Cancel buttons.
+  ///
+  /// Returns `true` if the user confirmed, `false` if cancelled.
+  Future<bool> showConfirmDialog(String message, {String? title});
 }
 
 /// A terminal instance in the IDE.
@@ -401,6 +417,24 @@ abstract class LumideEditor {
 
   /// Replaces the current selection with [text].
   Future<void> replaceSelection(String text);
+
+  /// Gets the full text content of a document by its URI.
+  ///
+  /// Works on open documents, including unsaved changes.
+  /// Returns `null` if the document is not open.
+  Future<String?> getDocumentText(String uri);
+
+  /// Opens a document in the editor.
+  Future<void> openDocument(String uri);
+
+  /// Reveals a specific location in a document.
+  ///
+  /// Opens the document if not already open and scrolls to the given position.
+  Future<void> revealRange({
+    required String uri,
+    required int line,
+    int? column,
+  });
 }
 
 /// Workspace operations (configuration, project context).
@@ -431,6 +465,16 @@ abstract class LumideWorkspace {
 
   /// Registers a callback for when a text document is saved.
   void onDidSaveTextDocument(void Function(String uri) callback);
+
+  /// Gets the workspace root URI.
+  ///
+  /// Returns `null` if no workspace is open.
+  Future<String?> getRootUri();
+
+  /// Finds files in the workspace matching a glob pattern.
+  ///
+  /// [maxResults] limits the number of results (default: no limit).
+  Future<List<String>> findFiles(String glob, {int? maxResults});
 }
 
 /// Event fired when a document's content changes.
