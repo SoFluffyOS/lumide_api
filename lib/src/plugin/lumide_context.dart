@@ -71,6 +71,13 @@ class _RpcFileSystem implements LumideFileSystem {
         await _session.sendRequest(PluginMethods.fsList, {'path': path});
     return (result as List).cast<String>();
   }
+
+  @override
+  Future<bool> isDirectory(String path) async {
+    final result = await _session
+        .sendRequest(PluginMethods.fsIsDirectory, {'path': path});
+    return result as bool;
+  }
 }
 
 class _RpcHttp implements LumideHttp {
@@ -144,10 +151,15 @@ class _RpcShell implements LumideShell {
   final _exitCallbacks = <void Function(int, int)>[];
 
   @override
-  Future<ProcessResult> run(String command, List<String> arguments) async {
+  Future<ProcessResult> run(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+  }) async {
     final result = await _session.sendRequest(PluginMethods.shellRun, {
       'command': command,
       'arguments': arguments,
+      if (workingDirectory != null) 'workingDirectory': workingDirectory,
     });
     final json = result as Map<String, dynamic>;
     return ProcessResult(
@@ -217,10 +229,11 @@ class _RpcWindow implements LumideWindow {
 
   @override
   Future<void> showMessage(String message,
-      {MessageType type = MessageType.info}) async {
+      {MessageType type = MessageType.info, String? title}) async {
     await _session.sendRequest(PluginMethods.windowShowMessage, {
       'message': message,
       'type': type.name,
+      if (title != null) 'title': title,
     });
   }
 
@@ -322,6 +335,16 @@ class _RpcWindow implements LumideWindow {
     });
     final id = result as String;
     return _RpcWebviewPanel(id, _session);
+  }
+
+  @override
+  Future<bool> showConfirmDialog(String message, {String? title}) async {
+    final result =
+        await _session.sendRequest(PluginMethods.windowShowConfirmDialog, {
+      'message': message,
+      if (title != null) 'title': title,
+    });
+    return result as bool;
   }
 }
 
@@ -549,6 +572,32 @@ class _RpcEditor implements LumideEditor {
       'text': text,
     });
   }
+
+  @override
+  Future<String?> getDocumentText(String uri) async {
+    final result = await _session
+        .sendRequest(PluginMethods.editorGetDocumentText, {'uri': uri});
+    return result as String?;
+  }
+
+  @override
+  Future<void> openDocument(String uri) async {
+    await _session
+        .sendRequest(PluginMethods.editorOpenDocument, {'uri': uri});
+  }
+
+  @override
+  Future<void> revealRange({
+    required String uri,
+    required int line,
+    int? column,
+  }) async {
+    await _session.sendRequest(PluginMethods.editorRevealRange, {
+      'uri': uri,
+      'line': line,
+      if (column != null) 'column': column,
+    });
+  }
 }
 
 class _RpcWorkspace implements LumideWorkspace {
@@ -648,6 +697,23 @@ class _RpcWorkspace implements LumideWorkspace {
   @override
   void onDidSaveTextDocument(void Function(String uri) callback) {
     _saveCallbacks.add(callback);
+  }
+
+  @override
+  Future<String?> getRootUri() async {
+    final result =
+        await _session.sendRequest(PluginMethods.workspaceGetRootUri);
+    return result as String?;
+  }
+
+  @override
+  Future<List<String>> findFiles(String glob, {int? maxResults}) async {
+    final result =
+        await _session.sendRequest(PluginMethods.workspaceFindFiles, {
+      'glob': glob,
+      if (maxResults != null) 'maxResults': maxResults,
+    });
+    return (result as List).cast<String>();
   }
 }
 
