@@ -1,3 +1,13 @@
+# 0.8.0
+
+### New features
+
+- **Workspace** — `getRootUri()` to get the workspace root path, `findFiles(glob)` to search files by glob pattern.
+- **FileSystem** — `isDirectory(path)` to check if a path is a directory.
+- **Editor** — `getDocumentText(uri)` to read open document content, `openDocument(uri)` to open files, `revealRange()` to navigate to a specific location.
+- **Window** — `showConfirmDialog(message)` for OK/Cancel dialogs, `title` parameter on `showMessage()`.
+- **Shell** — `workingDirectory` parameter on `run()` to execute commands in a specific directory.
+
 # 0.7.1
 
 ### Improvements
