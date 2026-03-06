@@ -107,6 +107,9 @@ abstract class LumideContext {
 
   /// Toolbar operations.
   LumideToolbar get toolbar;
+
+  /// Language server registration.
+  LumideLanguages get languages;
 }
 
 /// File system operations.
@@ -607,4 +610,24 @@ abstract class LumideToolbar {
   ///
   /// The callback receives the [id] of the tapped item and screen [position].
   void onTap(void Function(String id, Map<String, int> position) callback);
+}
+
+/// Language server registration API.
+abstract class LumideLanguages {
+  /// Registers a language server for a set of file extensions.
+  ///
+  /// [id] — unique provider identifier (e.g. 'swift-lsp').
+  /// [languageId] — standard LSP language ID (e.g. 'swift', 'rust').
+  /// [fileExtensions] — file extensions to match (e.g. ['.swift']).
+  /// [command] — executable to start the LSP server.
+  /// [args] — arguments for the command.
+  /// [initializationOptions] — optional map sent during server initialization.
+  Future<void> registerLanguageServer({
+    required String id,
+    required String languageId,
+    required List<String> fileExtensions,
+    required String command,
+    List<String> args,
+    Map<String, dynamic>? initializationOptions,
+  });
 }

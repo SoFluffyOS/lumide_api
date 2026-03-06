@@ -123,4 +123,7 @@ class PluginMethods {
   static const toolbarRegisterItem = 'toolbar/registerItem';
   static const toolbarUnregisterItem = 'toolbar/unregisterItem';
   static const toolbarOnTap = 'toolbar/onTap';
+
+  // Languages (Plugin → IDE)
+  static const languagesRegisterServer = 'languages/registerServer';
 }

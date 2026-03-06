@@ -37,6 +37,9 @@ class RpcLumideContext implements LumideContext {
 
   @override
   late final LumideToolbar toolbar = _RpcToolbar(_session);
+
+  @override
+  late final LumideLanguages languages = _RpcLanguages(_session);
 }
 
 class _RpcFileSystem implements LumideFileSystem {
@@ -876,5 +879,30 @@ class _RpcToolbar implements LumideToolbar {
   @override
   void onTap(void Function(String id, Map<String, int> position) callback) {
     _onTapCallbacks.add(callback);
+  }
+}
+
+class _RpcLanguages implements LumideLanguages {
+  _RpcLanguages(this._session);
+  final RpcSession _session;
+
+  @override
+  Future<void> registerLanguageServer({
+    required String id,
+    required String languageId,
+    required List<String> fileExtensions,
+    required String command,
+    List<String> args = const [],
+    Map<String, dynamic>? initializationOptions,
+  }) async {
+    await _session.sendRequest(PluginMethods.languagesRegisterServer, {
+      'id': id,
+      'languageId': languageId,
+      'fileExtensions': fileExtensions,
+      'command': command,
+      'args': args,
+      if (initializationOptions != null)
+        'initializationOptions': initializationOptions,
+    });
   }
 }
