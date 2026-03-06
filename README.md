@@ -19,6 +19,7 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Toolbar API**: Add custom buttons to the IDE toolbar.
 - **Terminal API**: Create and control integrated terminals.
 - **Output API**: Write logs and data to the Output Panel.
+- **Languages API**: Register custom language servers for LSP support.
 
 ## Getting Started
 
@@ -256,6 +257,21 @@ await channel.appendLog(
 
 await channel.clear();
 ```
+
+### Languages
+
+Register a language server for custom file types:
+
+```dart
+await context.languages.registerLanguageServer(
+  id: 'swift-lsp',
+  languageId: 'swift',
+  fileExtensions: ['.swift'],
+  command: 'sourcekit-lsp',
+);
+```
+
+Once registered, the IDE automatically starts the language server when a matching file is opened, providing diagnostics, completions, and other LSP features.
 
 ### WebViews
 
