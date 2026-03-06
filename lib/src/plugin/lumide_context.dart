@@ -81,6 +81,21 @@ class _RpcFileSystem implements LumideFileSystem {
         await _session.sendRequest(PluginMethods.fsIsDirectory, {'path': path});
     return result as bool;
   }
+
+  @override
+  Future<void> downloadFile(
+    String url,
+    String destination, {
+    String? label,
+    bool extract = false,
+  }) async {
+    await _session.sendRequest(PluginMethods.fsDownloadFile, {
+      'url': url,
+      'destination': destination,
+      if (label != null) 'label': label,
+      'extract': extract,
+    });
+  }
 }
 
 class _RpcHttp implements LumideHttp {
