@@ -1,3 +1,12 @@
+# 1.0.0
+
+🦊 Initial stable release for `lumide_api`. The API is now mostly feature-complete for Language Server Protocol (LSP) integrations and core editor extensions.
+
+### New features
+
+- **Languages API** — Added `languages.registerLanguageServer` to register custom Language Server Protocol (LSP) providers for specific file extensions.
+- **FileSystem API** — Added `fs.downloadFile` to download files natively from the IDE with built-in progress tracking and optional `.tar.gz`/`.zip` extraction.
+
 # 0.9.0
 
 ### New features
