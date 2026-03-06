@@ -128,6 +128,19 @@ abstract class LumideFileSystem {
 
   /// Lists directory contents.
   Future<List<String>> list(String path);
+
+  /// Downloads a file from [url] to [destination].
+  ///
+  /// Uses the IDE's download manager with progress tracking.
+  /// If [extract] is true, archives (.tar.gz, .zip) are extracted
+  /// to the destination directory after download.
+  /// [label] is shown in the IDE's download progress UI.
+  Future<void> downloadFile(
+    String url,
+    String destination, {
+    String? label,
+    bool extract = false,
+  });
 }
 
 /// HTTP client operations.
