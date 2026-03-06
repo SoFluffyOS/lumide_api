@@ -27,7 +27,7 @@ Add `lumide_api` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lumide_api: ^0.8.0
+  lumide_api: ^1.0.0
 ```
 
 ## Basic Usage
@@ -149,6 +149,14 @@ if (await context.fs.isDirectory('/some/path')) {
 // Read and write files
 final content = await context.fs.readString('/path/to/file.txt');
 await context.fs.writeString('/path/to/output.txt', content);
+
+// Download and extract an archive natively via the IDE
+await context.fs.downloadFile(
+  'https://example.com/file.tar.gz',
+  '/path/to/dest',
+  label: 'Downloading dependency',
+  extract: true,
+);
 ```
 
 ### Shell
