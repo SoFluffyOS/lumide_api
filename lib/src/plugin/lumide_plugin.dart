@@ -625,6 +625,36 @@ abstract class LumideToolbar {
   void onTap(void Function(String id, Map<String, int> position) callback);
 }
 
+/// A request for inline completions dispatched to a plugin callback provider.
+class InlineCompletionRequest {
+  const InlineCompletionRequest({
+    required this.uri,
+    required this.line,
+    required this.column,
+    required this.documentText,
+  });
+
+  /// The document URI (e.g. 'file:///path/to/file.dart').
+  final String uri;
+
+  /// Zero-based line index of the cursor.
+  final int line;
+
+  /// Zero-based column index of the cursor.
+  final int column;
+
+  /// The full text of the document, with `<CURSOR>` marking the insert point.
+  final String documentText;
+}
+
+/// A single inline completion suggestion returned by a plugin callback provider.
+class InlineCompletion {
+  const InlineCompletion({required this.text});
+
+  /// The text to insert at the cursor position.
+  final String text;
+}
+
 /// Language server registration API.
 abstract class LumideLanguages {
   /// Registers a language server for a set of file extensions.
@@ -638,9 +668,28 @@ abstract class LumideLanguages {
   Future<void> registerLanguageServer({
     required String id,
     required String languageId,
+    String? displayName,
     required List<String> fileExtensions,
     required String command,
-    List<String> args,
+    List<String> args = const [],
     Map<String, dynamic>? initializationOptions,
+  });
+
+  /// Registers a Dart callback as an inline completion provider.
+  ///
+  /// The IDE will call [onProvideCompletions] for every ghost-text request
+  /// when this provider is active. [id] must be unique and stable — it is
+  /// stored in the `editor.aiCompletionProvider` setting when the user
+  /// selects this provider.
+  Future<void> registerInlineCompletionProvider({
+    required String id,
+    required String displayName,
+    String? processName,
+    int? processId,
+    String? icon,
+    String? iconPath,
+    required Future<List<InlineCompletion>> Function(
+      InlineCompletionRequest request,
+    ) onProvideCompletions,
   });
 }
