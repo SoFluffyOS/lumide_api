@@ -37,6 +37,9 @@ class HostMethods {
   static const shellOnStdout = 'shell/onStdout';
   static const shellOnStderr = 'shell/onStderr';
   static const shellOnExit = 'shell/onExit';
+
+  // Inline Completion back-channel (IDE → Plugin)
+  static const inlineCompletionRequest = 'languages/inlineCompletionRequest';
 }
 
 /// Method names for Plugin-to-IDE communication.
@@ -126,4 +129,6 @@ class PluginMethods {
 
   // Languages (Plugin → IDE)
   static const languagesRegisterServer = 'languages/registerServer';
+  static const languagesRegisterInlineProvider =
+      'languages/registerInlineProvider';
 }

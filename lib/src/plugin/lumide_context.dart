@@ -905,6 +905,7 @@ class _RpcLanguages implements LumideLanguages {
   Future<void> registerLanguageServer({
     required String id,
     required String languageId,
+    String? displayName,
     required List<String> fileExtensions,
     required String command,
     List<String> args = const [],
@@ -913,11 +914,51 @@ class _RpcLanguages implements LumideLanguages {
     await _session.sendRequest(PluginMethods.languagesRegisterServer, {
       'id': id,
       'languageId': languageId,
+      if (displayName != null) 'displayName': displayName,
       'fileExtensions': fileExtensions,
       'command': command,
       'args': args,
       if (initializationOptions != null)
         'initializationOptions': initializationOptions,
+    });
+  }
+
+  @override
+  Future<void> registerInlineCompletionProvider({
+    required String id,
+    required String displayName,
+    String? processName,
+    int? processId,
+    String? icon,
+    String? iconPath,
+    required Future<List<InlineCompletion>> Function(
+      InlineCompletionRequest request,
+    ) onProvideCompletions,
+  }) async {
+    _session.registerMethod(HostMethods.inlineCompletionRequest, (
+      params,
+    ) async {
+      final data = params.value as Map<String, dynamic>;
+      if (data['id'] != id) return null;
+
+      final request = InlineCompletionRequest(
+        uri: data['uri'] as String,
+        line: data['line'] as int,
+        column: data['column'] as int,
+        documentText: data['documentText'] as String,
+      );
+
+      final completions = await onProvideCompletions(request);
+      return completions.map((c) => {'text': c.text}).toList();
+    });
+
+    await _session.sendRequest(PluginMethods.languagesRegisterInlineProvider, {
+      'id': id,
+      'displayName': displayName,
+      if (processName != null) 'processName': processName,
+      if (processId != null) 'processId': processId,
+      'icon': icon,
+      'iconPath': iconPath,
     });
   }
 }
