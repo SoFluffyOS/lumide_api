@@ -914,20 +914,53 @@ class _RpcLanguages implements LumideLanguages {
     required String id,
     required String languageId,
     String? displayName,
+    String? icon,
+    String? iconPath,
     required List<String> fileExtensions,
     required String command,
     List<String> args = const [],
     Map<String, dynamic>? initializationOptions,
+    Future<String> Function()? checkStatus,
+    Future<Map<String, dynamic>> Function()? signIn,
+    Future<void> Function()? signOut,
   }) async {
+    if (checkStatus != null) {
+      _session.registerMethod(HostMethods.aiCheckStatus, (params) async {
+        final data = params.value as Map<String, dynamic>;
+        if (data['id'] != id) return null;
+        return await checkStatus();
+      });
+    }
+
+    if (signIn != null) {
+      _session.registerMethod(HostMethods.aiSignIn, (params) async {
+        final data = params.value as Map<String, dynamic>;
+        if (data['id'] != id) return null;
+        return await signIn();
+      });
+    }
+
+    if (signOut != null) {
+      _session.registerMethod(HostMethods.aiSignOut, (params) async {
+        final data = params.value as Map<String, dynamic>;
+        if (data['id'] != id) return null;
+        await signOut();
+        return null;
+      });
+    }
+
     await _session.sendRequest(PluginMethods.languagesRegisterServer, {
       'id': id,
       'languageId': languageId,
       if (displayName != null) 'displayName': displayName,
+      if (icon != null) 'icon': icon,
+      if (iconPath != null) 'iconPath': iconPath,
       'fileExtensions': fileExtensions,
       'command': command,
       'args': args,
       if (initializationOptions != null)
         'initializationOptions': initializationOptions,
+      'supportsAuth': checkStatus != null || signIn != null || signOut != null,
     });
   }
 
@@ -942,6 +975,10 @@ class _RpcLanguages implements LumideLanguages {
     required Future<List<InlineCompletion>> Function(
       InlineCompletionRequest request,
     ) onProvideCompletions,
+    bool supportsAuth = false,
+    Future<String> Function()? checkStatus,
+    Future<Map<String, dynamic>> Function()? signIn,
+    Future<void> Function()? signOut,
   }) async {
     _session.registerMethod(HostMethods.inlineCompletionRequest, (
       params,
@@ -960,6 +997,31 @@ class _RpcLanguages implements LumideLanguages {
       return completions.map((c) => {'text': c.text}).toList();
     });
 
+    if (checkStatus != null) {
+      _session.registerMethod(HostMethods.aiCheckStatus, (params) async {
+        final data = params.value as Map<String, dynamic>;
+        if (data['id'] != id) return null;
+        return await checkStatus();
+      });
+    }
+
+    if (signIn != null) {
+      _session.registerMethod(HostMethods.aiSignIn, (params) async {
+        final data = params.value as Map<String, dynamic>;
+        if (data['id'] != id) return null;
+        return await signIn();
+      });
+    }
+
+    if (signOut != null) {
+      _session.registerMethod(HostMethods.aiSignOut, (params) async {
+        final data = params.value as Map<String, dynamic>;
+        if (data['id'] != id) return null;
+        await signOut();
+        return null;
+      });
+    }
+
     await _session.sendRequest(PluginMethods.languagesRegisterInlineProvider, {
       'id': id,
       'displayName': displayName,
@@ -967,6 +1029,10 @@ class _RpcLanguages implements LumideLanguages {
       if (processId != null) 'processId': processId,
       'icon': icon,
       'iconPath': iconPath,
+      'supportsAuth': supportsAuth ||
+          checkStatus != null ||
+          signIn != null ||
+          signOut != null,
     });
   }
 }
