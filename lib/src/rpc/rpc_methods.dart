@@ -135,4 +135,5 @@ class PluginMethods {
   static const languagesRegisterServer = 'languages/registerServer';
   static const languagesRegisterInlineProvider =
       'languages/registerInlineProvider';
+  static const languagesSendLspRequest = 'languages/sendLspRequest';
 }
