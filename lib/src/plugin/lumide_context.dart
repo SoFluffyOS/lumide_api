@@ -965,6 +965,19 @@ class _RpcLanguages implements LumideLanguages {
   }
 
   @override
+  Future<dynamic> sendLspRequest(
+    String providerId,
+    String method, [
+    Map<String, dynamic>? params,
+  ]) async {
+    return await _session.sendRequest(PluginMethods.languagesSendLspRequest, {
+      'providerId': providerId,
+      'method': method,
+      if (params != null) 'params': params,
+    });
+  }
+
+  @override
   Future<void> registerInlineCompletionProvider({
     required String id,
     required String displayName,
