@@ -337,6 +337,14 @@ abstract class LumideWindow {
   ///
   /// Returns `true` if the user confirmed, `false` if cancelled.
   Future<bool> showConfirmDialog(String message, {String? title});
+
+  /// Shows a device auth dialog (Copy code & Open browser).
+  ///
+  /// This is used for OAuth2 Device Flow.
+  Future<void> showDeviceAuthDialog({
+    required String userCode,
+    required String verificationUri,
+  });
 }
 
 /// A terminal instance in the IDE.

@@ -81,6 +81,7 @@ class PluginMethods {
   static const windowOpenUrl = 'window/openUrl';
   static const windowCreateWebviewPanel = 'window/createWebviewPanel';
   static const windowShowConfirmDialog = 'window/showConfirmDialog';
+  static const windowShowDeviceAuthDialog = 'window/showDeviceAuthDialog';
 
   // Webview API
   static const webviewPostMessage = 'webview/postMessage';
