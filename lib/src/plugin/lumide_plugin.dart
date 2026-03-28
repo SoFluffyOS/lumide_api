@@ -674,11 +674,27 @@ abstract class LumideLanguages {
     required String id,
     required String languageId,
     String? displayName,
+    String? icon,
+    String? iconPath,
     required List<String> fileExtensions,
     required String command,
     List<String> args = const [],
     Map<String, dynamic>? initializationOptions,
+    Future<String> Function()? checkStatus,
+    Future<Map<String, dynamic>> Function()? signIn,
+    Future<void> Function()? signOut,
   });
+
+  /// Sends a custom JSON-RPC request to a registered language server.
+  ///
+  /// [providerId] must match the `id` provided to [registerLanguageServer].
+  /// [method] is the exact JSON-RPC method to send (e.g., `'checkStatus'`).
+  /// [params] are the optional parameters to send with the request.
+  Future<dynamic> sendLspRequest(
+    String providerId,
+    String method, [
+    Map<String, dynamic>? params,
+  ]);
 
   /// Registers a Dart callback as an inline completion provider.
   ///
@@ -696,5 +712,9 @@ abstract class LumideLanguages {
     required Future<List<InlineCompletion>> Function(
       InlineCompletionRequest request,
     ) onProvideCompletions,
+    bool supportsAuth = false,
+    Future<String> Function()? checkStatus,
+    Future<Map<String, dynamic>> Function()? signIn,
+    Future<void> Function()? signOut,
   });
 }

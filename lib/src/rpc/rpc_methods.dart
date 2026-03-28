@@ -40,6 +40,9 @@ class HostMethods {
 
   // Inline Completion back-channel (IDE → Plugin)
   static const inlineCompletionRequest = 'languages/inlineCompletionRequest';
+  static const aiCheckStatus = 'languages/aiCheckStatus';
+  static const aiSignIn = 'languages/aiSignIn';
+  static const aiSignOut = 'languages/aiSignOut';
 }
 
 /// Method names for Plugin-to-IDE communication.
