@@ -12,14 +12,14 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Commands API**: Register commands for the Command Palette with optional keybindings.
 - **Status Bar API**: Create and manage custom status bar items.
 - **Editor API**: Access active editor, selections, navigate to locations, and handle real-time events.
-- **Workspace API**: Access configurations, get workspace root, find files by glob, and listen to file events.
+- **Workspace API**: Access configurations, get workspace root, find files by glob, and listen to file events. **(New: `updateConfiguration`)**
 - **FileSystem API**: Secure file operations within the workspace, including directory checks.
-- **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs).
+- **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs). **(New: `showDeviceAuthDialog`)**
 - **Shell & HTTP APIs**: Controlled execution of shell commands (with working directory support) and standardized network requests.
 - **Toolbar API**: Add custom buttons to the IDE toolbar.
 - **Terminal API**: Create and control integrated terminals.
 - **Output API**: Write logs and data to the Output Panel.
-- **Languages API**: Register custom language servers for LSP support.
+- **Languages API**: Register custom language servers for LSP support. **(New: Inline Completion, Custom LSP Requests)**
 
 ## Getting Started
 
@@ -27,7 +27,7 @@ Add `lumide_api` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lumide_api: ^1.0.0
+  lumide_api: ^1.1.0
 ```
 
 ## Basic Usage
@@ -203,6 +203,12 @@ final selected = await context.window.showQuickPick([
 final name = await context.window.showInputBox(
   prompt: 'Enter project name',
 );
+
+// Device authentication dialog (OAuth2)
+await context.window.showDeviceAuthDialog(
+  userCode: 'ABCD-1234',
+  verificationUri: 'https://github.com/login/device',
+);
 ```
 
 ### Toolbar
@@ -268,14 +274,34 @@ await channel.clear();
 
 ### Languages
 
-Register a language server for custom file types:
+Register a language server for custom file types or provide advanced LSP features:
 
 ```dart
+// Register a language server with custom icon and authentication
 await context.languages.registerLanguageServer(
   id: 'swift-lsp',
   languageId: 'swift',
   fileExtensions: ['.swift'],
   command: 'sourcekit-lsp',
+  iconPath: 'assets/swift.svg',
+  checkStatus: () async => 'ok', // Optional auth callbacks
+);
+
+// Register an inline completion provider (AI Ghost Text)
+await context.languages.registerInlineCompletionProvider(
+  id: 'my-ai',
+  displayName: 'My AI Provider',
+  onProvideCompletions: (request) async {
+    // request.documentText contains <CURSOR> marker
+    return [InlineCompletion(text: 'suggested code')];
+  },
+);
+
+// Send custom JSON-RPC requests to an active language server
+final response = await context.languages.sendLspRequest(
+  'swift-lsp',
+  'custom/checkStatus',
+  {'id': '123'},
 );
 ```
 
