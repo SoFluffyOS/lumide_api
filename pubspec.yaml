@@ -1,6 +1,6 @@
 name: lumide_api
 description: Host API for Lumide IDE plugins. Provides abstractions for plugin development.
-version: 1.0.0
+version: 1.1.0
 homepage: https://lumide.dev
 repository: https://github.com/SoFluffyOS/lumide_api
 
