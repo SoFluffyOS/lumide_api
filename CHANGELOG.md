@@ -1,3 +1,15 @@
+# 1.1.0
+
+✨ This release introduces significant enhancements to the Languages API, including custom LSP requests and inline completion support, alongside new window and workspace capabilities.
+
+### New features
+
+- **Languages API** — Support for registering inline completion providers via `languages.registerInlineCompletionProvider`.
+- **Custom LSP Requests** — Added `languages.sendLspRequest` to send non-standard JSON-RPC requests to active language servers.
+- **Enhanced LSP Registration** — `languages.registerLanguageServer` now supports optional `icon`, `iconPath`, and authentication callbacks (`checkStatus`, `signIn`, `signOut`).
+- **Window API** — Added `window.showDeviceAuthDialog` to streamline OAuth and device-based authentication flows for plugins.
+- **Workspace Configuration** — Support for programmatically updating workspace settings via `workspace.updateConfiguration`.
+
 # 1.0.0
 
 🦊 Initial stable release for `lumide_api`. The API is now mostly feature-complete for Language Server Protocol (LSP) integrations and core editor extensions.
