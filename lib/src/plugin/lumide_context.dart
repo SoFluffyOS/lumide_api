@@ -688,6 +688,14 @@ class _RpcWorkspace implements LumideWorkspace {
   }
 
   @override
+  Future<void> updateConfiguration(String section, Object? value) async {
+    await _session.sendRequest(
+      PluginMethods.workspaceUpdateConfiguration,
+      {'section': section, 'value': value},
+    );
+  }
+
+  @override
   void onDidOpenTextDocument(void Function(String uri) callback) {
     _openCallbacks.add(callback);
   }

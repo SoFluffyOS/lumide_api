@@ -465,6 +465,11 @@ abstract class LumideWorkspace {
   /// Example: `getConfiguration('prettier.printWidth')` → `80`
   Future<Object?> getConfiguration(String section);
 
+  /// Updates a configuration value for the given section/key.
+  ///
+  /// The value is persisted to the user's settings.
+  Future<void> updateConfiguration(String section, Object? value);
+
   /// Registers a callback for when a text document is opened.
   void onDidOpenTextDocument(void Function(String uri) callback);
 

@@ -111,6 +111,7 @@ class PluginMethods {
 
   // Workspace / Configuration
   static const workspaceGetConfiguration = 'workspace/getConfiguration';
+  static const workspaceUpdateConfiguration = 'workspace/updateConfiguration';
   static const workspaceGetRootUri = 'workspace/getRootUri';
   static const workspaceFindFiles = 'workspace/findFiles';
 
