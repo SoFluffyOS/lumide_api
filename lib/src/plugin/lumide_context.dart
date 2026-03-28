@@ -362,7 +362,18 @@ class _RpcWindow implements LumideWindow {
       'message': message,
       if (title != null) 'title': title,
     });
-    return result as bool;
+    return (result as bool?) ?? false;
+  }
+
+  @override
+  Future<void> showDeviceAuthDialog({
+    required String userCode,
+    required String verificationUri,
+  }) async {
+    await _session.sendRequest(PluginMethods.windowShowDeviceAuthDialog, {
+      'userCode': userCode,
+      'verificationUri': verificationUri,
+    });
   }
 }
 
