@@ -39,6 +39,9 @@ class RpcLumideContext implements LumideContext {
   late final LumideToolbar toolbar = _RpcToolbar(_session);
 
   @override
+  late final LumideDebug debug = _RpcDebug(_session);
+
+  @override
   late final LumideLanguages languages = _RpcLanguages(_session);
 }
 
@@ -461,6 +464,9 @@ class _RpcOutputChannel implements LumideOutputChannel {
   final RpcSession _session;
 
   @override
+  String get id => _id;
+
+  @override
   Future<void> append(String value) async {
     await _session.sendRequest(PluginMethods.windowAppendOutput, {
       'id': _id,
@@ -501,6 +507,236 @@ class _RpcOutputChannel implements LumideOutputChannel {
   Future<void> dispose() async {
     await _session
         .sendRequest(PluginMethods.windowDisposeOutputChannel, {'id': _id});
+  }
+}
+
+class _RpcDebug implements LumideDebug {
+  _RpcDebug(this._session) {
+    _session.registerMethod(HostMethods.debugLaunch, (params) async {
+      final callback = _launchCallback;
+      if (callback == null) return null;
+      await callback();
+      return null;
+    });
+    _session.registerMethod(HostMethods.debugContinue, (params) async {
+      final callback = _continueCallback;
+      if (callback == null) return null;
+      final sessionId = params['sessionId'].asString;
+      await callback(sessionId);
+      return null;
+    });
+    _session.registerMethod(HostMethods.debugPause, (params) async {
+      final callback = _pauseCallback;
+      if (callback == null) return null;
+      final sessionId = params['sessionId'].asString;
+      await callback(sessionId);
+      return null;
+    });
+    _session.registerMethod(HostMethods.debugStepOver, (params) async {
+      final callback = _stepOverCallback;
+      if (callback == null) return null;
+      final sessionId = params['sessionId'].asString;
+      await callback(sessionId);
+      return null;
+    });
+    _session.registerMethod(HostMethods.debugStepInto, (params) async {
+      final callback = _stepIntoCallback;
+      if (callback == null) return null;
+      final sessionId = params['sessionId'].asString;
+      await callback(sessionId);
+      return null;
+    });
+    _session.registerMethod(HostMethods.debugStepOut, (params) async {
+      final callback = _stepOutCallback;
+      if (callback == null) return null;
+      final sessionId = params['sessionId'].asString;
+      await callback(sessionId);
+      return null;
+    });
+    _session.registerMethod(HostMethods.debugStop, (params) async {
+      final callback = _stopCallback;
+      if (callback == null) return null;
+      final sessionId = params['sessionId'].asString;
+      await callback(sessionId);
+      return null;
+    });
+    _session.registerMethod(HostMethods.debugSetBreakpoints, (params) async {
+      final callback = _setBreakpointsCallback;
+      if (callback == null) return null;
+      final sessionId = params['sessionId'].asString;
+      final rawBreakpoints = params['breakpoints'].asList;
+      final breakpoints = <LumideDebugBreakpoint>[
+        for (final item in rawBreakpoints)
+          LumideDebugBreakpoint.fromJson(item as Map),
+      ];
+      await callback(sessionId, breakpoints);
+      return null;
+    });
+    _session.registerMethod(
+      HostMethods.debugSetExceptionPauseMode,
+      (params) async {
+        final callback = _setExceptionPauseModeCallback;
+        if (callback == null) return null;
+        final sessionId = params['sessionId'].asString;
+        final mode = lumideDebugExceptionPauseModeFromJson(
+          params['mode'].valueOr(null),
+        );
+        await callback(sessionId, mode);
+        return null;
+      },
+    );
+    _session.registerMethod(HostMethods.debugGetStackFrames, (params) async {
+      final callback = _stackFramesCallback;
+      if (callback == null) return const <Map<String, dynamic>>[];
+      final sessionId = params['sessionId'].asString;
+      final frames = await callback(sessionId);
+      return frames.map((frame) => frame.toJson()).toList();
+    });
+    _session.registerMethod(HostMethods.debugGetScopes, (params) async {
+      final callback = _scopesCallback;
+      if (callback == null) return const <Map<String, dynamic>>[];
+      final sessionId = params['sessionId'].asString;
+      final frameId = params['frameId'].asInt;
+      final scopes = await callback(sessionId, frameId);
+      return scopes.map((scope) => scope.toJson()).toList();
+    });
+    _session.registerMethod(HostMethods.debugGetVariables, (params) async {
+      final callback = _variablesCallback;
+      if (callback == null) return const <Map<String, dynamic>>[];
+      final sessionId = params['sessionId'].asString;
+      final scopeId = params['scopeId'].asInt;
+      final variables = await callback(sessionId, scopeId);
+      return variables.map((variable) => variable.toJson()).toList();
+    });
+    _session.registerMethod(HostMethods.debugEvaluate, (params) async {
+      final callback = _evaluateCallback;
+      if (callback == null) return null;
+      final sessionId = params['sessionId'].asString;
+      final expression = params['expression'].asString;
+      final frameId = params['frameId'].valueOr(null) as int?;
+      final result = await callback(
+        sessionId,
+        expression,
+        frameId: frameId,
+      );
+      return result?.toJson();
+    });
+  }
+
+  final RpcSession _session;
+
+  Future<void> Function()? _launchCallback;
+  LumideDebugSessionCallback? _continueCallback;
+  LumideDebugSessionCallback? _pauseCallback;
+  LumideDebugSessionCallback? _stepOverCallback;
+  LumideDebugSessionCallback? _stepIntoCallback;
+  LumideDebugSessionCallback? _stepOutCallback;
+  LumideDebugSessionCallback? _stopCallback;
+  LumideDebugSetBreakpointsCallback? _setBreakpointsCallback;
+  LumideDebugSetExceptionPauseModeCallback? _setExceptionPauseModeCallback;
+  LumideDebugStackFramesCallback? _stackFramesCallback;
+  LumideDebugScopesCallback? _scopesCallback;
+  LumideDebugVariablesCallback? _variablesCallback;
+  LumideDebugEvaluateCallback? _evaluateCallback;
+
+  @override
+  Future<void> startSession(LumideDebugSession session) async {
+    await _session.sendRequest(PluginMethods.debugStartSession, {
+      'session': session.toJson(),
+    });
+  }
+
+  @override
+  Future<void> updateSession(LumideDebugSession session) async {
+    await _session.sendRequest(PluginMethods.debugUpdateSession, {
+      'session': session.toJson(),
+    });
+  }
+
+  @override
+  Future<void> updateBreakpoints(
+    String sessionId,
+    List<LumideDebugBreakpoint> breakpoints,
+  ) async {
+    await _session.sendRequest(PluginMethods.debugUpdateBreakpoints, {
+      'sessionId': sessionId,
+      'breakpoints':
+          breakpoints.map((breakpoint) => breakpoint.toJson()).toList(),
+    });
+  }
+
+  @override
+  Future<void> endSession(String sessionId) async {
+    await _session.sendRequest(PluginMethods.debugEndSession, {
+      'sessionId': sessionId,
+    });
+  }
+
+  @override
+  void onLaunch(Future<void> Function() callback) {
+    _launchCallback = callback;
+  }
+
+  @override
+  void onContinue(LumideDebugSessionCallback callback) {
+    _continueCallback = callback;
+  }
+
+  @override
+  void onPause(LumideDebugSessionCallback callback) {
+    _pauseCallback = callback;
+  }
+
+  @override
+  void onStepOver(LumideDebugSessionCallback callback) {
+    _stepOverCallback = callback;
+  }
+
+  @override
+  void onStepInto(LumideDebugSessionCallback callback) {
+    _stepIntoCallback = callback;
+  }
+
+  @override
+  void onStepOut(LumideDebugSessionCallback callback) {
+    _stepOutCallback = callback;
+  }
+
+  @override
+  void onStop(LumideDebugSessionCallback callback) {
+    _stopCallback = callback;
+  }
+
+  @override
+  void onSetBreakpoints(LumideDebugSetBreakpointsCallback callback) {
+    _setBreakpointsCallback = callback;
+  }
+
+  @override
+  void onSetExceptionPauseMode(
+    LumideDebugSetExceptionPauseModeCallback callback,
+  ) {
+    _setExceptionPauseModeCallback = callback;
+  }
+
+  @override
+  void onGetStackFrames(LumideDebugStackFramesCallback callback) {
+    _stackFramesCallback = callback;
+  }
+
+  @override
+  void onGetScopes(LumideDebugScopesCallback callback) {
+    _scopesCallback = callback;
+  }
+
+  @override
+  void onGetVariables(LumideDebugVariablesCallback callback) {
+    _variablesCallback = callback;
+  }
+
+  @override
+  void onEvaluate(LumideDebugEvaluateCallback callback) {
+    _evaluateCallback = callback;
   }
 }
 

@@ -43,6 +43,21 @@ class HostMethods {
   static const aiCheckStatus = 'languages/aiCheckStatus';
   static const aiSignIn = 'languages/aiSignIn';
   static const aiSignOut = 'languages/aiSignOut';
+
+  // Debug (IDE → Plugin)
+  static const debugLaunch = 'debug/launch';
+  static const debugContinue = 'debug/continue';
+  static const debugPause = 'debug/pause';
+  static const debugStepOver = 'debug/stepOver';
+  static const debugStepInto = 'debug/stepInto';
+  static const debugStepOut = 'debug/stepOut';
+  static const debugStop = 'debug/stop';
+  static const debugSetBreakpoints = 'debug/setBreakpoints';
+  static const debugSetExceptionPauseMode = 'debug/setExceptionPauseMode';
+  static const debugGetStackFrames = 'debug/getStackFrames';
+  static const debugGetScopes = 'debug/getScopes';
+  static const debugGetVariables = 'debug/getVariables';
+  static const debugEvaluate = 'debug/evaluate';
 }
 
 /// Method names for Plugin-to-IDE communication.
@@ -137,4 +152,10 @@ class PluginMethods {
   static const languagesRegisterInlineProvider =
       'languages/registerInlineProvider';
   static const languagesSendLspRequest = 'languages/sendLspRequest';
+
+  // Debug (Plugin → IDE)
+  static const debugStartSession = 'debug/startSession';
+  static const debugUpdateSession = 'debug/updateSession';
+  static const debugEndSession = 'debug/endSession';
+  static const debugUpdateBreakpoints = 'debug/updateBreakpoints';
 }

@@ -1,4 +1,13 @@
 export 'configuration_property.dart';
+export 'debug_breakpoint.dart';
+export 'debug_capabilities.dart';
+export 'debug_evaluation_result.dart';
+export 'debug_exception_pause_mode.dart';
+export 'debug_scope.dart';
+export 'debug_session.dart';
+export 'debug_session_state.dart';
+export 'debug_stack_frame.dart';
+export 'debug_variable.dart';
 export 'log_record.dart';
 export 'lumide_manifest.dart';
 export 'permission.dart';
