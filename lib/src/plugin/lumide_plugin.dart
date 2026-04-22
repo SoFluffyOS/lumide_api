@@ -108,6 +108,9 @@ abstract class LumideContext {
   /// Toolbar operations.
   LumideToolbar get toolbar;
 
+  /// Debug session operations.
+  LumideDebug get debug;
+
   /// Language server registration.
   LumideLanguages get languages;
 }
@@ -366,6 +369,9 @@ abstract class LumideTerminal {
 
 /// A channel for streaming output (logs) to the UI.
 abstract class LumideOutputChannel {
+  /// Stable channel identifier used by the IDE.
+  String get id;
+
   /// Appends text to the channel.
   Future<void> append(String value);
 
@@ -383,6 +389,86 @@ abstract class LumideOutputChannel {
 
   /// Disposes the channel.
   Future<void> dispose();
+}
+
+typedef LumideDebugSessionCallback = Future<void> Function(String sessionId);
+typedef LumideDebugSetBreakpointsCallback = Future<void> Function(
+  String sessionId,
+  List<LumideDebugBreakpoint> breakpoints,
+);
+typedef LumideDebugSetExceptionPauseModeCallback = Future<void> Function(
+  String sessionId,
+  LumideDebugExceptionPauseMode mode,
+);
+typedef LumideDebugStackFramesCallback = Future<List<LumideDebugStackFrame>>
+    Function(String sessionId);
+typedef LumideDebugScopesCallback = Future<List<LumideDebugScope>> Function(
+    String sessionId, int frameId);
+typedef LumideDebugVariablesCallback = Future<List<LumideDebugVariable>>
+    Function(String sessionId, int scopeId);
+typedef LumideDebugEvaluateCallback = Future<LumideDebugEvaluationResult?>
+    Function(
+  String sessionId,
+  String expression, {
+  int? frameId,
+});
+
+/// Debug session bridge for the active debugger backend.
+abstract class LumideDebug {
+  /// Announces a newly started debug session to the IDE.
+  Future<void> startSession(LumideDebugSession session);
+
+  /// Updates the current session state.
+  Future<void> updateSession(LumideDebugSession session);
+
+  /// Updates backend-managed breakpoint state.
+  Future<void> updateBreakpoints(
+    String sessionId,
+    List<LumideDebugBreakpoint> breakpoints,
+  );
+
+  /// Ends the current session and clears debug UI state.
+  Future<void> endSession(String sessionId);
+
+  /// Registers a callback for host launch requests.
+  void onLaunch(Future<void> Function() callback);
+
+  /// Registers a callback for continue/resume requests.
+  void onContinue(LumideDebugSessionCallback callback);
+
+  /// Registers a callback for pause requests.
+  void onPause(LumideDebugSessionCallback callback);
+
+  /// Registers a callback for step-over requests.
+  void onStepOver(LumideDebugSessionCallback callback);
+
+  /// Registers a callback for step-into requests.
+  void onStepInto(LumideDebugSessionCallback callback);
+
+  /// Registers a callback for step-out requests.
+  void onStepOut(LumideDebugSessionCallback callback);
+
+  /// Registers a callback for stop requests.
+  void onStop(LumideDebugSessionCallback callback);
+
+  /// Registers a callback for breakpoint synchronization requests.
+  void onSetBreakpoints(LumideDebugSetBreakpointsCallback callback);
+
+  /// Registers a callback for exception pause mode changes.
+  void onSetExceptionPauseMode(
+      LumideDebugSetExceptionPauseModeCallback callback);
+
+  /// Registers a callback for stack frame requests.
+  void onGetStackFrames(LumideDebugStackFramesCallback callback);
+
+  /// Registers a callback for scope requests.
+  void onGetScopes(LumideDebugScopesCallback callback);
+
+  /// Registers a callback for variable requests.
+  void onGetVariables(LumideDebugVariablesCallback callback);
+
+  /// Registers a callback for expression evaluation requests.
+  void onEvaluate(LumideDebugEvaluateCallback callback);
 }
 
 /// A webview panel.
