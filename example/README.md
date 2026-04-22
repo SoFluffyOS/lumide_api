@@ -136,6 +136,92 @@ IDE starts plugin process (dart run bin/main.dart)
 
 ---
 
+## New In 1.2.0: Debug Support
+
+`lumide_api` now includes a first-class debug bridge. A plugin can act as a debugger backend by:
+
+- announcing a session with `context.debug.startSession(...)`
+- responding to host actions like continue/pause/step/stop
+- synchronizing breakpoints with `onSetBreakpoints(...)`
+- serving stack frames, scopes, variables, and evaluation results
+- reacting to exception filter changes with `onSetExceptionPauseMode(...)`
+
+Minimal sketch:
+
+```dart
+final debugOutput = await context.window.createOutputChannel('Demo Debug');
+
+context.debug.onLaunch(() async {
+  await context.debug.startSession(
+    LumideDebugSession(
+      id: 'demo.debug',
+      name: 'Demo Debugger',
+      state: LumideDebugSessionState.running,
+      outputChannelId: debugOutput.id,
+      capabilities: const LumideDebugCapabilities(
+        canContinue: true,
+        canPause: true,
+        canStepOver: true,
+        canStepInto: true,
+        canStepOut: true,
+        canStop: true,
+        canSetBreakpoints: true,
+        canEvaluate: true,
+      ),
+      exceptionPauseMode: LumideDebugExceptionPauseMode.unhandled,
+    ),
+  );
+});
+
+context.debug.onGetStackFrames((sessionId) async => const [
+      LumideDebugStackFrame(
+        id: 1,
+        name: 'main',
+        sourceUri: 'file:///workspace/lib/main.dart',
+        line: 12,
+        column: 1,
+      ),
+    ]);
+
+context.debug.onGetScopes((sessionId, frameId) async => const [
+      LumideDebugScope(id: 10, name: 'Locals'),
+    ]);
+
+context.debug.onGetVariables((sessionId, variablesReference) async {
+  if (variablesReference == 10) {
+    return const [
+      LumideDebugVariable(
+        name: 'counter',
+        value: '1',
+        type: 'int',
+      ),
+      LumideDebugVariable(
+        name: 'user',
+        value: 'Instance of User',
+        type: 'User',
+        variablesReference: 11,
+      ),
+    ];
+  }
+
+  if (variablesReference == 11) {
+    return const [
+      LumideDebugVariable(
+        name: 'name',
+        value: 'Demo',
+        type: 'String',
+      ),
+    ];
+  }
+
+  return const [];
+});
+```
+
+Use `variablesReference` for lazy expansion instead of eagerly flattening large object graphs. Reuse `outputChannelId` so your debug logs stream into both the normal Output surface and the Debug panel’s embedded output view.
+
+---
+
 ## API Reference
 
 All APIs are accessed through the `LumideContext` passed to `onActivate`.
