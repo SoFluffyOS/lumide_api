@@ -20,6 +20,7 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Terminal API**: Create and control integrated terminals.
 - **Output API**: Write logs and data to the Output Panel.
 - **Languages API**: Register custom language servers for LSP support. **(New: Inline Completion, Custom LSP Requests)**
+- **Debug API**: Start debugger sessions, synchronize breakpoints, inspect stack frames/scopes/variables, evaluate expressions, and control exception pause mode.
 
 ## Getting Started
 
@@ -27,7 +28,7 @@ Add `lumide_api` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lumide_api: ^1.1.0
+  lumide_api: ^1.2.0
 ```
 
 ## Basic Usage
@@ -258,6 +259,126 @@ final channel = await context.window.createOutputChannel('My Plugin Logs');
 
 await channel.append('Starting build process...\n');
 await channel.show();
+
+// Structured records can be streamed too
+await channel.appendLog(
+  LumideLogRecord(
+    level: 'INFO',
+    message: 'Build finished',
+  ),
+);
+```
+
+### Debug Sessions
+
+Plugins can expose a custom debugger backend through `context.debug`.
+
+```dart
+class MyPlugin extends LumidePlugin {
+  @override
+  Future<void> onActivate(LumideContext context) async {
+    final output = await context.window.createOutputChannel('My Debugger');
+
+    context.debug.onLaunch(() async {
+      await context.debug.startSession(
+        LumideDebugSession(
+          id: 'my.debug.session',
+          name: 'My Debugger',
+          state: LumideDebugSessionState.launching,
+          capabilities: const LumideDebugCapabilities(
+            canContinue: true,
+            canPause: true,
+            canStepOver: true,
+            canStepInto: true,
+            canStepOut: true,
+            canStop: true,
+            canSetBreakpoints: true,
+            canEvaluate: true,
+          ),
+          outputChannelId: output.id,
+        ),
+      );
+
+      await context.debug.updateSession(
+        LumideDebugSession(
+          id: 'my.debug.session',
+          name: 'My Debugger',
+          state: LumideDebugSessionState.running,
+          outputChannelId: output.id,
+          exceptionPauseMode: LumideDebugExceptionPauseMode.unhandled,
+        ),
+      );
+    });
+
+    context.debug.onSetBreakpoints((sessionId, breakpoints) async {
+      log('Host requested ${breakpoints.length} breakpoints');
+    });
+
+    context.debug.onSetExceptionPauseMode((sessionId, mode) async {
+      log('Exception pause mode: ${mode.name}');
+    });
+
+    context.debug.onGetStackFrames((sessionId) async {
+      return const [
+        LumideDebugStackFrame(
+          id: 1,
+          name: 'main',
+          sourceUri: 'file:///workspace/lib/main.dart',
+          line: 10,
+          column: 1,
+        ),
+      ];
+    });
+
+    context.debug.onGetScopes((sessionId, frameId) async {
+      return const [
+        LumideDebugScope(id: 100, name: 'Locals'),
+      ];
+    });
+
+    context.debug.onGetVariables((sessionId, variablesReference) async {
+      if (variablesReference == 100) {
+        return const [
+          LumideDebugVariable(
+            name: 'user',
+            value: 'Instance of User',
+            type: 'User',
+            variablesReference: 101,
+          ),
+        ];
+      }
+
+      if (variablesReference == 101) {
+        return const [
+          LumideDebugVariable(
+            name: 'name',
+            value: 'Simon',
+            type: 'String',
+          ),
+        ];
+      }
+
+      return const [];
+    });
+
+    context.debug.onEvaluate((sessionId, expression, {frameId}) async {
+      return const LumideDebugEvaluationResult(
+        result: '42',
+        type: 'int',
+      );
+    });
+  }
+}
+```
+
+Key debug concepts:
+
+- `startSession()` / `updateSession()` / `endSession()` drive the lifecycle of the active debugger.
+- `outputChannelId` binds the debug UI to an existing output channel instead of duplicating logs.
+- `onSetBreakpoints()` and `updateBreakpoints()` keep host and backend breakpoint state aligned.
+- `onGetVariables()` is reference-based: top-level scopes and nested children both flow through the same callback.
+- `variablesReference` enables lazy tree expansion for large objects, collections, and maps.
+- `exceptionPauseMode` reports the current filter and `onSetExceptionPauseMode()` lets the host change it.
 
 // Write structured logs
 await channel.appendLog(
