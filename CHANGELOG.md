@@ -1,3 +1,18 @@
+# 1.2.0
+
+✨ This release introduces the first public Debug API for Lumide plugins, including host-controlled sessions, breakpoints, stack inspection, variable loading, and exception pause mode support.
+
+### New features
+
+- **Debug API** — Added `context.debug` for starting, updating, and ending debug sessions from plugins.
+- **Session State** — Added `LumideDebugSession`, `LumideDebugSessionState`, and `LumideDebugCapabilities` for describing debugger state and supported actions.
+- **Breakpoint Sync** — Added `LumideDebugBreakpoint`, `updateBreakpoints`, and `onSetBreakpoints` for bidirectional breakpoint synchronization.
+- **Stack / Scope / Variable Inspection** — Added `LumideDebugStackFrame`, `LumideDebugScope`, `LumideDebugVariable`, `onGetStackFrames`, `onGetScopes`, and `onGetVariables`.
+- **Expression Evaluation** — Added `LumideDebugEvaluationResult` and `onEvaluate`.
+- **Exception Filters** — Added `LumideDebugExceptionPauseMode` and `onSetExceptionPauseMode`.
+- **Output Integration** — `LumideDebugSession.outputChannelId` can now bind a debug session to an existing output channel, so plugins can reuse one log stream in both Output and Debug surfaces.
+- **Expandable Variables** — `LumideDebugVariable.variablesReference` and `LumideDebugEvaluationResult.variablesReference` now support lazy child-variable loading.
+
 # 1.1.0
 
 ✨ This release introduces significant enhancements to the Languages API, including custom LSP requests and inline completion support, alongside new window and workspace capabilities.
