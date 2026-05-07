@@ -243,10 +243,19 @@ class _RpcWindow implements LumideWindow {
       }
       return null;
     });
+
+    _session.registerNotificationHandler(PluginMethods.webviewOnDidReceiveMessage, (params) {
+      final id = params['id'].value as String;
+      final panel = _webviewPanels[id];
+      if (panel != null) {
+        panel._onMessage(params['message'].value);
+      }
+    });
   }
 
   final RpcSession _session;
   final _terminals = <String, _RpcTerminal>{};
+  final _webviewPanels = <String, _RpcWebviewPanel>{};
 
   @override
   Future<void> showMessage(String message,
@@ -355,7 +364,9 @@ class _RpcWindow implements LumideWindow {
       if (options != null) 'options': options,
     });
     final id = result as String;
-    return _RpcWebviewPanel(id, _session);
+    final panel = _RpcWebviewPanel(id, _session);
+    _webviewPanels[id] = panel;
+    return panel;
   }
 
   @override
@@ -381,21 +392,15 @@ class _RpcWindow implements LumideWindow {
 }
 
 class _RpcWebviewPanel implements LumideWebviewPanel {
-  _RpcWebviewPanel(this._id, this._session) {
-    _session.registerNotificationHandler(
-      PluginMethods.webviewOnDidReceiveMessage,
-      (params) {
-        if (params['id'] == _id) {
-          _messageController.add(params['message']);
-        }
-      },
-    );
-  }
+  _RpcWebviewPanel(this._id, this._session);
 
   final String _id;
   final RpcSession _session;
   final _messageController = StreamController<Object>.broadcast();
 
+  void _onMessage(Object message) {
+    _messageController.add(message);
+  }
   @override
   Future<void> postMessage(Object message) async {
     await _session.sendRequest(PluginMethods.webviewPostMessage, {
