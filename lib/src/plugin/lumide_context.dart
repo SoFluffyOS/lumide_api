@@ -244,12 +244,27 @@ class _RpcWindow implements LumideWindow {
       return null;
     });
 
-    _session.registerNotificationHandler(PluginMethods.webviewOnDidReceiveMessage, (params) {
+    _session.registerNotificationHandler(
+        PluginMethods.webviewOnDidReceiveMessage, (params) {
       final id = params['id'].value as String;
       final panel = _webviewPanels[id];
       if (panel != null) {
         panel._onMessage(params['message'].value);
       }
+    });
+
+    _session.registerNotificationHandler(PluginMethods.webviewOnDidDispose,
+        (params) {
+      final id = params['id'].value as String;
+      final panel = _webviewPanels.remove(id);
+      panel?._messageController.close();
+    });
+
+    _session.registerNotificationHandler(PluginMethods.terminalOnDidDispose,
+        (params) {
+      final id = params['id'].value as String;
+      final terminal = _terminals.remove(id);
+      terminal?._dataCallbacks.clear();
     });
   }
 
@@ -338,7 +353,9 @@ class _RpcWindow implements LumideWindow {
       if (shellArgs != null) 'shellArgs': shellArgs,
     });
     final id = result as String;
-    final terminal = _RpcTerminal(id, _session);
+    final terminal = _RpcTerminal(id, _session, () {
+      _terminals.remove(id);
+    });
     _terminals[id] = terminal;
     return terminal;
   }
@@ -364,7 +381,9 @@ class _RpcWindow implements LumideWindow {
       if (options != null) 'options': options,
     });
     final id = result as String;
-    final panel = _RpcWebviewPanel(id, _session);
+    final panel = _RpcWebviewPanel(id, _session, () {
+      _webviewPanels.remove(id);
+    });
     _webviewPanels[id] = panel;
     return panel;
   }
@@ -392,15 +411,17 @@ class _RpcWindow implements LumideWindow {
 }
 
 class _RpcWebviewPanel implements LumideWebviewPanel {
-  _RpcWebviewPanel(this._id, this._session);
+  _RpcWebviewPanel(this._id, this._session, this._onDispose);
 
   final String _id;
   final RpcSession _session;
+  final void Function() _onDispose;
   final _messageController = StreamController<Object>.broadcast();
 
   void _onMessage(Object message) {
     _messageController.add(message);
   }
+
   @override
   Future<void> postMessage(Object message) async {
     await _session.sendRequest(PluginMethods.webviewPostMessage, {
@@ -417,15 +438,17 @@ class _RpcWebviewPanel implements LumideWebviewPanel {
   @override
   Future<void> dispose() async {
     await _session.sendRequest(PluginMethods.webviewDispose, {'id': _id});
+    _onDispose();
     await _messageController.close();
   }
 }
 
 class _RpcTerminal implements LumideTerminal {
-  _RpcTerminal(this._id, this._session);
+  _RpcTerminal(this._id, this._session, this._onDispose);
 
   final String _id;
   final RpcSession _session;
+  final void Function() _onDispose;
   final _dataCallbacks = <void Function(String)>[];
 
   void _emitData(String data) {
@@ -454,6 +477,7 @@ class _RpcTerminal implements LumideTerminal {
   @override
   Future<void> dispose() async {
     await _session.sendRequest(PluginMethods.terminalDispose, {'id': _id});
+    _onDispose();
   }
 
   @override
