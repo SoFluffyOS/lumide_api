@@ -1,3 +1,15 @@
+# 1.3.0
+
+✨ This release improves the stability of Lumide plugins by fixing memory leaks in webview panels and terminals, and ensures proper cleanup of resources.
+
+### New features
+- **Event Handling** — Added `webview/onDidDispose` and `terminal/onDidDispose` RPC notifications to handle IDE host-initiated panel and terminal closures gracefully.
+
+### Fixes
+
+- **Memory** — Fixed memory leaks in `LumideWebviewPanel` and `LumideTerminal` by properly disposing of them locally and cleaning them up in `LumideContext`.
+- **Routing** — Fixed an issue where creating multiple webview panels caused `webview/onDidReceiveMessage` handlers to overwrite each other.
+
 # 1.2.0
 
 ✨ This release introduces the first public Debug API for Lumide plugins, including host-controlled sessions, breakpoints, stack inspection, variable loading, and exception pause mode support.
