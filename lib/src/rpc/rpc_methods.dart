@@ -88,6 +88,7 @@ class PluginMethods {
   static const terminalShow = 'terminal/show';
   static const terminalDispose = 'terminal/dispose';
   static const terminalOnData = 'terminal/onData';
+  static const terminalOnDidDispose = 'terminal/onDidDispose';
 
   // Window/UI
   static const windowShowMessage = 'window/showMessage';
@@ -101,6 +102,7 @@ class PluginMethods {
   // Webview API
   static const webviewPostMessage = 'webview/postMessage';
   static const webviewOnDidReceiveMessage = 'webview/onDidReceiveMessage';
+  static const webviewOnDidDispose = 'webview/onDidDispose';
   static const webviewDispose = 'webview/dispose';
 
   // Editor
