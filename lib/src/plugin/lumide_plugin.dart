@@ -111,6 +111,9 @@ abstract class LumideContext {
   /// Debug session operations.
   LumideDebug get debug;
 
+  /// Launch provider operations.
+  LumideLaunch get launch;
+
   /// Language server registration.
   LumideLanguages get languages;
 }
@@ -469,6 +472,48 @@ abstract class LumideDebug {
 
   /// Registers a callback for expression evaluation requests.
   void onEvaluate(LumideDebugEvaluateCallback callback);
+}
+
+/// Launch provider bridge for run/debug/test actions owned by the IDE.
+abstract class LumideLaunch {
+  /// Registers a launch provider.
+  Future<void> registerProvider({
+    required String id,
+    required String title,
+    List<String> workspacePatterns = const [],
+    List<LumideLaunchKind> kinds = const [LumideLaunchKind.run],
+    String? icon,
+    String? iconPath,
+    int priority = 0,
+  });
+
+  /// Removes a launch provider and all configurations owned by it.
+  Future<void> unregisterProvider(String id);
+
+  /// Publishes the current launch configurations for [providerId].
+  Future<void> updateConfigurations(
+    String providerId,
+    List<LumideLaunchConfiguration> configurations,
+  );
+
+  /// Handles host requests to resolve configurations.
+  void onResolveConfigurations(
+    Future<List<LumideLaunchConfiguration>> Function(
+      LumideLaunchResolveRequest request,
+    ) callback,
+  );
+
+  /// Handles host requests to create or edit configurations.
+  void onConfigure(
+    Future<LumideLaunchConfiguration?> Function(
+      LumideLaunchConfigureRequest request,
+    ) callback,
+  );
+
+  /// Handles host launch requests.
+  void onLaunch(
+    Future<void> Function(LumideLaunchRequest request) callback,
+  );
 }
 
 /// A webview panel.

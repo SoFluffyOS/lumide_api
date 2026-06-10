@@ -45,6 +45,11 @@ class HostMethods {
   static const aiSignOut = 'languages/aiSignOut';
 
   // Debug (IDE → Plugin)
+  static const launchResolveConfigurations = 'launch/resolveConfigurations';
+  static const launchConfigure = 'launch/configure';
+  static const launchStart = 'launch/start';
+
+  // Debug (IDE → Plugin)
   static const debugLaunch = 'debug/launch';
   static const debugContinue = 'debug/continue';
   static const debugPause = 'debug/pause';
@@ -148,6 +153,11 @@ class PluginMethods {
   static const toolbarRegisterItem = 'toolbar/registerItem';
   static const toolbarUnregisterItem = 'toolbar/unregisterItem';
   static const toolbarOnTap = 'toolbar/onTap';
+
+  // Launch (Plugin → IDE)
+  static const launchRegisterProvider = 'launch/registerProvider';
+  static const launchUpdateConfigurations = 'launch/updateConfigurations';
+  static const launchUnregisterProvider = 'launch/unregisterProvider';
 
   // Languages (Plugin → IDE)
   static const languagesRegisterServer = 'languages/registerServer';

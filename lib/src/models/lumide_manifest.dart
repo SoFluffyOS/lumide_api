@@ -2,6 +2,7 @@
 library;
 
 import 'package:lumide_api/src/models/configuration_property.dart';
+import 'package:lumide_api/src/models/launch.dart';
 import 'package:lumide_api/src/models/permission.dart';
 import 'package:yaml/yaml.dart';
 
@@ -18,6 +19,7 @@ class LumideManifest {
     this.configuration = const [],
     this.commands = const [],
     this.keybindings = const [],
+    this.launchProviders = const [],
     this.activationEvents = const [],
     this.themes = const [],
     this.iconThemes = const [],
@@ -145,6 +147,22 @@ class LumideManifest {
       }
     }
 
+    // Parse contributes.launchProviders
+    final launchProviders = <LumideLaunchProvider>[];
+    if (contributes case final YamlMap contributesMap) {
+      if (contributesMap['launchProviders']
+          case final YamlList launchProviderList) {
+        for (final item in launchProviderList) {
+          if (item case final YamlMap launchProviderMap) {
+            final provider = LumideLaunchProvider.fromJson(launchProviderMap);
+            if (provider.id.isNotEmpty && provider.title.isNotEmpty) {
+              launchProviders.add(provider);
+            }
+          }
+        }
+      }
+    }
+
     // Parse contributes.themes
     final themes = <ManifestTheme>[];
     if (contributes case final YamlMap contributesMap) {
@@ -233,6 +251,7 @@ class LumideManifest {
       configuration: configuration,
       commands: commands,
       keybindings: keybindings,
+      launchProviders: launchProviders,
       themes: themes,
       iconThemes: iconThemes,
       activationEvents: activationEvents,
@@ -278,6 +297,9 @@ class LumideManifest {
   /// Keybindings contributed by this plugin.
   final List<ManifestKeybinding> keybindings;
 
+  /// Launch providers contributed by this plugin.
+  final List<LumideLaunchProvider> launchProviders;
+
   /// Creates a copy of this manifest with some fields replaced.
   LumideManifest copyWith({
     String? id,
@@ -293,6 +315,7 @@ class LumideManifest {
     List<ManifestIconTheme>? iconThemes,
     List<ManifestCommand>? commands,
     List<ManifestKeybinding>? keybindings,
+    List<LumideLaunchProvider>? launchProviders,
   }) {
     return LumideManifest(
       id: id ?? this.id,
@@ -308,6 +331,7 @@ class LumideManifest {
       iconThemes: iconThemes ?? this.iconThemes,
       commands: commands ?? this.commands,
       keybindings: keybindings ?? this.keybindings,
+      launchProviders: launchProviders ?? this.launchProviders,
     );
   }
 }

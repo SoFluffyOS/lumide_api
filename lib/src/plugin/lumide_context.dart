@@ -42,6 +42,9 @@ class RpcLumideContext implements LumideContext {
   late final LumideDebug debug = _RpcDebug(_session);
 
   @override
+  late final LumideLaunch launch = _RpcLaunch(_session);
+
+  @override
   late final LumideLanguages languages = _RpcLanguages(_session);
 }
 
@@ -1178,6 +1181,92 @@ class _RpcToolbar implements LumideToolbar {
   @override
   void onTap(void Function(String id, Map<String, int> position) callback) {
     _onTapCallbacks.add(callback);
+  }
+}
+
+class _RpcLaunch implements LumideLaunch {
+  _RpcLaunch(this._session);
+
+  final RpcSession _session;
+
+  @override
+  Future<void> registerProvider({
+    required String id,
+    required String title,
+    List<String> workspacePatterns = const [],
+    List<LumideLaunchKind> kinds = const [LumideLaunchKind.run],
+    String? icon,
+    String? iconPath,
+    int priority = 0,
+  }) async {
+    await _session.sendRequest(PluginMethods.launchRegisterProvider, {
+      'id': id,
+      'title': title,
+      if (workspacePatterns.isNotEmpty) 'workspacePatterns': workspacePatterns,
+      'kinds': kinds.map((kind) => kind.name).toList(),
+      if (icon != null) 'icon': icon,
+      if (iconPath != null) 'iconPath': iconPath,
+      'priority': priority,
+    });
+  }
+
+  @override
+  Future<void> unregisterProvider(String id) async {
+    await _session.sendRequest(PluginMethods.launchUnregisterProvider, {
+      'id': id,
+    });
+  }
+
+  @override
+  Future<void> updateConfigurations(
+    String providerId,
+    List<LumideLaunchConfiguration> configurations,
+  ) async {
+    await _session.sendRequest(PluginMethods.launchUpdateConfigurations, {
+      'providerId': providerId,
+      'configurations':
+          configurations.map((config) => config.toJson()).toList(),
+    });
+  }
+
+  @override
+  void onResolveConfigurations(
+    Future<List<LumideLaunchConfiguration>> Function(
+      LumideLaunchResolveRequest request,
+    ) callback,
+  ) {
+    _session.registerMethod(HostMethods.launchResolveConfigurations, (
+      params,
+    ) async {
+      final request = LumideLaunchResolveRequest.fromJson(params.value as Map);
+      final configurations = await callback(request);
+      return configurations.map((config) => config.toJson()).toList();
+    });
+  }
+
+  @override
+  void onConfigure(
+    Future<LumideLaunchConfiguration?> Function(
+      LumideLaunchConfigureRequest request,
+    ) callback,
+  ) {
+    _session.registerMethod(HostMethods.launchConfigure, (params) async {
+      final request =
+          LumideLaunchConfigureRequest.fromJson(params.value as Map);
+      final configuration = await callback(request);
+      return configuration?.toJson();
+    });
+  }
+
+  @override
+  void onLaunch(
+    Future<void> Function(LumideLaunchRequest request) callback,
+  ) {
+    _session.registerMethod(HostMethods.launchStart, (params) async {
+      final request = LumideLaunchRequest.fromJson(params.value as Map);
+      await callback(request);
+      return null;
+    });
   }
 }
 
