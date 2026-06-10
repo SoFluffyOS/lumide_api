@@ -368,6 +368,38 @@ context.workspace.onDidSaveTextDocument((uri) {
 });
 ```
 
+Plugin settings can use `type: filePath` to open a file picker or
+`type: folderPath` to open a folder picker in the generated Settings UI.
+
+Launch providers can also expose schema-driven launch options next to the
+target picker:
+
+```dart
+await context.launch.updateConfigurations('demo', const [
+  LumideLaunchConfiguration(
+    id: 'current',
+    label: 'Current Target',
+    options: [
+      LumideLaunchOption(
+        id: 'flavor',
+        label: 'Flavor',
+        type: ConfigPropertyType.string,
+        description: 'Launch flavor or environment name.',
+        placeholder: 'staging',
+      ),
+    ],
+  ),
+]);
+
+context.launch.onConfigure((request) async {
+  if (request.actionId == 'flavor') {
+    final flavor = request.value?.toString();
+    // Persist the option in plugin-owned launch state.
+  }
+  return null;
+});
+```
+
 ---
 
 ### Commands — `context.commands`
