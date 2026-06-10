@@ -17,6 +17,9 @@ enum ConfigPropertyType {
 
   /// A file path value (triggers file picker in UI).
   filePath,
+
+  /// A folder path value (triggers folder picker in UI).
+  folderPath,
 }
 
 /// Describes a single configurable setting exposed by a plugin.
@@ -96,6 +99,10 @@ class ConfigurationProperty {
         'int' || 'integer' => ConfigPropertyType.integer,
         'number' || 'double' => ConfigPropertyType.number,
         'filePath' || 'file_path' => ConfigPropertyType.filePath,
+        'folderPath' ||
+        'folder_path' ||
+        'directory' =>
+          ConfigPropertyType.folderPath,
         _ => ConfigPropertyType.string,
       };
 }
