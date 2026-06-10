@@ -1185,9 +1185,26 @@ class _RpcToolbar implements LumideToolbar {
 }
 
 class _RpcLaunch implements LumideLaunch {
-  _RpcLaunch(this._session);
+  _RpcLaunch(this._session) {
+    _session.registerMethod(HostMethods.launchDidStart, (params) async {
+      final event = LumideLaunchEvent.fromJson(params.value as Map);
+      for (final callback in _didStartCallbacks) {
+        callback(event);
+      }
+      return null;
+    });
+    _session.registerMethod(HostMethods.launchDidEnd, (params) async {
+      final event = LumideLaunchEvent.fromJson(params.value as Map);
+      for (final callback in _didEndCallbacks) {
+        callback(event);
+      }
+      return null;
+    });
+  }
 
   final RpcSession _session;
+  final _didStartCallbacks = <void Function(LumideLaunchEvent event)>[];
+  final _didEndCallbacks = <void Function(LumideLaunchEvent event)>[];
 
   @override
   Future<void> registerProvider({
@@ -1277,6 +1294,16 @@ class _RpcLaunch implements LumideLaunch {
       await callback(request);
       return null;
     });
+  }
+
+  @override
+  void onDidStart(void Function(LumideLaunchEvent event) callback) {
+    _didStartCallbacks.add(callback);
+  }
+
+  @override
+  void onDidEnd(void Function(LumideLaunchEvent event) callback) {
+    _didEndCallbacks.add(callback);
   }
 }
 

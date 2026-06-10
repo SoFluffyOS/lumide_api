@@ -520,6 +520,12 @@ abstract class LumideLaunch {
   void onLaunch(
     Future<void> Function(LumideLaunchRequest request) callback,
   );
+
+  /// Observes launch start events from the host.
+  void onDidStart(void Function(LumideLaunchEvent event) callback);
+
+  /// Observes launch end events from the host.
+  void onDidEnd(void Function(LumideLaunchEvent event) callback);
 }
 
 /// A webview panel.
