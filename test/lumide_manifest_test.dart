@@ -156,6 +156,25 @@ entry_point: bin/main.dart
       expect(manifest.launchProviders, isEmpty);
     });
 
+    test('parses folder path configuration type', () {
+      const yaml = '''
+id: config-plugin
+name: Config Plugin
+version: 1.0.0
+description: A config plugin
+entry_point: bin/main.dart
+configuration:
+  - key: config-plugin.sdkPath
+    type: folderPath
+    description: SDK folder.
+''';
+
+      final manifest = LumideManifest.fromYaml(yaml);
+
+      expect(manifest.configuration, hasLength(1));
+      expect(manifest.configuration[0].type, ConfigPropertyType.folderPath);
+    });
+
     test('parses contributes.launchProviders list', () {
       const yaml = '''
 id: launch-plugin
@@ -260,6 +279,34 @@ contributes:
 
       final replaced = manifest.copyWith(launchProviders: []);
       expect(replaced.launchProviders, isEmpty);
+    });
+  });
+
+  group('LumideLaunchConfiguration', () {
+    test('round-trips schema-driven launch options', () {
+      const config = LumideLaunchConfiguration(
+        id: 'current',
+        label: 'Current',
+        options: [
+          LumideLaunchOption(
+            id: 'flavor',
+            label: 'Flavor',
+            type: ConfigPropertyType.string,
+            description: 'Flutter flavor.',
+            value: 'staging',
+            placeholder: 'production',
+            icon: 'layers',
+          ),
+        ],
+      );
+
+      final roundTrip = LumideLaunchConfiguration.fromJson(config.toJson());
+
+      expect(roundTrip.options, hasLength(1));
+      expect(roundTrip.options[0].id, 'flavor');
+      expect(roundTrip.options[0].type, ConfigPropertyType.string);
+      expect(roundTrip.options[0].value, 'staging');
+      expect(roundTrip.options[0].placeholder, 'production');
     });
   });
 }
