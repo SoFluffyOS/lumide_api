@@ -48,6 +48,8 @@ class HostMethods {
   static const launchResolveConfigurations = 'launch/resolveConfigurations';
   static const launchConfigure = 'launch/configure';
   static const launchStart = 'launch/start';
+  static const launchDidStart = 'launch/onDidStart';
+  static const launchDidEnd = 'launch/onDidEnd';
 
   // Debug (IDE → Plugin)
   static const debugLaunch = 'debug/launch';
