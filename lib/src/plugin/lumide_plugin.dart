@@ -496,6 +496,12 @@ abstract class LumideLaunch {
     List<LumideLaunchConfiguration> configurations,
   );
 
+  /// Announces that a launch process started.
+  Future<void> didStart(LumideLaunchEvent event);
+
+  /// Announces that a launch process ended.
+  Future<void> didEnd(LumideLaunchEvent event);
+
   /// Handles host requests to resolve configurations.
   void onResolveConfigurations(
     Future<List<LumideLaunchConfiguration>> Function(
