@@ -142,15 +142,18 @@ class LumideLaunchResolveRequest {
 class LumideLaunchConfigureRequest {
   const LumideLaunchConfigureRequest({
     required this.providerId,
+    this.actionId,
     this.kind,
     this.configuration,
     this.workspaceUri,
+    this.position,
   });
 
   factory LumideLaunchConfigureRequest.fromJson(Map<dynamic, dynamic> json) {
     final rawConfiguration = json['configuration'];
     return LumideLaunchConfigureRequest(
       providerId: json['providerId']?.toString() ?? '',
+      actionId: json['actionId']?.toString(),
       kind: json['kind'] == null
           ? null
           : LumideLaunchKind.fromName(json['kind']?.toString()),
@@ -158,13 +161,16 @@ class LumideLaunchConfigureRequest {
           ? LumideLaunchConfiguration.fromJson(rawConfiguration)
           : null,
       workspaceUri: json['workspaceUri']?.toString(),
+      position: _intMap(json['position']),
     );
   }
 
   final String providerId;
+  final String? actionId;
   final LumideLaunchKind? kind;
   final LumideLaunchConfiguration? configuration;
   final String? workspaceUri;
+  final Map<String, int>? position;
 }
 
 /// Request sent when the host starts a launch action.
@@ -273,4 +279,17 @@ Map<String, Object?> _objectMap(Object? value) {
     return value.map((key, value) => MapEntry(key.toString(), value));
   }
   return const {};
+}
+
+Map<String, int>? _intMap(Object? value) {
+  if (value is! Map) return null;
+
+  final result = <String, int>{};
+  for (final entry in value.entries) {
+    final intValue = _nullableIntValue(entry.value);
+    if (intValue != null) {
+      result[entry.key.toString()] = intValue;
+    }
+  }
+  return result.isEmpty ? null : result;
 }
