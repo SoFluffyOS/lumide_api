@@ -153,6 +153,62 @@ entry_point: bin/main.dart
 
       expect(manifest.themes, isEmpty);
       expect(manifest.iconThemes, isEmpty);
+      expect(manifest.launchProviders, isEmpty);
+    });
+
+    test('parses contributes.launchProviders list', () {
+      const yaml = '''
+id: launch-plugin
+name: Launch Plugin
+version: 1.0.0
+description: A launch plugin
+entry_point: bin/main.dart
+contributes:
+  launchProviders:
+    - id: flutter
+      title: Flutter
+      kinds: [run, debug, test]
+      workspaceContains:
+        - pubspec.yaml
+      icon: play
+      priority: 10
+''';
+
+      final manifest = LumideManifest.fromYaml(yaml);
+
+      expect(manifest.launchProviders, hasLength(1));
+      expect(manifest.launchProviders[0].id, 'flutter');
+      expect(manifest.launchProviders[0].title, 'Flutter');
+      expect(manifest.launchProviders[0].kinds, [
+        LumideLaunchKind.run,
+        LumideLaunchKind.debug,
+        LumideLaunchKind.test,
+      ]);
+      expect(manifest.launchProviders[0].workspacePatterns, ['pubspec.yaml']);
+      expect(manifest.launchProviders[0].icon, 'play');
+      expect(manifest.launchProviders[0].priority, 10);
+    });
+
+    test('skips launch providers with missing required fields', () {
+      const yaml = '''
+id: launch-plugin
+name: Launch Plugin
+version: 1.0.0
+description: A launch plugin
+entry_point: bin/main.dart
+contributes:
+  launchProviders:
+    - id: flutter
+      title: Flutter
+    - id: missing-title
+    - title: Missing ID
+''';
+
+      final manifest = LumideManifest.fromYaml(yaml);
+
+      expect(manifest.launchProviders, hasLength(1));
+      expect(manifest.launchProviders[0].id, 'flutter');
+      expect(manifest.launchProviders[0].kinds, [LumideLaunchKind.run]);
     });
 
     test('copyWith preserves and replaces theme lists', () {
@@ -180,6 +236,29 @@ contributes:
       // Replace
       final replaced = manifest.copyWith(themes: []);
       expect(replaced.themes, isEmpty);
+    });
+
+    test('copyWith preserves and replaces launch providers', () {
+      const yaml = '''
+id: test
+name: Test
+version: 1.0.0
+description: Test
+entry_point: bin/main.dart
+contributes:
+  launchProviders:
+    - id: flutter
+      title: Flutter
+''';
+
+      final manifest = LumideManifest.fromYaml(yaml);
+
+      final copy = manifest.copyWith(name: 'Updated');
+      expect(copy.launchProviders, hasLength(1));
+      expect(copy.launchProviders[0].id, 'flutter');
+
+      final replaced = manifest.copyWith(launchProviders: []);
+      expect(replaced.launchProviders, isEmpty);
     });
   });
 }
