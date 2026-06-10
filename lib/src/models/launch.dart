@@ -1,6 +1,8 @@
 /// Launch provider models.
 library;
 
+import 'package:lumide_api/src/models/configuration_property.dart';
+
 /// Supported launch action types.
 enum LumideLaunchKind {
   run,
@@ -74,6 +76,7 @@ class LumideLaunchConfiguration {
     this.detail,
     this.icon,
     this.iconPath,
+    this.options = const [],
     this.arguments = const {},
     this.isDefault = false,
   });
@@ -87,6 +90,7 @@ class LumideLaunchConfiguration {
       detail: json['detail']?.toString(),
       icon: json['icon']?.toString(),
       iconPath: json['iconPath']?.toString(),
+      options: _optionList(json['options'] ?? json['actions']),
       arguments: _objectMap(json['arguments']),
       isDefault: json['isDefault'] == true,
     );
@@ -99,6 +103,7 @@ class LumideLaunchConfiguration {
   final String? detail;
   final String? icon;
   final String? iconPath;
+  final List<LumideLaunchOption> options;
   final Map<String, Object?> arguments;
   final bool isDefault;
 
@@ -111,8 +116,67 @@ class LumideLaunchConfiguration {
       if (detail != null) 'detail': detail,
       if (icon != null) 'icon': icon,
       if (iconPath != null) 'iconPath': iconPath,
+      if (options.isNotEmpty)
+        'options': options.map((option) => option.toJson()).toList(),
       'arguments': arguments,
       if (isDefault) 'isDefault': isDefault,
+    };
+  }
+}
+
+/// A schema-driven launch option associated with a launch configuration.
+class LumideLaunchOption {
+  const LumideLaunchOption({
+    required this.id,
+    required this.label,
+    this.type = ConfigPropertyType.string,
+    this.description,
+    this.detail,
+    this.value,
+    this.placeholder,
+    this.icon,
+    this.iconPath,
+    this.enabled = true,
+  });
+
+  factory LumideLaunchOption.fromJson(Map<dynamic, dynamic> json) {
+    return LumideLaunchOption(
+      id: json['id']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      type: _configurationType(json['type']),
+      description: json['description']?.toString(),
+      detail: json['detail']?.toString(),
+      value: json['value'],
+      placeholder: json['placeholder']?.toString(),
+      icon: json['icon']?.toString(),
+      iconPath: json['iconPath']?.toString(),
+      enabled: json['enabled'] != false,
+    );
+  }
+
+  final String id;
+  final String label;
+  final ConfigPropertyType type;
+  final String? description;
+  final String? detail;
+  final Object? value;
+  final String? placeholder;
+  final String? icon;
+  final String? iconPath;
+  final bool enabled;
+
+  Map<String, Object?> toJson() {
+    return {
+      'id': id,
+      'label': label,
+      'type': type.name,
+      if (description != null) 'description': description,
+      if (detail != null) 'detail': detail,
+      if (value != null) 'value': value,
+      if (placeholder != null) 'placeholder': placeholder,
+      if (icon != null) 'icon': icon,
+      if (iconPath != null) 'iconPath': iconPath,
+      if (!enabled) 'enabled': enabled,
     };
   }
 }
@@ -145,6 +209,7 @@ class LumideLaunchConfigureRequest {
   const LumideLaunchConfigureRequest({
     required this.providerId,
     this.actionId,
+    this.value,
     this.kind,
     this.configuration,
     this.workspaceUri,
@@ -156,6 +221,7 @@ class LumideLaunchConfigureRequest {
     return LumideLaunchConfigureRequest(
       providerId: json['providerId']?.toString() ?? '',
       actionId: json['actionId']?.toString(),
+      value: json['value'],
       kind: json['kind'] == null
           ? null
           : LumideLaunchKind.fromName(json['kind']?.toString()),
@@ -169,6 +235,7 @@ class LumideLaunchConfigureRequest {
 
   final String providerId;
   final String? actionId;
+  final Object? value;
   final LumideLaunchKind? kind;
   final LumideLaunchConfiguration? configuration;
   final String? workspaceUri;
@@ -263,6 +330,31 @@ List<LumideLaunchKind> _kindList(Object? value) {
     return kinds.isEmpty ? const [LumideLaunchKind.run] : kinds;
   }
   return const [LumideLaunchKind.run];
+}
+
+List<LumideLaunchOption> _optionList(Object? value) {
+  if (value is List) {
+    return value
+        .whereType<Map>()
+        .map(LumideLaunchOption.fromJson)
+        .where((option) => option.id.isNotEmpty && option.label.isNotEmpty)
+        .toList();
+  }
+  return const [];
+}
+
+ConfigPropertyType _configurationType(Object? value) {
+  return switch (value?.toString()) {
+    'boolean' || 'bool' => ConfigPropertyType.boolean,
+    'integer' || 'int' => ConfigPropertyType.integer,
+    'number' => ConfigPropertyType.number,
+    'filePath' || 'file_path' => ConfigPropertyType.filePath,
+    'folderPath' ||
+    'folder_path' ||
+    'directory' =>
+      ConfigPropertyType.folderPath,
+    _ => ConfigPropertyType.string,
+  };
 }
 
 int _intValue(Object? value) {
