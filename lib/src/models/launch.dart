@@ -203,6 +203,43 @@ class LumideLaunchRequest {
   }
 }
 
+/// Runtime launch lifecycle event.
+class LumideLaunchEvent {
+  const LumideLaunchEvent({
+    required this.providerId,
+    required this.kind,
+    required this.configurationId,
+    this.exitCode,
+    this.message,
+  });
+
+  factory LumideLaunchEvent.fromJson(Map<dynamic, dynamic> json) {
+    return LumideLaunchEvent(
+      providerId: json['providerId']?.toString() ?? '',
+      kind: LumideLaunchKind.fromName(json['kind']?.toString()),
+      configurationId: json['configurationId']?.toString() ?? '',
+      exitCode: _nullableIntValue(json['exitCode']),
+      message: json['message']?.toString(),
+    );
+  }
+
+  final String providerId;
+  final LumideLaunchKind kind;
+  final String configurationId;
+  final int? exitCode;
+  final String? message;
+
+  Map<String, Object?> toJson() {
+    return {
+      'providerId': providerId,
+      'kind': kind.name,
+      'configurationId': configurationId,
+      if (exitCode != null) 'exitCode': exitCode,
+      if (message != null) 'message': message,
+    };
+  }
+}
+
 List<String> _stringList(Object? value) {
   if (value is List) {
     return value.map((item) => item.toString()).toList();
@@ -224,6 +261,11 @@ int _intValue(Object? value) {
   if (value is int) return value;
   if (value is num) return value.toInt();
   return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+int? _nullableIntValue(Object? value) {
+  if (value == null) return null;
+  return _intValue(value);
 }
 
 Map<String, Object?> _objectMap(Object? value) {

@@ -158,6 +158,8 @@ class PluginMethods {
   static const launchRegisterProvider = 'launch/registerProvider';
   static const launchUpdateConfigurations = 'launch/updateConfigurations';
   static const launchUnregisterProvider = 'launch/unregisterProvider';
+  static const launchDidStart = 'launch/onDidStart';
+  static const launchDidEnd = 'launch/onDidEnd';
 
   // Languages (Plugin → IDE)
   static const languagesRegisterServer = 'languages/registerServer';
