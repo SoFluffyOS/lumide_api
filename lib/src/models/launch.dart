@@ -5,11 +5,13 @@ library;
 enum LumideLaunchKind {
   run,
   debug,
+  attach,
   test;
 
   static LumideLaunchKind fromName(String? name) {
     return switch (name) {
       'debug' => LumideLaunchKind.debug,
+      'attach' => LumideLaunchKind.attach,
       'test' => LumideLaunchKind.test,
       _ => LumideLaunchKind.run,
     };

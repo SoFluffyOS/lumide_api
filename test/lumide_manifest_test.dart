@@ -167,7 +167,7 @@ contributes:
   launchProviders:
     - id: flutter
       title: Flutter
-      kinds: [run, debug, test]
+      kinds: [run, debug, attach, test]
       workspaceContains:
         - pubspec.yaml
       icon: play
@@ -182,6 +182,7 @@ contributes:
       expect(manifest.launchProviders[0].kinds, [
         LumideLaunchKind.run,
         LumideLaunchKind.debug,
+        LumideLaunchKind.attach,
         LumideLaunchKind.test,
       ]);
       expect(manifest.launchProviders[0].workspacePatterns, ['pubspec.yaml']);
