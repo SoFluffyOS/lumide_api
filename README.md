@@ -269,6 +269,56 @@ await channel.appendLog(
 );
 ```
 
+### Launch Providers
+
+Plugins can publish run/debug/attach configurations through `context.launch`.
+Configurations can include schema-driven `options`; the host renders those
+options near the target picker and sends edited values back through
+`LumideLaunchConfigureRequest.value`.
+
+```dart
+await context.launch.registerProvider(
+  id: 'flutter',
+  title: 'Flutter',
+  workspacePatterns: const ['pubspec.yaml'],
+  kinds: const [
+    LumideLaunchKind.run,
+    LumideLaunchKind.debug,
+    LumideLaunchKind.attach,
+  ],
+);
+
+await context.launch.updateConfigurations('flutter', const [
+  LumideLaunchConfiguration(
+    id: 'current',
+    label: 'lib/main.dart',
+    options: [
+      LumideLaunchOption(
+        id: 'flavor',
+        label: 'Flutter Flavor',
+        type: ConfigPropertyType.string,
+        description: 'Pass --flavor to flutter run.',
+        placeholder: 'staging',
+      ),
+      LumideLaunchOption(
+        id: 'sdkPath',
+        label: 'Flutter SDK',
+        type: ConfigPropertyType.folderPath,
+        description: 'Folder containing the Flutter SDK.',
+      ),
+    ],
+  ),
+]);
+
+context.launch.onConfigure((request) async {
+  if (request.actionId == 'flavor') {
+    final flavor = request.value?.toString().trim();
+    // Persist flavor in plugin-owned launch state, then return updated config.
+  }
+  return null;
+});
+```
+
 ### Debug Sessions
 
 Plugins can expose a custom debugger backend through `context.debug`.

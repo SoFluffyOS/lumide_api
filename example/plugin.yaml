@@ -29,6 +29,9 @@ configuration:
     type: boolean
     description: 'Log document open/close/change events to stderr.'
     default: true
+  - key: lumide_demo_plugin.toolsFolder
+    type: folderPath
+    description: 'Optional folder used by demo tools.'
 
 contributes:
   commands:
