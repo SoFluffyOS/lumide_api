@@ -233,10 +233,27 @@ class QuickPickItem {
     this.payload,
     this.iconPath,
     this.icon,
+    this.noTint = false,
     this.enabled = true,
     this.isSeparator = false,
     this.tooltip,
   });
+
+  factory QuickPickItem.fromJson(Map<dynamic, dynamic> json) {
+    return QuickPickItem(
+      label: json['label']?.toString() ?? '',
+      description: json['description']?.toString(),
+      detail: json['detail']?.toString(),
+      picked: json['picked'] == true,
+      payload: json['payload'],
+      iconPath: json['iconPath']?.toString(),
+      icon: json['icon']?.toString(),
+      noTint: json['noTint'] == true,
+      enabled: json['enabled'] != false,
+      isSeparator: json['isSeparator'] == true,
+      tooltip: json['tooltip']?.toString(),
+    );
+  }
 
   /// The label to display.
   final String label;
@@ -259,6 +276,10 @@ class QuickPickItem {
   /// Name of a themed icon (e.g. 'search').
   final String? icon;
 
+  /// When true, the icon is rendered without any theme color tint,
+  /// preserving its original colors (useful for colored SVGs like logos).
+  final bool noTint;
+
   /// Whether the item is enabled.
   final bool enabled;
 
@@ -277,6 +298,7 @@ class QuickPickItem {
       if (payload != null) 'payload': payload,
       if (iconPath != null) 'iconPath': iconPath,
       if (icon != null) 'icon': icon,
+      if (noTint) 'noTint': noTint,
       if (!enabled) 'enabled': enabled,
       if (isSeparator) 'isSeparator': isSeparator,
       if (tooltip != null) 'tooltip': tooltip,

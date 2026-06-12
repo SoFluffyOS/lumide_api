@@ -301,6 +301,17 @@ await context.launch.updateConfigurations('flutter', const [
         placeholder: 'staging',
       ),
       LumideLaunchOption(
+        id: 'buildMode',
+        label: 'Build Mode',
+        type: ConfigPropertyType.string,
+        value: 'debug',
+        choices: [
+          LumideLaunchOptionChoice(value: 'debug', label: 'Debug'),
+          LumideLaunchOptionChoice(value: 'profile', label: 'Profile'),
+          LumideLaunchOptionChoice(value: 'release', label: 'Release'),
+        ],
+      ),
+      LumideLaunchOption(
         id: 'sdkPath',
         label: 'Flutter SDK',
         type: ConfigPropertyType.folderPath,

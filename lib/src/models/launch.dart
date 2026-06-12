@@ -76,6 +76,8 @@ class LumideLaunchConfiguration {
     this.detail,
     this.icon,
     this.iconPath,
+    this.noTint = false,
+    this.isAction = false,
     this.options = const [],
     this.arguments = const {},
     this.isDefault = false,
@@ -90,6 +92,8 @@ class LumideLaunchConfiguration {
       detail: json['detail']?.toString(),
       icon: json['icon']?.toString(),
       iconPath: json['iconPath']?.toString(),
+      noTint: json['noTint'] == true,
+      isAction: json['isAction'] == true,
       options: _optionList(json['options'] ?? json['actions']),
       arguments: _objectMap(json['arguments']),
       isDefault: json['isDefault'] == true,
@@ -103,6 +107,10 @@ class LumideLaunchConfiguration {
   final String? detail;
   final String? icon;
   final String? iconPath;
+  /// When true, the icon is rendered without any theme color tint.
+  final bool noTint;
+  /// When true, this represents a utility command rather than an executable target.
+  final bool isAction;
   final List<LumideLaunchOption> options;
   final Map<String, Object?> arguments;
   final bool isDefault;
@@ -116,6 +124,8 @@ class LumideLaunchConfiguration {
       if (detail != null) 'detail': detail,
       if (icon != null) 'icon': icon,
       if (iconPath != null) 'iconPath': iconPath,
+      if (noTint) 'noTint': noTint,
+      if (isAction) 'isAction': isAction,
       if (options.isNotEmpty)
         'options': options.map((option) => option.toJson()).toList(),
       'arguments': arguments,
@@ -124,59 +134,196 @@ class LumideLaunchConfiguration {
   }
 }
 
-/// A schema-driven launch option associated with a launch configuration.
-class LumideLaunchOption {
-  const LumideLaunchOption({
-    required this.id,
+/// A selectable value for a launch option.
+class LumideLaunchOptionChoice {
+  const LumideLaunchOptionChoice({
+    required this.value,
     required this.label,
-    this.type = ConfigPropertyType.string,
     this.description,
     this.detail,
-    this.value,
-    this.placeholder,
     this.icon,
     this.iconPath,
     this.enabled = true,
   });
 
-  factory LumideLaunchOption.fromJson(Map<dynamic, dynamic> json) {
-    return LumideLaunchOption(
-      id: json['id']?.toString() ?? '',
-      label: json['label']?.toString() ?? '',
-      type: _configurationType(json['type']),
+  factory LumideLaunchOptionChoice.fromJson(Map<dynamic, dynamic> json) {
+    final rawValue = json['value'];
+    final label = json['label']?.toString() ?? rawValue?.toString() ?? '';
+    return LumideLaunchOptionChoice(
+      value: rawValue ?? label,
+      label: label,
       description: json['description']?.toString(),
       detail: json['detail']?.toString(),
-      value: json['value'],
-      placeholder: json['placeholder']?.toString(),
       icon: json['icon']?.toString(),
       iconPath: json['iconPath']?.toString(),
       enabled: json['enabled'] != false,
     );
   }
 
-  final String id;
+  final Object? value;
   final String label;
-  final ConfigPropertyType type;
   final String? description;
   final String? detail;
-  final Object? value;
-  final String? placeholder;
   final String? icon;
   final String? iconPath;
   final bool enabled;
 
   Map<String, Object?> toJson() {
     return {
+      'value': value,
+      'label': label,
+      if (description != null) 'description': description,
+      if (detail != null) 'detail': detail,
+      if (icon != null) 'icon': icon,
+      if (iconPath != null) 'iconPath': iconPath,
+      if (!enabled) 'enabled': enabled,
+    };
+  }
+}
+
+/// A type-safe value for a launch option, containing its concrete type representation.
+sealed class LumideLaunchValue<T> {
+  const LumideLaunchValue(this.value);
+
+  /// The concrete type-safe value.
+  final T? value;
+
+  /// The category type for the IDE UI rendering.
+  ConfigPropertyType get type;
+
+  /// The untyped value for serialization.
+  Object? get raw => value;
+}
+
+/// A string-typed launch value.
+class StringLaunchValue extends LumideLaunchValue<String> {
+  const StringLaunchValue(super.value);
+
+  @override
+  ConfigPropertyType get type => ConfigPropertyType.string;
+}
+
+/// A string-typed launch value representing a file path.
+class FilePathLaunchValue extends LumideLaunchValue<String> {
+  const FilePathLaunchValue(super.value);
+
+  @override
+  ConfigPropertyType get type => ConfigPropertyType.filePath;
+}
+
+/// A string-typed launch value representing a folder path.
+class FolderPathLaunchValue extends LumideLaunchValue<String> {
+  const FolderPathLaunchValue(super.value);
+
+  @override
+  ConfigPropertyType get type => ConfigPropertyType.folderPath;
+}
+
+/// A boolean-typed launch value.
+class BoolLaunchValue extends LumideLaunchValue<bool> {
+  const BoolLaunchValue(super.value);
+
+  @override
+  ConfigPropertyType get type => ConfigPropertyType.boolean;
+}
+
+/// An integer-typed launch value.
+class IntLaunchValue extends LumideLaunchValue<int> {
+  const IntLaunchValue(super.value);
+
+  @override
+  ConfigPropertyType get type => ConfigPropertyType.integer;
+}
+
+/// A double-typed launch value.
+class DoubleLaunchValue extends LumideLaunchValue<double> {
+  const DoubleLaunchValue(super.value);
+
+  @override
+  ConfigPropertyType get type => ConfigPropertyType.number;
+}
+
+/// A schema-driven launch option associated with a launch configuration.
+class LumideLaunchOption {
+  const LumideLaunchOption({
+    required this.id,
+    required this.label,
+    required this.value,
+    this.description,
+    this.detail,
+    this.placeholder,
+    this.icon,
+    this.iconPath,
+    this.enabled = true,
+    this.choices,
+  });
+
+  factory LumideLaunchOption.fromJson(Map<dynamic, dynamic> json) {
+    final type = _configurationType(json['type']);
+    final rawValue = json['value'];
+    final LumideLaunchValue launchValue = (switch (type) {
+      ConfigPropertyType.string => StringLaunchValue(rawValue?.toString()),
+      ConfigPropertyType.filePath => FilePathLaunchValue(rawValue?.toString()),
+      ConfigPropertyType.folderPath =>
+        FolderPathLaunchValue(rawValue?.toString()),
+      ConfigPropertyType.boolean => BoolLaunchValue(
+          rawValue is bool
+              ? rawValue
+              : (rawValue == null
+                  ? null
+                  : rawValue.toString().toLowerCase() == 'true'),
+        ),
+      ConfigPropertyType.integer => IntLaunchValue(_nullableIntValue(rawValue)),
+      ConfigPropertyType.number => DoubleLaunchValue(
+          rawValue is num
+              ? rawValue.toDouble()
+              : (rawValue == null
+                  ? null
+                  : double.tryParse(rawValue.toString())),
+        ),
+    }) as LumideLaunchValue;
+
+    return LumideLaunchOption(
+      id: json['id']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      value: launchValue,
+      description: json['description']?.toString(),
+      detail: json['detail']?.toString(),
+      placeholder: json['placeholder']?.toString(),
+      icon: json['icon']?.toString(),
+      iconPath: json['iconPath']?.toString(),
+      enabled: json['enabled'] != false,
+      choices: _choiceList(json['choices']),
+    );
+  }
+
+  final String id;
+  final String label;
+  final LumideLaunchValue value;
+  final String? description;
+  final String? detail;
+  final String? placeholder;
+  final String? icon;
+  final String? iconPath;
+  final bool enabled;
+  final List<LumideLaunchOptionChoice>? choices;
+
+  ConfigPropertyType get type => value.type;
+
+  Map<String, Object?> toJson() {
+    return {
       'id': id,
       'label': label,
       'type': type.name,
+      if (value.raw != null) 'value': value.raw,
       if (description != null) 'description': description,
       if (detail != null) 'detail': detail,
-      if (value != null) 'value': value,
       if (placeholder != null) 'placeholder': placeholder,
       if (icon != null) 'icon': icon,
       if (iconPath != null) 'iconPath': iconPath,
       if (!enabled) 'enabled': enabled,
+      if (choices case final choices?)
+        'choices': choices.map((choice) => choice.toJson()).toList(),
     };
   }
 }
@@ -341,6 +488,20 @@ List<LumideLaunchOption> _optionList(Object? value) {
         .toList();
   }
   return const [];
+}
+
+List<LumideLaunchOptionChoice>? _choiceList(Object? value) {
+  if (value is! List) return null;
+
+  return value.map((item) {
+    if (item is Map) {
+      return LumideLaunchOptionChoice.fromJson(item);
+    }
+    return LumideLaunchOptionChoice(
+      value: item,
+      label: item.toString(),
+    );
+  }).toList();
 }
 
 ConfigPropertyType _configurationType(Object? value) {
