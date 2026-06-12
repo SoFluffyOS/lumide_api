@@ -291,22 +291,42 @@ contributes:
           LumideLaunchOption(
             id: 'flavor',
             label: 'Flavor',
-            type: ConfigPropertyType.string,
+            value: StringLaunchValue('staging'),
             description: 'Flutter flavor.',
-            value: 'staging',
             placeholder: 'production',
             icon: 'layers',
+          ),
+          LumideLaunchOption(
+            id: 'buildMode',
+            label: 'Build Mode',
+            value: StringLaunchValue('debug'),
+            choices: [
+              LumideLaunchOptionChoice(
+                value: 'debug',
+                label: 'Debug',
+                description: 'Hot reload',
+              ),
+              LumideLaunchOptionChoice(
+                value: 'release',
+                label: 'Release',
+                description: '--release',
+              ),
+            ],
           ),
         ],
       );
 
       final roundTrip = LumideLaunchConfiguration.fromJson(config.toJson());
 
-      expect(roundTrip.options, hasLength(1));
+      expect(roundTrip.options, hasLength(2));
       expect(roundTrip.options[0].id, 'flavor');
       expect(roundTrip.options[0].type, ConfigPropertyType.string);
-      expect(roundTrip.options[0].value, 'staging');
+      expect(roundTrip.options[0].value.raw, 'staging');
       expect(roundTrip.options[0].placeholder, 'production');
+      expect(roundTrip.options[1].choices, hasLength(2));
+      expect(roundTrip.options[1].choices?[0].value, 'debug');
+      expect(roundTrip.options[1].choices?[0].label, 'Debug');
+      expect(roundTrip.options[1].choices?[1].value, 'release');
     });
   });
 }
