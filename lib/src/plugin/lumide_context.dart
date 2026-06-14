@@ -411,6 +411,30 @@ class _RpcWindow implements LumideWindow {
       'verificationUri': verificationUri,
     });
   }
+
+  @override
+  Future<String?> showOpenDialog({
+    String? title,
+    String? defaultPath,
+  }) async {
+    final result = await _session.sendRequest(PluginMethods.windowShowOpenDialog, {
+      if (title != null) 'title': title,
+      if (defaultPath != null) 'defaultPath': defaultPath,
+    });
+    return result as String?;
+  }
+
+  @override
+  Future<String?> showOpenFolderDialog({
+    String? title,
+    String? defaultPath,
+  }) async {
+    final result = await _session.sendRequest(PluginMethods.windowShowOpenFolderDialog, {
+      if (title != null) 'title': title,
+      if (defaultPath != null) 'defaultPath': defaultPath,
+    });
+    return result as String?;
+  }
 }
 
 class _RpcWebviewPanel implements LumideWebviewPanel {
