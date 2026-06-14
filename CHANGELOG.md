@@ -1,9 +1,10 @@
-# 1.4.0
+# 1.5.0
 
 > Note: This release requires Lumide version later than 0.12.0.
 
 ### New features
-- **Launch API** — Add new APIs for plugins to register Run/Debug/Attach/Test launch configurations with dedicated UI supported on top bar.
+- New **Launch API** — Add new APIs for plugins to register Run/Debug/Attach/Test launch configurations with dedicated UI supported on top bar.
+- **Window API** — Add `window/showOpenDialog` and `window/showOpenFolderDialog` for FilePicker UI. 
 - **Settings** — Added `folderPath` configuration type for generated plugin settings that should pick directories instead of files.
 
 # 1.3.0
