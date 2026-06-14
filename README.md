@@ -14,7 +14,7 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Editor API**: Access active editor, selections, navigate to locations, and handle real-time events.
 - **Workspace API**: Access configurations, get workspace root, find files by glob, and listen to file events. **(New: `updateConfiguration`)**
 - **FileSystem API**: Secure file operations within the workspace, including directory checks.
-- **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs). **(New: `showDeviceAuthDialog`)**
+- **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs, file/folder pickers). **(New: `showDeviceAuthDialog`, `showOpenDialog`, `showOpenFolderDialog`)**
 - **Shell & HTTP APIs**: Controlled execution of shell commands (with working directory support) and standardized network requests.
 - **Toolbar API**: Add custom buttons to the IDE toolbar.
 - **Terminal API**: Create and control integrated terminals.
@@ -210,6 +210,17 @@ await context.window.showDeviceAuthDialog(
   userCode: 'ABCD-1234',
   verificationUri: 'https://github.com/login/device',
 );
+
+// File picker dialog (native file dialog)
+final filePath = await context.window.showOpenDialog(
+  title: 'Select File',
+  defaultPath: '/home/user/documents',
+);
+
+// Folder picker dialog (native folder dialog)
+final folderPath = await context.window.showOpenFolderDialog(
+  title: 'Select Project Directory',
+);
 ```
 
 ### Toolbar
@@ -271,12 +282,16 @@ await channel.appendLog(
 
 ### Launch Providers
 
-Plugins can publish run/debug/attach configurations through `context.launch`.
-Configurations can include schema-driven `options`; the host renders those
-options near the target picker and sends edited values back through
-`LumideLaunchConfigureRequest.value`.
+Plugins can publish and control run/debug/attach/test targets dynamically through `context.launch`.
+The IDE integrates these targets directly into the main toolbar's Run/Debug controls.
+
+Key features:
+- **Configurations & Actions**: Configurations represent runnable targets. Setting `isAction: true` designates an option as a utility button (e.g., "Select Custom Target..." or "Refresh Devices") rather than a runnable program.
+- **Schema-Driven Options**: Customize each target dynamically by attaching `options` (strings, booleans, file/folder pickers, dropdown choices).
+- **Process Lifecycle Tracking**: Report when a launch starts or ends using `didStart` and `didEnd`.
 
 ```dart
+// 1. Register the launch provider
 await context.launch.registerProvider(
   id: 'flutter',
   title: 'Flutter',
@@ -285,21 +300,17 @@ await context.launch.registerProvider(
     LumideLaunchKind.run,
     LumideLaunchKind.debug,
     LumideLaunchKind.attach,
+    LumideLaunchKind.test,
   ],
 );
 
-await context.launch.updateConfigurations('flutter', const [
+// 2. Publish configurations and action items
+await context.launch.updateConfigurations('flutter', [
+  // A standard runnable configuration
   LumideLaunchConfiguration(
-    id: 'current',
+    id: 'main_entry',
     label: 'lib/main.dart',
     options: [
-      LumideLaunchOption(
-        id: 'flavor',
-        label: 'Flutter Flavor',
-        type: ConfigPropertyType.string,
-        description: 'Pass --flavor to flutter run.',
-        placeholder: 'staging',
-      ),
       LumideLaunchOption(
         id: 'buildMode',
         label: 'Build Mode',
@@ -311,22 +322,68 @@ await context.launch.updateConfigurations('flutter', const [
           LumideLaunchOptionChoice(value: 'release', label: 'Release'),
         ],
       ),
-      LumideLaunchOption(
-        id: 'sdkPath',
-        label: 'Flutter SDK',
-        type: ConfigPropertyType.folderPath,
-        description: 'Folder containing the Flutter SDK.',
-      ),
     ],
+  ),
+  // A utility action shown in the target list (e.g., to select a custom file path)
+  const LumideLaunchConfiguration(
+    id: 'select_custom',
+    label: 'Select Custom Target...',
+    isAction: true, // Flags this item as an action button, not a runnable target
+    icon: 'folder-opened',
   ),
 ]);
 
+// 3. Resolve configurations dynamically when requested by the host
+context.launch.onResolveConfigurations((request) async {
+  log('Resolving configurations for workspace: ${request.workspaceUri}');
+  return [
+    const LumideLaunchConfiguration(id: 'resolved_target', label: 'Resolved Target'),
+  ];
+});
+
+// 4. Handle configuration changes and action clicks
 context.launch.onConfigure((request) async {
-  if (request.actionId == 'flavor') {
-    final flavor = request.value?.toString().trim();
-    // Persist flavor in plugin-owned launch state, then return updated config.
+  if (request.configuration?.id == 'select_custom') {
+    // Action triggered: prompt user for file target using the new Window API file picker
+    final path = await context.window.showOpenDialog(
+      title: 'Select Dart Entry Point',
+      defaultPath: request.workspaceUri,
+    );
+    if (path != null) {
+      // Create and return the new custom configuration target
+      return LumideLaunchConfiguration(
+        id: 'custom_target',
+        label: path.split('/').last,
+        arguments: {'entryPath': path},
+      );
+    }
   }
   return null;
+});
+
+// 5. Run, debug, attach, or test when the user clicks Play
+context.launch.onLaunch((request) async {
+  final config = request.configuration;
+  log('Launching target ${config.label} in ${request.kind.name} mode');
+
+  // Notify the host that the process is starting
+  final launchEvent = LumideLaunchEvent(
+    providerId: request.providerId,
+    kind: request.kind,
+    configurationId: config.id,
+  );
+  await context.launch.didStart(launchEvent);
+
+  // Spawn command/process and await completion
+  final result = await context.shell.run('flutter', ['run', '-d', 'chrome']);
+
+  // Notify the host that the launch ended
+  await context.launch.didEnd(LumideLaunchEvent(
+    providerId: request.providerId,
+    kind: request.kind,
+    configurationId: config.id,
+    exitCode: result.exitCode,
+  ));
 });
 ```
 

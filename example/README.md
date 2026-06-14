@@ -285,15 +285,30 @@ await context.fs.writeString('/path/to/output.txt', 'result');
 | `showMessage(String msg, {MessageType type})` | Shows a toast/notification |
 | `showQuickPick(List<String> items, {String? placeholder})` | Shows a selection dialog, returns chosen item or `null` |
 | `showInputBox({String? prompt, String? value})` | Shows a text input dialog, returns entered text or `null` |
+| `showOpenDialog({String? title, String? defaultPath})` | Shows a file picker dialog, returns selected file path or `null` |
+| `showOpenFolderDialog({String? title, String? defaultPath})` | Shows a folder picker dialog, returns selected folder path or `null` |
 
 ```dart
 await context.window.showMessage('Build succeeded! ✅');
 
+// Ask user to select a configuration or action
 final choice = await context.window.showQuickPick(
-  ['Format', 'Lint', 'Test'],
+  [
+    QuickPickItem(label: 'Format Code', payload: 'format'),
+    QuickPickItem(label: 'Run Tests', payload: 'test'),
+  ],
   placeholder: 'Choose an action...',
 );
-if (choice == 'Format') { /* ... */ }
+
+// Native file picker dialog
+final filePath = await context.window.showOpenDialog(
+  title: 'Select Entry Point',
+);
+
+// Native folder picker dialog
+final folderPath = await context.window.showOpenFolderDialog(
+  title: 'Select SDK Folder',
+);
 ```
 
 ---
@@ -371,34 +386,7 @@ context.workspace.onDidSaveTextDocument((uri) {
 Plugin settings can use `type: filePath` to open a file picker or
 `type: folderPath` to open a folder picker in the generated Settings UI.
 
-Launch providers can also expose schema-driven launch options next to the
-target picker:
 
-```dart
-await context.launch.updateConfigurations('demo', const [
-  LumideLaunchConfiguration(
-    id: 'current',
-    label: 'Current Target',
-    options: [
-      LumideLaunchOption(
-        id: 'flavor',
-        label: 'Flavor',
-        type: ConfigPropertyType.string,
-        description: 'Launch flavor or environment name.',
-        placeholder: 'staging',
-      ),
-    ],
-  ),
-]);
-
-context.launch.onConfigure((request) async {
-  if (request.actionId == 'flavor') {
-    final flavor = request.value?.toString();
-    // Persist the option in plugin-owned launch state.
-  }
-  return null;
-});
-```
 
 ---
 
@@ -503,6 +491,80 @@ context.toolbar.onTap((id, position) {
 | `append(id, value)` | Appends text to a channel |
 | `show(id, {preserveFocus?})` | Shows the output panel |
 | `disposeChannel(id)` | Removes a channel |
+
+---
+
+### Launch — `context.launch`
+
+| Method | Description |
+|--------|-------------|
+| `registerProvider(...)` | Registers a new launch provider (run, debug, attach, test) |
+| `unregisterProvider(id)` | Unregisters a launch provider |
+| `updateConfigurations(...)` | Publishes standard targets and triggers/actions (`isAction: true`) |
+| `didStart(LumideLaunchEvent)` | Tells the IDE a run/debug/attach/test process has started |
+| `didEnd(LumideLaunchEvent)` | Tells the IDE a run/debug/attach/test process has finished |
+| `onResolveConfigurations(cb)` | Registers a callback to fetch configurations dynamically |
+| `onConfigure(cb)` | Registers a callback for target configuration options and custom actions |
+| `onLaunch(cb)` | Registers a callback triggered when the user starts a session |
+
+```dart
+// Register the provider
+await context.launch.registerProvider(
+  id: 'dart',
+  title: 'Dart',
+  kinds: const [LumideLaunchKind.run],
+);
+
+// Publish configurations with a trigger action
+await context.launch.updateConfigurations('dart', [
+  const LumideLaunchConfiguration(
+    id: 'bin_main',
+    label: 'bin/main.dart',
+  ),
+  const LumideLaunchConfiguration(
+    id: 'select_entry',
+    label: 'Select Custom Entrypoint...',
+    isAction: true, // A non-runnable trigger action button in the dropdown
+    icon: 'folder',
+  ),
+]);
+
+// Handle dynamic config selection / custom actions
+context.launch.onConfigure((request) async {
+  if (request.configuration?.id == 'select_entry') {
+    final path = await context.window.showOpenDialog(
+      title: 'Select Dart Entry Point',
+    );
+    if (path != null) {
+      return LumideLaunchConfiguration(
+        id: 'custom_bin',
+        label: path.split('/').last,
+        arguments: {'path': path},
+      );
+    }
+  }
+  return null;
+});
+
+// Await play / run request
+context.launch.onLaunch((request) async {
+  final event = LumideLaunchEvent(
+    providerId: request.providerId,
+    kind: request.kind,
+    configurationId: request.configuration.id,
+  );
+  
+  // Notify started
+  await context.launch.didStart(event);
+  
+  // Run process
+  final entry = request.configuration.arguments['path'] ?? 'bin/main.dart';
+  final result = await context.shell.run('dart', ['run', entry]);
+  
+  // Notify ended
+  await context.launch.didEnd(event);
+});
+```
 
 ---
 
