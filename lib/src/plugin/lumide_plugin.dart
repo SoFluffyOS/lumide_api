@@ -373,6 +373,22 @@ abstract class LumideWindow {
     required String userCode,
     required String verificationUri,
   });
+
+  /// Shows a file picker dialog.
+  ///
+  /// Returns the path of the selected file, or `null` if cancelled.
+  Future<String?> showOpenDialog({
+    String? title,
+    String? defaultPath,
+  });
+
+  /// Shows a folder picker dialog.
+  ///
+  /// Returns the path of the selected folder, or `null` if cancelled.
+  Future<String?> showOpenFolderDialog({
+    String? title,
+    String? defaultPath,
+  });
 }
 
 /// A terminal instance in the IDE.
