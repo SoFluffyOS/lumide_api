@@ -33,6 +33,9 @@ class RpcLumideContext implements LumideContext {
   late final LumideCommands commands = _RpcCommands(_session);
 
   @override
+  late final LumideMenus menus = _RpcMenus(_session);
+
+  @override
   late final LumideStatusBar statusBar = _RpcStatusBar(_session);
 
   @override
@@ -417,7 +420,8 @@ class _RpcWindow implements LumideWindow {
     String? title,
     String? defaultPath,
   }) async {
-    final result = await _session.sendRequest(PluginMethods.windowShowOpenDialog, {
+    final result =
+        await _session.sendRequest(PluginMethods.windowShowOpenDialog, {
       if (title != null) 'title': title,
       if (defaultPath != null) 'defaultPath': defaultPath,
     });
@@ -429,7 +433,8 @@ class _RpcWindow implements LumideWindow {
     String? title,
     String? defaultPath,
   }) async {
-    final result = await _session.sendRequest(PluginMethods.windowShowOpenFolderDialog, {
+    final result =
+        await _session.sendRequest(PluginMethods.windowShowOpenFolderDialog, {
       if (title != null) 'title': title,
       if (defaultPath != null) 'defaultPath': defaultPath,
     });
@@ -1075,6 +1080,28 @@ class _RpcCommands implements LumideCommands {
       'title': title,
       if (category != null) 'category': category,
     });
+  }
+}
+
+class _RpcMenus implements LumideMenus {
+  _RpcMenus(this._session);
+
+  final RpcSession _session;
+
+  @override
+  Future<void> registerAction(LumideMenuAction action) async {
+    await _session.sendRequest(
+      PluginMethods.menusRegisterAction,
+      action.toJson(),
+    );
+  }
+
+  @override
+  Future<void> unregisterAction(String id) async {
+    await _session.sendRequest(
+      PluginMethods.menusUnregisterAction,
+      {'id': id},
+    );
   }
 }
 

@@ -148,6 +148,10 @@ class PluginMethods {
   // Commands (Plugin → IDE)
   static const commandsRegister = 'commands/register';
 
+  // Menu actions (Plugin → IDE)
+  static const menusRegisterAction = 'menus/registerAction';
+  static const menusUnregisterAction = 'menus/unregisterAction';
+
   // Status Bar (Plugin → IDE)
   static const statusBarCreate = 'statusBar/create';
   static const statusBarUpdate = 'statusBar/update';
