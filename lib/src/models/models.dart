@@ -11,4 +11,5 @@ export 'debug_variable.dart';
 export 'launch.dart';
 export 'log_record.dart';
 export 'lumide_manifest.dart';
+export 'menu_action.dart';
 export 'permission.dart';

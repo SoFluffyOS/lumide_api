@@ -102,6 +102,9 @@ abstract class LumideContext {
   /// Command registration.
   LumideCommands get commands;
 
+  /// Context menu action contributions.
+  LumideMenus get menus;
+
   /// Status bar operations.
   LumideStatusBar get statusBar;
 
@@ -742,6 +745,18 @@ abstract class LumideCommands {
     String? category,
     required Future<void> Function([Map<String, dynamic>? args]) callback,
   });
+}
+
+/// Context menu contribution API.
+abstract class LumideMenus {
+  /// Registers an action in one of Lumide's context menus.
+  ///
+  /// When selected, [LumideMenuAction.command] is executed with a context map
+  /// describing the menu location and selected UI object.
+  Future<void> registerAction(LumideMenuAction action);
+
+  /// Removes a previously registered menu action by its plugin-local id.
+  Future<void> unregisterAction(String id);
 }
 
 /// Status bar operations API.

@@ -243,6 +243,37 @@ context.toolbar.onTap((id, position) {
 });
 ```
 
+### Context Menus
+
+Register actions in IDE context menus. The action command must also be
+registered; missing commands are not shown in menus.
+
+```dart
+await context.commands.registerCommand(
+  id: 'my_plugin.inspectFile',
+  title: 'Inspect File',
+  callback: ([args]) async {
+    final menuContext = args?['context'] as Map<String, dynamic>?;
+    final primary = menuContext?['primary'] as Map<String, dynamic>?;
+    log('Selected path: ${primary?['path']}');
+  },
+);
+
+await context.menus.registerAction(
+  const LumideMenuAction(
+    id: 'inspect_file',
+    title: 'Inspect File',
+    command: 'my_plugin.inspectFile',
+    location: LumideMenuLocation.fileTreeItem,
+  ),
+);
+```
+
+Supported locations are `addPane`, `fileTreeItem`, `tabBarItem`, and `editor`.
+Command callbacks receive an args map with `actionId`, `fullActionId`,
+`pluginId`, `location`, and a location-specific `context`. The `group` and
+`when` fields are reserved for future filtering and placement.
+
 ### Terminal
 
 Spawn and control terminals:
