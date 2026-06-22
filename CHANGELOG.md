@@ -1,3 +1,15 @@
+# 1.6.0
+
+> Note: This release requires Lumide version later than 0.14.0.
+
+### New features
+- New **Menu API** — Add new APIs for plugins to register custom actions in menu.
+  - Add Pane menu.
+  - File/Folder item's context menu.
+  - Tab bar item's context menu.
+  - Editor's context menu.
+- Add a method to **File System API** for plugins to create directory.
+
 # 1.5.0
 
 > Note: This release requires Lumide version later than 0.12.0.
