@@ -129,6 +129,11 @@ abstract class LumideFileSystem {
   /// Writes a string to a file.
   Future<void> writeString(String path, String content);
 
+  /// Creates a directory.
+  ///
+  /// When [recursive] is true, missing parent directories are created too.
+  Future<void> createDirectory(String path, {bool recursive = false});
+
   /// Checks if a path exists.
   Future<bool> exists(String path);
 
