@@ -74,6 +74,7 @@ class PluginMethods {
   // File System
   static const fsReadString = 'fs/readString';
   static const fsWriteString = 'fs/writeString';
+  static const fsCreateDirectory = 'fs/createDirectory';
   static const fsExists = 'fs/exists';
   static const fsIsDirectory = 'fs/isDirectory';
   static const fsList = 'fs/list';

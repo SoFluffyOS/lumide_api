@@ -71,6 +71,14 @@ class _RpcFileSystem implements LumideFileSystem {
   }
 
   @override
+  Future<void> createDirectory(String path, {bool recursive = false}) async {
+    await _session.sendRequest(PluginMethods.fsCreateDirectory, {
+      'path': path,
+      'recursive': recursive,
+    });
+  }
+
+  @override
   Future<bool> exists(String path) async {
     final result =
         await _session.sendRequest(PluginMethods.fsExists, {'path': path});
