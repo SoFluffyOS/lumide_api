@@ -266,15 +266,69 @@ context.editor.onDidChangeActiveDocument((uri) {
 |--------|-------------|
 | `readString(String path)` | Reads a file as UTF-8 string |
 | `writeString(String path, String content)` | Writes a string to a file |
+| `createDirectory(String path, {bool recursive})` | Creates a directory, optionally creating missing parents |
 | `exists(String path)` | Returns `true` if the path exists |
+| `isDirectory(String path)` | Returns `true` if the path is a directory |
 | `list(String path)` | Lists directory contents as `List<String>` |
 
 ```dart
 final content = await context.fs.readString('/path/to/file.dart');
+await context.fs.createDirectory('/path/to/generated', recursive: true);
 await context.fs.writeString('/path/to/output.txt', 'result');
 ```
 
 > Requires `fileSystem` permission in `plugin.yaml`. Paths outside declared globs are rejected.
+
+---
+
+### Context Menus — `context.menus`
+
+Register commands in Lumide context menus. Menu actions are shown only when
+their command is registered.
+
+| Method | Description |
+|--------|-------------|
+| `registerAction(LumideMenuAction action)` | Adds a plugin action to a context menu |
+| `unregisterAction(String id)` | Removes a plugin action by its plugin-local id |
+
+```dart
+await context.commands.registerCommand(
+  id: 'my_plugin.newDartFile',
+  title: 'My Plugin: New Dart File',
+  callback: ([args]) async {
+    final menuContext = args?['context'] as Map<String, dynamic>?;
+    final primary = menuContext?['primary'] as Map<String, dynamic>?;
+    log('Create near: ${primary?['path']}');
+  },
+);
+
+await context.menus.registerAction(
+  const LumideMenuAction(
+    id: 'new_dart_file',
+    title: 'New Dart File',
+    command: 'my_plugin.newDartFile',
+    location: LumideMenuLocation.fileTreeItem,
+    group: 'create',
+    priority: 100,
+  ),
+);
+
+await context.menus.registerAction(
+  const LumideMenuAction(
+    id: 'format_file',
+    title: 'Format File',
+    command: 'my_plugin.formatFile',
+    location: LumideMenuLocation.fileTreeItem,
+    group: 'tools',
+    priority: 90,
+  ),
+);
+```
+
+Supported locations are `addPane`, `fileTreeItem`, `tabBarItem`, and `editor`.
+Command callbacks receive `actionId`, `fullActionId`, `pluginId`, `location`,
+and a location-specific `context`. Use `group` to insert dividers between
+related actions from the same plugin.
 
 ---
 

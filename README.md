@@ -13,10 +13,11 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Status Bar API**: Create and manage custom status bar items.
 - **Editor API**: Access active editor, selections, navigate to locations, and handle real-time events.
 - **Workspace API**: Access configurations, get workspace root, find files by glob, and listen to file events. **(New: `updateConfiguration`)**
-- **FileSystem API**: Secure file operations within the workspace, including directory checks.
+- **FileSystem API**: Secure file operations within the workspace, including directory creation and checks.
 - **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs, file/folder pickers). **(New: `showDeviceAuthDialog`, `showOpenDialog`, `showOpenFolderDialog`)**
 - **Shell & HTTP APIs**: Controlled execution of shell commands (with working directory support) and standardized network requests.
 - **Toolbar API**: Add custom buttons to the IDE toolbar.
+- **Context Menu API**: Add actions to Add Pane, file tree, tab bar, and editor context menus with grouped sections.
 - **Terminal API**: Create and control integrated terminals.
 - **Output API**: Write logs and data to the Output Panel.
 - **Languages API**: Register custom language servers for LSP support. **(New: Inline Completion, Custom LSP Requests)**
@@ -149,6 +150,7 @@ if (await context.fs.isDirectory('/some/path')) {
 
 // Read and write files
 final content = await context.fs.readString('/path/to/file.txt');
+await context.fs.createDirectory('/path/to/generated', recursive: true);
 await context.fs.writeString('/path/to/output.txt', content);
 
 // Download and extract an archive natively via the IDE
@@ -265,14 +267,44 @@ await context.menus.registerAction(
     title: 'Inspect File',
     command: 'my_plugin.inspectFile',
     location: LumideMenuLocation.fileTreeItem,
+    group: 'inspect',
   ),
 );
 ```
 
 Supported locations are `addPane`, `fileTreeItem`, `tabBarItem`, and `editor`.
 Command callbacks receive an args map with `actionId`, `fullActionId`,
-`pluginId`, `location`, and a location-specific `context`. The `group` and
-`when` fields are reserved for future filtering and placement.
+`pluginId`, `location`, and a location-specific `context`.
+
+Use `group` to place visual separators between related actions contributed by
+the same plugin. Actions with the same group stay together; adjacent actions
+with different non-null groups are separated by the host.
+
+```dart
+await context.menus.registerAction(
+  const LumideMenuAction(
+    id: 'new_dart_file',
+    title: 'New Dart File',
+    command: 'my_plugin.newDartFile',
+    location: LumideMenuLocation.fileTreeItem,
+    group: 'create',
+    priority: 100,
+  ),
+);
+
+await context.menus.registerAction(
+  const LumideMenuAction(
+    id: 'format_file',
+    title: 'Format File',
+    command: 'my_plugin.formatFile',
+    location: LumideMenuLocation.fileTreeItem,
+    group: 'tools',
+    priority: 90,
+  ),
+);
+```
+
+The `when` field is reserved for future context filtering.
 
 ### Terminal
 
