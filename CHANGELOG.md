@@ -1,3 +1,14 @@
+# 1.7.0
+
+### New features
+
+- **Launch configurations** — Add persisted launch configurations with validation, JSON Schema forms, format-neutral imports, and target deduplication.
+
+### Breaking changes
+
+- **Workspace path** — Rename `workspaceUri` to `workspacePath` in launch requests (uses native path instead of URI).
+- **Launch API** — Custom `LumideLaunch` implementations must implement `onResolveConfiguration` and `onImportConfiguration`.
+
 # 1.6.0
 
 > Note: This release requires Lumide version later than 0.14.0.
