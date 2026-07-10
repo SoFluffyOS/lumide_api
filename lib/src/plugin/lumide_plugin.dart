@@ -528,8 +528,12 @@ abstract class LumideLaunch {
     required String title,
     List<String> workspacePatterns = const [],
     List<LumideLaunchKind> kinds = const [LumideLaunchKind.run],
+    List<LumideLaunchKind> defaultKinds = const [LumideLaunchKind.run],
     String? icon,
     String? iconPath,
+    String? configurationSchema,
+    List<Map<String, Object?>> configurationSnippets = const [],
+    List<LumideLaunchImportDescriptor> configurationImports = const [],
     int priority = 0,
   });
 
@@ -552,6 +556,20 @@ abstract class LumideLaunch {
   void onResolveConfigurations(
     Future<List<LumideLaunchConfiguration>> Function(
       LumideLaunchResolveRequest request,
+    ) callback,
+  );
+
+  /// Handles one persisted workspace configuration owned by this provider.
+  void onResolveConfiguration(
+    Future<LumideLaunchResolution> Function(
+      LumideLaunchSourceConfiguration source,
+    ) callback,
+  );
+
+  /// Handles conversion from a foreign launch format into a native source.
+  void onImportConfiguration(
+    Future<LumideLaunchImportResult> Function(
+      LumideForeignLaunchConfiguration source,
     ) callback,
   );
 

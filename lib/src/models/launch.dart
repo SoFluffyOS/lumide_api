@@ -21,14 +21,55 @@ enum LumideLaunchKind {
 }
 
 /// Static or runtime launch provider contribution.
+class LumideLaunchImportDescriptor {
+  const LumideLaunchImportDescriptor({
+    required this.format,
+    this.selectors = const {},
+  });
+
+  factory LumideLaunchImportDescriptor.fromJson(Map<dynamic, dynamic> json) {
+    final rawSelectors = json['selectors'];
+    return LumideLaunchImportDescriptor(
+      format: json['format']?.toString() ?? '',
+      selectors: rawSelectors is Map
+          ? rawSelectors.map(
+              (key, value) => MapEntry(key.toString(), _stringList(value)),
+            )
+          : const {},
+    );
+  }
+
+  final String format;
+  final Map<String, List<String>> selectors;
+
+  bool matches(String sourceFormat, Map<String, Object?> raw) {
+    if (format != sourceFormat) return false;
+    return selectors.entries.every((entry) {
+      final value = raw[entry.key]?.toString();
+      return value != null && entry.value.contains(value);
+    });
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'format': format,
+      if (selectors.isNotEmpty) 'selectors': selectors,
+    };
+  }
+}
+
 class LumideLaunchProvider {
   const LumideLaunchProvider({
     required this.id,
     required this.title,
     this.workspacePatterns = const [],
     this.kinds = const [LumideLaunchKind.run],
+    this.defaultKinds = const [LumideLaunchKind.run],
     this.icon,
     this.iconPath,
+    this.configurationSchema,
+    this.configurationSnippets = const [],
+    this.configurationImports = const [],
     this.priority = 0,
   });
 
@@ -39,8 +80,16 @@ class LumideLaunchProvider {
       workspacePatterns:
           _stringList(json['workspacePatterns'] ?? json['workspaceContains']),
       kinds: _kindList(json['kinds']),
+      defaultKinds: json.containsKey('defaultKinds')
+          ? _kindList(json['defaultKinds'])
+          : const [LumideLaunchKind.run],
       icon: json['icon']?.toString(),
       iconPath: json['iconPath']?.toString(),
+      configurationSchema: json['configurationSchema']?.toString(),
+      configurationSnippets: _objectMapList(json['configurationSnippets']),
+      configurationImports: _launchImportDescriptors(
+        json['configurationImports'],
+      ),
       priority: _intValue(json['priority']),
     );
   }
@@ -49,8 +98,12 @@ class LumideLaunchProvider {
   final String title;
   final List<String> workspacePatterns;
   final List<LumideLaunchKind> kinds;
+  final List<LumideLaunchKind> defaultKinds;
   final String? icon;
   final String? iconPath;
+  final String? configurationSchema;
+  final List<Map<String, Object?>> configurationSnippets;
+  final List<LumideLaunchImportDescriptor> configurationImports;
   final int priority;
 
   Map<String, Object?> toJson() {
@@ -59,8 +112,17 @@ class LumideLaunchProvider {
       'title': title,
       if (workspacePatterns.isNotEmpty) 'workspacePatterns': workspacePatterns,
       'kinds': kinds.map((kind) => kind.name).toList(),
+      'defaultKinds': defaultKinds.map((kind) => kind.name).toList(),
       if (icon != null) 'icon': icon,
       if (iconPath != null) 'iconPath': iconPath,
+      if (configurationSchema != null)
+        'configurationSchema': configurationSchema,
+      if (configurationSnippets.isNotEmpty)
+        'configurationSnippets': configurationSnippets,
+      if (configurationImports.isNotEmpty)
+        'configurationImports': configurationImports
+            .map((descriptor) => descriptor.toJson())
+            .toList(),
       'priority': priority,
     };
   }
@@ -72,8 +134,10 @@ class LumideLaunchConfiguration {
     required this.id,
     required this.label,
     this.kind = LumideLaunchKind.run,
+    this.kinds = const [],
     this.description,
     this.detail,
+    this.deduplicationKey,
     this.icon,
     this.iconPath,
     this.noTint = false,
@@ -88,8 +152,10 @@ class LumideLaunchConfiguration {
       id: json['id']?.toString() ?? '',
       label: json['label']?.toString() ?? '',
       kind: LumideLaunchKind.fromName(json['kind']?.toString()),
+      kinds: json.containsKey('kinds') ? _kindList(json['kinds']) : const [],
       description: json['description']?.toString(),
       detail: json['detail']?.toString(),
+      deduplicationKey: json['deduplicationKey']?.toString(),
       icon: json['icon']?.toString(),
       iconPath: json['iconPath']?.toString(),
       noTint: json['noTint'] == true,
@@ -103,12 +169,20 @@ class LumideLaunchConfiguration {
   final String id;
   final String label;
   final LumideLaunchKind kind;
+  final List<LumideLaunchKind> kinds;
+  List<LumideLaunchKind> get supportedKinds => switch (kinds.isEmpty) {
+        true => [kind],
+        false => kinds,
+      };
   final String? description;
   final String? detail;
+  final String? deduplicationKey;
   final String? icon;
   final String? iconPath;
+
   /// When true, the icon is rendered without any theme color tint.
   final bool noTint;
+
   /// When true, this represents a utility command rather than an executable target.
   final bool isAction;
   final List<LumideLaunchOption> options;
@@ -120,8 +194,10 @@ class LumideLaunchConfiguration {
       'id': id,
       'label': label,
       'kind': kind.name,
+      if (kinds.isNotEmpty) 'kinds': kinds.map((kind) => kind.name).toList(),
       if (description != null) 'description': description,
       if (detail != null) 'detail': detail,
+      if (deduplicationKey != null) 'deduplicationKey': deduplicationKey,
       if (icon != null) 'icon': icon,
       if (iconPath != null) 'iconPath': iconPath,
       if (noTint) 'noTint': noTint,
@@ -130,6 +206,186 @@ class LumideLaunchConfiguration {
         'options': options.map((option) => option.toJson()).toList(),
       'arguments': arguments,
       if (isDefault) 'isDefault': isDefault,
+    };
+  }
+}
+
+/// Persisted, provider-owned launch configuration supplied by the host.
+class LumideLaunchSourceConfiguration {
+  const LumideLaunchSourceConfiguration({
+    required this.id,
+    required this.name,
+    required this.providerId,
+    this.kinds = const [],
+    this.config = const {},
+  });
+
+  factory LumideLaunchSourceConfiguration.fromJson(Map<dynamic, dynamic> json) {
+    return LumideLaunchSourceConfiguration(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      providerId: json['providerId']?.toString() ?? '',
+      kinds: _kindList(json['kinds']),
+      config: _objectMap(json['config']),
+    );
+  }
+
+  final String id;
+  final String name;
+  final String providerId;
+  final List<LumideLaunchKind> kinds;
+  final Map<String, Object?> config;
+
+  Map<String, Object?> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'providerId': providerId,
+      'kinds': kinds.map((kind) => kind.name).toList(),
+      'config': config,
+    };
+  }
+}
+
+enum LumideLaunchDiagnosticSeverity { warning, error }
+
+class LumideLaunchConfigurationDiagnostic {
+  const LumideLaunchConfigurationDiagnostic({
+    required this.severity,
+    required this.message,
+    this.path,
+  });
+
+  factory LumideLaunchConfigurationDiagnostic.fromJson(
+    Map<dynamic, dynamic> json,
+  ) {
+    return LumideLaunchConfigurationDiagnostic(
+      severity: switch (json['severity']?.toString()) {
+        'warning' => LumideLaunchDiagnosticSeverity.warning,
+        _ => LumideLaunchDiagnosticSeverity.error,
+      },
+      message: json['message']?.toString() ?? '',
+      path: json['path']?.toString(),
+    );
+  }
+
+  final LumideLaunchDiagnosticSeverity severity;
+  final String message;
+  final String? path;
+
+  Map<String, Object?> toJson() {
+    return {
+      'severity': severity.name,
+      'message': message,
+      if (path != null) 'path': path,
+    };
+  }
+}
+
+class LumideLaunchResolution {
+  const LumideLaunchResolution({
+    this.configuration,
+    this.diagnostics = const [],
+  });
+
+  factory LumideLaunchResolution.fromJson(Map<dynamic, dynamic> json) {
+    final rawConfiguration = json['configuration'];
+    final rawDiagnostics = json['diagnostics'];
+    return LumideLaunchResolution(
+      configuration: rawConfiguration is Map
+          ? LumideLaunchConfiguration.fromJson(rawConfiguration)
+          : null,
+      diagnostics: rawDiagnostics is List
+          ? rawDiagnostics
+              .whereType<Map>()
+              .map(LumideLaunchConfigurationDiagnostic.fromJson)
+              .toList()
+          : const [],
+    );
+  }
+
+  final LumideLaunchConfiguration? configuration;
+  final List<LumideLaunchConfigurationDiagnostic> diagnostics;
+
+  Map<String, Object?> toJson() {
+    return {
+      if (configuration case final configuration?)
+        'configuration': configuration.toJson(),
+      'diagnostics': diagnostics.map((item) => item.toJson()).toList(),
+    };
+  }
+}
+
+enum LumideLaunchImportFidelity { exact, partial, unsupported }
+
+class LumideForeignLaunchConfiguration {
+  const LumideForeignLaunchConfiguration({
+    required this.format,
+    required this.name,
+    required this.raw,
+  });
+
+  factory LumideForeignLaunchConfiguration.fromJson(
+    Map<dynamic, dynamic> json,
+  ) {
+    return LumideForeignLaunchConfiguration(
+      format: json['format']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      raw: _objectMap(json['raw']),
+    );
+  }
+
+  final String format;
+  final String name;
+  final Map<String, Object?> raw;
+
+  Map<String, Object?> toJson() {
+    return {
+      'format': format,
+      'name': name,
+      'raw': raw,
+    };
+  }
+}
+
+class LumideLaunchImportResult {
+  const LumideLaunchImportResult({
+    required this.fidelity,
+    this.configuration,
+    this.diagnostics = const [],
+  });
+
+  factory LumideLaunchImportResult.fromJson(Map<dynamic, dynamic> json) {
+    final rawConfiguration = json['configuration'];
+    final rawDiagnostics = json['diagnostics'];
+    return LumideLaunchImportResult(
+      fidelity: switch (json['fidelity']?.toString()) {
+        'exact' => LumideLaunchImportFidelity.exact,
+        'partial' => LumideLaunchImportFidelity.partial,
+        _ => LumideLaunchImportFidelity.unsupported,
+      },
+      configuration: rawConfiguration is Map
+          ? LumideLaunchSourceConfiguration.fromJson(rawConfiguration)
+          : null,
+      diagnostics: rawDiagnostics is List
+          ? rawDiagnostics
+              .whereType<Map>()
+              .map(LumideLaunchConfigurationDiagnostic.fromJson)
+              .toList()
+          : const [],
+    );
+  }
+
+  final LumideLaunchImportFidelity fidelity;
+  final LumideLaunchSourceConfiguration? configuration;
+  final List<LumideLaunchConfigurationDiagnostic> diagnostics;
+
+  Map<String, Object?> toJson() {
+    return {
+      'fidelity': fidelity.name,
+      if (configuration case final configuration?)
+        'configuration': configuration.toJson(),
+      'diagnostics': diagnostics.map((item) => item.toJson()).toList(),
     };
   }
 }
@@ -333,7 +589,7 @@ class LumideLaunchResolveRequest {
   const LumideLaunchResolveRequest({
     required this.providerId,
     this.kind,
-    this.workspaceUri,
+    this.workspacePath,
   });
 
   factory LumideLaunchResolveRequest.fromJson(Map<dynamic, dynamic> json) {
@@ -342,13 +598,19 @@ class LumideLaunchResolveRequest {
       kind: json['kind'] == null
           ? null
           : LumideLaunchKind.fromName(json['kind']?.toString()),
-      workspaceUri: json['workspaceUri']?.toString(),
+      workspacePath:
+          (json['workspacePath'] ?? json['workspaceUri'])?.toString(),
     );
   }
 
   final String providerId;
   final LumideLaunchKind? kind;
-  final String? workspaceUri;
+
+  /// Canonical native filesystem path of the current workspace.
+  final String? workspacePath;
+
+  @Deprecated('Use workspacePath instead')
+  String? get workspaceUri => workspacePath;
 }
 
 /// Request sent when the host asks a provider to create or edit a config.
@@ -359,7 +621,7 @@ class LumideLaunchConfigureRequest {
     this.value,
     this.kind,
     this.configuration,
-    this.workspaceUri,
+    this.workspacePath,
     this.position,
   });
 
@@ -375,7 +637,8 @@ class LumideLaunchConfigureRequest {
       configuration: rawConfiguration is Map
           ? LumideLaunchConfiguration.fromJson(rawConfiguration)
           : null,
-      workspaceUri: json['workspaceUri']?.toString(),
+      workspacePath:
+          (json['workspacePath'] ?? json['workspaceUri'])?.toString(),
       position: _intMap(json['position']),
     );
   }
@@ -385,8 +648,13 @@ class LumideLaunchConfigureRequest {
   final Object? value;
   final LumideLaunchKind? kind;
   final LumideLaunchConfiguration? configuration;
-  final String? workspaceUri;
+
+  /// Canonical native filesystem path of the current workspace.
+  final String? workspacePath;
   final Map<String, int>? position;
+
+  @Deprecated('Use workspacePath instead')
+  String? get workspaceUri => workspacePath;
 }
 
 /// Request sent when the host starts a launch action.
@@ -534,6 +802,20 @@ Map<String, Object?> _objectMap(Object? value) {
     return value.map((key, value) => MapEntry(key.toString(), value));
   }
   return const {};
+}
+
+List<Map<String, Object?>> _objectMapList(Object? value) {
+  if (value is! List) return const [];
+  return value.whereType<Map>().map(_objectMap).toList();
+}
+
+List<LumideLaunchImportDescriptor> _launchImportDescriptors(Object? value) {
+  if (value is! List) return const [];
+  return value
+      .whereType<Map>()
+      .map(LumideLaunchImportDescriptor.fromJson)
+      .where((descriptor) => descriptor.format.isNotEmpty)
+      .toList();
 }
 
 Map<String, int>? _intMap(Object? value) {
