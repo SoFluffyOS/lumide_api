@@ -558,6 +558,8 @@ context.toolbar.onTap((id, position) {
 | `didStart(LumideLaunchEvent)` | Tells the IDE a run/debug/attach/test process has started |
 | `didEnd(LumideLaunchEvent)` | Tells the IDE a run/debug/attach/test process has finished |
 | `onResolveConfigurations(cb)` | Registers a callback to fetch configurations dynamically |
+| `onResolveConfiguration(cb)` | Validates and resolves a persisted workspace configuration |
+| `onImportConfiguration(cb)` | Converts a foreign configuration into a Lumide configuration |
 | `onConfigure(cb)` | Registers a callback for target configuration options and custom actions |
 | `onLaunch(cb)` | Registers a callback triggered when the user starts a session |
 
@@ -566,8 +568,59 @@ context.toolbar.onTap((id, position) {
 await context.launch.registerProvider(
   id: 'dart',
   title: 'Dart',
-  kinds: const [LumideLaunchKind.run],
+  kinds: const [LumideLaunchKind.run, LumideLaunchKind.debug],
+  defaultKinds: const [LumideLaunchKind.run],
+  configurationSchema: 'schemas/launch.schema.json',
+  configurationSnippets: const [
+    {
+      'name': 'Dart Main',
+      'config': {'target': 'bin/main.dart'},
+    },
+  ],
+  configurationImports: const [
+    LumideLaunchImportDescriptor(
+      format: 'vscode',
+      selectors: {
+        'type': ['dart'],
+      },
+    ),
+  ],
 );
+
+// Resolve entries from .sofluffy/lumide/launch.json.
+// This callback is optional. Without it, config becomes launch arguments.
+context.launch.onResolveConfiguration((source) async {
+  final target = source.config['target']?.toString() ?? 'bin/main.dart';
+  return LumideLaunchResolution(
+    configuration: LumideLaunchConfiguration(
+      id: source.id,
+      label: source.name,
+      kinds: source.kinds,
+      arguments: {'target': target},
+    ),
+  );
+});
+
+// Import a foreign configuration matched by configurationImports.
+context.launch.onImportConfiguration((source) async {
+  if (source.format != 'vscode') {
+    return const LumideLaunchImportResult(
+      fidelity: LumideLaunchImportFidelity.unsupported,
+    );
+  }
+  return LumideLaunchImportResult(
+    fidelity: LumideLaunchImportFidelity.exact,
+    configuration: LumideLaunchSourceConfiguration(
+      id: '',
+      name: source.name,
+      providerId: 'dart',
+      kinds: const [LumideLaunchKind.run],
+      config: {
+        'target': source.raw['program']?.toString() ?? 'bin/main.dart',
+      },
+    ),
+  );
+});
 
 // Publish configurations with a trigger action
 await context.launch.updateConfigurations('dart', [
@@ -588,6 +641,8 @@ context.launch.onConfigure((request) async {
   if (request.configuration?.id == 'select_entry') {
     final path = await context.window.showOpenDialog(
       title: 'Select Dart Entry Point',
+      // Canonical native path, not a file URI.
+      defaultPath: request.workspacePath,
     );
     if (path != null) {
       return LumideLaunchConfiguration(
@@ -612,7 +667,9 @@ context.launch.onLaunch((request) async {
   await context.launch.didStart(event);
   
   // Run process
-  final entry = request.configuration.arguments['path'] ?? 'bin/main.dart';
+  final entry = request.configuration.arguments['target'] ??
+      request.configuration.arguments['path'] ??
+      'bin/main.dart';
   final result = await context.shell.run('dart', ['run', entry]);
   
   // Notify ended

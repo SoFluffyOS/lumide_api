@@ -351,7 +351,12 @@ The IDE integrates these targets directly into the main toolbar's Run/Debug cont
 Key features:
 - **Configurations & Actions**: Configurations represent runnable targets. Setting `isAction: true` designates an option as a utility button (e.g., "Select Custom Target..." or "Refresh Devices") rather than a runnable program.
 - **Schema-Driven Options**: Customize each target dynamically by attaching `options` (strings, booleans, file/folder pickers, dropdown choices).
+- **Workspace Configurations**: Validate and resolve entries from `.sofluffy/lumide/launch.json`.
+- **Configuration Import**: Match and convert configurations from other formats into Lumide configurations.
 - **Process Lifecycle Tracking**: Report when a launch starts or ends using `didStart` and `didEnd`.
+
+`workspacePath` values in launch requests are canonical native filesystem paths
+(for example, `/home/me/app` or `C:\\Users\\me\\app`), not file URIs.
 
 ```dart
 // 1. Register the launch provider
@@ -365,7 +370,68 @@ await context.launch.registerProvider(
     LumideLaunchKind.attach,
     LumideLaunchKind.test,
   ],
+  // Used when a workspace configuration omits "kinds".
+  defaultKinds: const [
+    LumideLaunchKind.run,
+    LumideLaunchKind.debug,
+  ],
+  // Optional: the host uses this bundled JSON Schema to build the
+  // "New Launch Configuration" form.
+  configurationSchema: 'schemas/launch.schema.json',
+  configurationSnippets: const [
+    {
+      'name': 'Flutter Main',
+      'config': {'target': 'lib/main.dart'},
+    },
+  ],
+  // Optional format-neutral matching for foreign configuration import.
+  configurationImports: const [
+    LumideLaunchImportDescriptor(
+      format: 'vscode',
+      selectors: {
+        'type': ['dart'],
+      },
+    ),
+  ],
 );
+
+// Persisted workspace entries only need name, provider, and optional config:
+// {"name":"Flutter Main","provider":"my_plugin.flutter","config":{...}}
+// The host generates identity. Omitted kinds use the provider's defaultKinds.
+// This callback is optional. Without it, config is forwarded as launch arguments.
+// Implement it when the provider needs validation or normalization.
+context.launch.onResolveConfiguration((source) async {
+  return LumideLaunchResolution(
+    configuration: LumideLaunchConfiguration(
+      id: source.id,
+      label: source.name,
+      kinds: source.kinds,
+      arguments: source.config,
+    ),
+  );
+});
+
+// Convert a matched foreign configuration to a Lumide configuration.
+context.launch.onImportConfiguration((source) async {
+  if (source.format != 'vscode' || source.raw['type'] != 'dart') {
+    return const LumideLaunchImportResult(
+      fidelity: LumideLaunchImportFidelity.unsupported,
+    );
+  }
+  return LumideLaunchImportResult(
+    fidelity: LumideLaunchImportFidelity.exact,
+    configuration: LumideLaunchSourceConfiguration(
+      id: '', // The host generates a unique ID when this is omitted.
+      name: source.name,
+      providerId: 'flutter',
+      kinds: const [LumideLaunchKind.run, LumideLaunchKind.debug],
+      config: {
+        'target': source.raw['program']?.toString() ?? 'lib/main.dart',
+        if (source.raw['cwd'] case final String cwd) 'cwd': cwd,
+      },
+    ),
+  );
+});
 
 // 2. Publish configurations and action items
 await context.launch.updateConfigurations('flutter', [
@@ -398,7 +464,7 @@ await context.launch.updateConfigurations('flutter', [
 
 // 3. Resolve configurations dynamically when requested by the host
 context.launch.onResolveConfigurations((request) async {
-  log('Resolving configurations for workspace: ${request.workspaceUri}');
+  log('Resolving configurations for workspace: ${request.workspacePath}');
   return [
     const LumideLaunchConfiguration(id: 'resolved_target', label: 'Resolved Target'),
   ];
@@ -410,7 +476,7 @@ context.launch.onConfigure((request) async {
     // Action triggered: prompt user for file target using the new Window API file picker
     final path = await context.window.showOpenDialog(
       title: 'Select Dart Entry Point',
-      defaultPath: request.workspaceUri,
+      defaultPath: request.workspacePath,
     );
     if (path != null) {
       // Create and return the new custom configuration target
