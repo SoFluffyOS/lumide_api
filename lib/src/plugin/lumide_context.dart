@@ -1271,8 +1271,12 @@ class _RpcLaunch implements LumideLaunch {
     required String title,
     List<String> workspacePatterns = const [],
     List<LumideLaunchKind> kinds = const [LumideLaunchKind.run],
+    List<LumideLaunchKind> defaultKinds = const [LumideLaunchKind.run],
     String? icon,
     String? iconPath,
+    String? configurationSchema,
+    List<Map<String, Object?>> configurationSnippets = const [],
+    List<LumideLaunchImportDescriptor> configurationImports = const [],
     int priority = 0,
   }) async {
     await _session.sendRequest(PluginMethods.launchRegisterProvider, {
@@ -1280,8 +1284,17 @@ class _RpcLaunch implements LumideLaunch {
       'title': title,
       if (workspacePatterns.isNotEmpty) 'workspacePatterns': workspacePatterns,
       'kinds': kinds.map((kind) => kind.name).toList(),
+      'defaultKinds': defaultKinds.map((kind) => kind.name).toList(),
       if (icon != null) 'icon': icon,
       if (iconPath != null) 'iconPath': iconPath,
+      if (configurationSchema != null)
+        'configurationSchema': configurationSchema,
+      if (configurationSnippets.isNotEmpty)
+        'configurationSnippets': configurationSnippets,
+      if (configurationImports.isNotEmpty)
+        'configurationImports': configurationImports
+            .map((descriptor) => descriptor.toJson())
+            .toList(),
       'priority': priority,
     });
   }
@@ -1327,6 +1340,38 @@ class _RpcLaunch implements LumideLaunch {
       final request = LumideLaunchResolveRequest.fromJson(params.value as Map);
       final configurations = await callback(request);
       return configurations.map((config) => config.toJson()).toList();
+    });
+  }
+
+  @override
+  void onResolveConfiguration(
+    Future<LumideLaunchResolution> Function(
+      LumideLaunchSourceConfiguration source,
+    ) callback,
+  ) {
+    _session.registerMethod(HostMethods.launchResolveConfiguration, (
+      params,
+    ) async {
+      final source = LumideLaunchSourceConfiguration.fromJson(
+        params.value as Map,
+      );
+      return (await callback(source)).toJson();
+    });
+  }
+
+  @override
+  void onImportConfiguration(
+    Future<LumideLaunchImportResult> Function(
+      LumideForeignLaunchConfiguration source,
+    ) callback,
+  ) {
+    _session.registerMethod(HostMethods.launchImportConfiguration, (
+      params,
+    ) async {
+      final source = LumideForeignLaunchConfiguration.fromJson(
+        params.value as Map,
+      );
+      return (await callback(source)).toJson();
     });
   }
 

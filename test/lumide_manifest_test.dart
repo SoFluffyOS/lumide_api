@@ -187,6 +187,7 @@ contributes:
     - id: flutter
       title: Flutter
       kinds: [run, debug, attach, test]
+      defaultKinds: [run, debug]
       workspaceContains:
         - pubspec.yaml
       icon: play
@@ -205,6 +206,10 @@ contributes:
         LumideLaunchKind.test,
       ]);
       expect(manifest.launchProviders[0].workspacePatterns, ['pubspec.yaml']);
+      expect(manifest.launchProviders[0].defaultKinds, [
+        LumideLaunchKind.run,
+        LumideLaunchKind.debug,
+      ]);
       expect(manifest.launchProviders[0].icon, 'play');
       expect(manifest.launchProviders[0].priority, 10);
     });
@@ -287,6 +292,7 @@ contributes:
       const config = LumideLaunchConfiguration(
         id: 'current',
         label: 'Current',
+        deduplicationKey: '/workspace/lib/main.dart',
         options: [
           LumideLaunchOption(
             id: 'flavor',
@@ -319,6 +325,7 @@ contributes:
       final roundTrip = LumideLaunchConfiguration.fromJson(config.toJson());
 
       expect(roundTrip.options, hasLength(2));
+      expect(roundTrip.deduplicationKey, '/workspace/lib/main.dart');
       expect(roundTrip.options[0].id, 'flavor');
       expect(roundTrip.options[0].type, ConfigPropertyType.string);
       expect(roundTrip.options[0].value.raw, 'staging');
