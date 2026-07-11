@@ -275,9 +275,12 @@ context.editor.onDidChangeActiveDocument((uri) {
 final content = await context.fs.readString('/path/to/file.dart');
 await context.fs.createDirectory('/path/to/generated', recursive: true);
 await context.fs.writeString('/path/to/output.txt', 'result');
+
+final storageDir = await context.workspace.getPluginStorageDir();
+await context.fs.writeString('$storageDir/state.json', '{"enabled": true}');
 ```
 
-> Requires `fileSystem` permission in `plugin.yaml`. Paths outside declared globs are rejected.
+> Paths outside your plugin storage directory require `fileSystem` permission in `plugin.yaml`. Paths inside `context.workspace.getPluginStorageDir()` are private to your plugin and are allowed automatically.
 
 ---
 
@@ -405,6 +408,9 @@ if (resp.statusCode == 200) {
 | Method | Description |
 |--------|-------------|
 | `getConfiguration(String key)` | Reads a plugin config value (falls back to manifest default) |
+| `getPluginStorageDir()` | Returns this plugin's private writable storage directory |
+| `getRootUri()` | Returns the current workspace root path, or `null` |
+| `findFiles(String glob, {int? maxResults})` | Finds files in the current workspace |
 | `onDidOpenTextDocument(callback)` | Called when a file is opened in the editor |
 | `onDidCloseTextDocument(callback)` | Called when a file tab is closed |
 | `onDidChangeTextDocument(callback)` | Called when file content changes |
@@ -414,6 +420,11 @@ if (resp.statusCode == 200) {
 ```dart
 // Read config
 final maxResults = await context.workspace.getConfiguration('my_plugin.maxResults');
+
+// Persist private plugin state without fileSystem manifest permissions
+final storageDir = await context.workspace.getPluginStorageDir();
+await context.fs.createDirectory(storageDir, recursive: true);
+await context.fs.writeString('$storageDir/index.json', '{"items": []}');
 
 // React to config changes in real-time
 context.workspace.onDidChangeConfiguration((settings) {

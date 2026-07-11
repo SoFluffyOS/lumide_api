@@ -1048,6 +1048,14 @@ class _RpcWorkspace implements LumideWorkspace {
   }
 
   @override
+  Future<String> getPluginStorageDir() async {
+    final result = await _session.sendRequest(
+      PluginMethods.workspaceGetPluginStorageDir,
+    );
+    return result as String;
+  }
+
+  @override
   Future<List<String>> findFiles(String glob, {int? maxResults}) async {
     final result =
         await _session.sendRequest(PluginMethods.workspaceFindFiles, {

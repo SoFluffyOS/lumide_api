@@ -712,6 +712,12 @@ abstract class LumideWorkspace {
   /// Returns `null` if no workspace is open.
   Future<String?> getRootUri();
 
+  /// Gets this plugin's private storage directory.
+  ///
+  /// Files under this directory are writable through [LumideFileSystem]
+  /// without declaring extra file permissions in the plugin manifest.
+  Future<String> getPluginStorageDir();
+
   /// Finds files in the workspace matching a glob pattern.
   ///
   /// [maxResults] limits the number of results (default: no limit).

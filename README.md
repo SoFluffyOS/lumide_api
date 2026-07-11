@@ -12,7 +12,7 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Commands API**: Register commands for the Command Palette with optional keybindings.
 - **Status Bar API**: Create and manage custom status bar items.
 - **Editor API**: Access active editor, selections, navigate to locations, and handle real-time events.
-- **Workspace API**: Access configurations, get workspace root, find files by glob, and listen to file events. **(New: `updateConfiguration`)**
+- **Workspace API**: Access configurations, get workspace root, get private plugin storage, find files by glob, and listen to file events.
 - **FileSystem API**: Secure file operations within the workspace, including directory creation and checks.
 - **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs, file/folder pickers). **(New: `showDeviceAuthDialog`, `showOpenDialog`, `showOpenFolderDialog`)**
 - **Shell & HTTP APIs**: Controlled execution of shell commands (with working directory support) and standardized network requests.
@@ -106,6 +106,13 @@ final pubspecs = await context.workspace.findFiles(
 // Read a configuration value
 final tabSize = await context.workspace.getConfiguration('editor.tabSize');
 
+// Get this plugin's private storage directory
+final storageDir = await context.workspace.getPluginStorageDir();
+await context.fs.writeString(
+  '$storageDir/cache.json',
+  '{"lastRun": "${DateTime.now().toIso8601String()}"}',
+);
+
 // Listen to file events
 context.workspace.onDidSaveTextDocument((uri) {
   log('File saved: $uri');
@@ -161,6 +168,10 @@ await context.fs.downloadFile(
   extract: true,
 );
 ```
+
+Files under `context.workspace.getPluginStorageDir()` are private to your
+plugin and do not require a `fileSystem` permission entry in `plugin.yaml`.
+Other filesystem paths still require manifest permissions.
 
 ### Shell
 

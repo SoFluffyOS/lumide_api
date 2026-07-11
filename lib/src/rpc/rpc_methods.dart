@@ -146,6 +146,7 @@ class PluginMethods {
   static const workspaceGetConfiguration = 'workspace/getConfiguration';
   static const workspaceUpdateConfiguration = 'workspace/updateConfiguration';
   static const workspaceGetRootUri = 'workspace/getRootUri';
+  static const workspaceGetPluginStorageDir = 'workspace/getPluginStorageDir';
   static const workspaceFindFiles = 'workspace/findFiles';
 
   // Commands (Plugin → IDE)
