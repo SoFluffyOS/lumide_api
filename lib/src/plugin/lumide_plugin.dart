@@ -41,6 +41,11 @@ abstract class LumidePlugin {
   Future<void> run() async {
     final session = RpcSession.fromStdio(stdin, stdout);
     final context = RpcLumideContext(session);
+    Future<void>? deactivation;
+
+    Future<void> deactivateOnce() {
+      return deactivation ??= Future<void>.sync(onDeactivate);
+    }
 
     session.registerMethod(HostMethods.initialize, (params) async {
       log('Plugin initialized');
@@ -50,7 +55,7 @@ abstract class LumidePlugin {
 
     session.registerMethod(HostMethods.shutdown, (params) async {
       log('Plugin shutting down');
-      await onDeactivate();
+      await deactivateOnce();
       return null;
     });
 
@@ -65,11 +70,13 @@ abstract class LumidePlugin {
     } catch (e, st) {
       log('Plugin session error: $e\n$st');
     } finally {
-      log('Plugin session ended, deactivating...');
-      try {
-        await onDeactivate();
-      } catch (e) {
-        log('Error during plugin deactivation: $e');
+      if (deactivation == null) {
+        log('Plugin session ended, deactivating...');
+        try {
+          await deactivateOnce();
+        } catch (e) {
+          log('Error during plugin deactivation: $e');
+        }
       }
       exit(0);
     }
