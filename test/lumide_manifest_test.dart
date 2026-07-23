@@ -285,6 +285,60 @@ contributes:
       final replaced = manifest.copyWith(launchProviders: []);
       expect(replaced.launchProviders, isEmpty);
     });
+
+    test('parses declarative file nesting contributions', () {
+      const yaml = r'''
+id: generator-plugin
+name: Generator Plugin
+version: 1.0.0
+description: Adds generated file nests
+entry_point: bin/main.dart
+contributes:
+  fileNesting:
+    "*.dart": "${capture}.serializer.dart, ${capture}.schema.json"
+    "model.yaml":
+      - "model.generated.dart"
+      - "model.metadata.json"
+    "ignored.txt": 42
+''';
+
+      final manifest = LumideManifest.fromYaml(yaml);
+
+      expect(manifest.fileNestingPatterns, hasLength(2));
+      expect(
+        manifest.fileNestingPatterns[0].parentPattern,
+        '*.dart',
+      );
+      expect(
+        manifest.fileNestingPatterns[0].childPatterns,
+        [r'${capture}.serializer.dart', r'${capture}.schema.json'],
+      );
+      expect(
+        manifest.fileNestingPatterns[1].childPatterns,
+        ['model.generated.dart', 'model.metadata.json'],
+      );
+    });
+
+    test('copyWith preserves and replaces file nesting patterns', () {
+      const pattern = ManifestFileNestingPattern(
+        parentPattern: '*.dart',
+        childPatterns: [r'${capture}.g.dart'],
+      );
+      const manifest = LumideManifest(
+        id: 'test',
+        name: 'Test',
+        version: '1.0.0',
+        description: '',
+        entryPoint: 'bin/main.dart',
+        fileNestingPatterns: [pattern],
+      );
+
+      expect(manifest.copyWith(name: 'Updated').fileNestingPatterns, [pattern]);
+      expect(
+        manifest.copyWith(fileNestingPatterns: []).fileNestingPatterns,
+        isEmpty,
+      );
+    });
   });
 
   group('LumideLaunchConfiguration', () {

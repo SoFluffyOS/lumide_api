@@ -1,3 +1,10 @@
+# Unreleased
+
+### New features
+
+- **File nesting contributions** — Plugins can declaratively contribute
+  explorer file nesting patterns through `contributes.fileNesting`.
+
 # 1.7.0
 
 ### New features

@@ -58,6 +58,19 @@ contributes:                     # commands & keybindings
       key: 'ctrl+shift+d'
 ```
 
+Plugins can also contribute file nesting rules without starting a plugin
+process. Parent patterns support one `*`; child patterns support one `*` and
+the `${capture}`, `${basename}`, `${extname}`, and `${dirname}` tokens:
+
+```yaml
+contributes:
+  fileNesting:
+    "*.dart":
+      - "${capture}.g.dart"
+      - "${capture}.freezed.dart"
+    "pubspec.yaml": "pubspec.lock, pubspec_overrides.yaml"
+```
+
 ### 4. Write `bin/main.dart`
 
 ```dart

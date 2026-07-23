@@ -23,6 +23,7 @@ class LumideManifest {
     this.activationEvents = const [],
     this.themes = const [],
     this.iconThemes = const [],
+    this.fileNestingPatterns = const [],
   });
 
   /// Parses a manifest from YAML content.
@@ -233,6 +234,37 @@ class LumideManifest {
       }
     }
 
+    // Parse contributes.fileNesting
+    final fileNestingPatterns = <ManifestFileNestingPattern>[];
+    if (contributes case final YamlMap contributesMap) {
+      if (contributesMap['fileNesting'] case final YamlMap fileNestingMap) {
+        for (final entry in fileNestingMap.entries) {
+          final parentPattern = entry.key.toString().trim();
+          if (parentPattern.isEmpty) continue;
+
+          final childPatterns = switch (entry.value) {
+            final YamlList children => [
+                for (final child in children)
+                  if (child.toString().trim().isNotEmpty)
+                    child.toString().trim(),
+              ],
+            final String children => [
+                for (final child in children.split(','))
+                  if (child.trim().isNotEmpty) child.trim(),
+              ],
+            _ => const <String>[],
+          };
+          if (childPatterns.isEmpty) continue;
+          fileNestingPatterns.add(
+            ManifestFileNestingPattern(
+              parentPattern: parentPattern,
+              childPatterns: childPatterns,
+            ),
+          );
+        }
+      }
+    }
+
     final activationEvents = <String>[];
     if (doc['activation_events'] case final YamlList events) {
       for (final event in events) {
@@ -254,6 +286,7 @@ class LumideManifest {
       launchProviders: launchProviders,
       themes: themes,
       iconThemes: iconThemes,
+      fileNestingPatterns: fileNestingPatterns,
       activationEvents: activationEvents,
     );
   }
@@ -291,6 +324,9 @@ class LumideManifest {
   /// Icon themes contributed by this plugin.
   final List<ManifestIconTheme> iconThemes;
 
+  /// File nesting patterns contributed by this plugin.
+  final List<ManifestFileNestingPattern> fileNestingPatterns;
+
   /// Commands contributed by this plugin.
   final List<ManifestCommand> commands;
 
@@ -313,6 +349,7 @@ class LumideManifest {
     List<ConfigurationProperty>? configuration,
     List<ManifestTheme>? themes,
     List<ManifestIconTheme>? iconThemes,
+    List<ManifestFileNestingPattern>? fileNestingPatterns,
     List<ManifestCommand>? commands,
     List<ManifestKeybinding>? keybindings,
     List<LumideLaunchProvider>? launchProviders,
@@ -329,6 +366,7 @@ class LumideManifest {
       configuration: configuration ?? this.configuration,
       themes: themes ?? this.themes,
       iconThemes: iconThemes ?? this.iconThemes,
+      fileNestingPatterns: fileNestingPatterns ?? this.fileNestingPatterns,
       commands: commands ?? this.commands,
       keybindings: keybindings ?? this.keybindings,
       launchProviders: launchProviders ?? this.launchProviders,
@@ -400,4 +438,21 @@ class ManifestIconTheme {
 
   /// Relative path to the icon theme JSON file.
   final String path;
+}
+
+/// A file nesting rule declared under `contributes.fileNesting`.
+class ManifestFileNestingPattern {
+  const ManifestFileNestingPattern({
+    required this.parentPattern,
+    required this.childPatterns,
+  });
+
+  /// Pattern identifying a parent file. At most one `*` is supported.
+  final String parentPattern;
+
+  /// Patterns identifying sibling files to display under the parent.
+  ///
+  /// Patterns may use `${capture}`, `${basename}`, `${extname}`,
+  /// `${dirname}`, and at most one `*`.
+  final List<String> childPatterns;
 }
