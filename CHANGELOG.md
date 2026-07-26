@@ -1,9 +1,13 @@
-# Unreleased
+# 1.8.0
 
 ### New features
 
+- New **Workspace API** — Add `getPluginStorageDir()` method for plugins to get their own storage directory.
 - **File nesting contributions** — Plugins can declaratively contribute
   explorer file nesting patterns through `contributes.fileNesting`.
+
+### Fixed
+- Prevent plugins to deactivate multiple times.
 
 # 1.7.0
 
