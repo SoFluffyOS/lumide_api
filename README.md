@@ -21,6 +21,7 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Terminal API**: Create and control integrated terminals.
 - **Output API**: Write logs and data to the Output Panel.
 - **Languages API**: Register custom language servers for LSP support. **(New: Inline Completion, Custom LSP Requests)**
+- **Snippet Contributions**: Contribute TextMate-compatible snippets for one or more languages without starting a plugin process.
 - **Debug API**: Start debugger sessions, synchronize breakpoints, inspect stack frames/scopes/variables, evaluate expressions, and control exception pause mode.
 
 ## Getting Started

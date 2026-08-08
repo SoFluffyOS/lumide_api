@@ -1,3 +1,10 @@
+# Next
+
+### New features
+
+- **Snippet contributions** — Plugins can contribute TextMate-compatible JSON
+  snippet files through `contributes.snippets`.
+
 # 1.8.0
 
 ### New features

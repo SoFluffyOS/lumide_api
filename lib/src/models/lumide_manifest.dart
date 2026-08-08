@@ -24,6 +24,7 @@ class LumideManifest {
     this.themes = const [],
     this.iconThemes = const [],
     this.fileNestingPatterns = const [],
+    this.snippets = const [],
   });
 
   /// Parses a manifest from YAML content.
@@ -265,6 +266,29 @@ class LumideManifest {
       }
     }
 
+    // Parse contributes.snippets
+    final snippets = <ManifestSnippetContribution>[];
+    if (contributes case final YamlMap contributesMap) {
+      if (contributesMap['snippets'] case final YamlList snippetList) {
+        for (final item in snippetList) {
+          if (item case final YamlMap snippetMap) {
+            final path = snippetMap['path']?.toString().trim();
+            if (path == null || path.isEmpty) continue;
+            final languageValue = snippetMap['language']?.toString().trim();
+            snippets.add(
+              ManifestSnippetContribution(
+                language: switch (languageValue) {
+                  final value? when value.isNotEmpty => value,
+                  _ => null,
+                },
+                path: path,
+              ),
+            );
+          }
+        }
+      }
+    }
+
     final activationEvents = <String>[];
     if (doc['activation_events'] case final YamlList events) {
       for (final event in events) {
@@ -287,6 +311,7 @@ class LumideManifest {
       themes: themes,
       iconThemes: iconThemes,
       fileNestingPatterns: fileNestingPatterns,
+      snippets: snippets,
       activationEvents: activationEvents,
     );
   }
@@ -327,6 +352,9 @@ class LumideManifest {
   /// File nesting patterns contributed by this plugin.
   final List<ManifestFileNestingPattern> fileNestingPatterns;
 
+  /// TextMate snippet files contributed by this plugin.
+  final List<ManifestSnippetContribution> snippets;
+
   /// Commands contributed by this plugin.
   final List<ManifestCommand> commands;
 
@@ -350,6 +378,7 @@ class LumideManifest {
     List<ManifestTheme>? themes,
     List<ManifestIconTheme>? iconThemes,
     List<ManifestFileNestingPattern>? fileNestingPatterns,
+    List<ManifestSnippetContribution>? snippets,
     List<ManifestCommand>? commands,
     List<ManifestKeybinding>? keybindings,
     List<LumideLaunchProvider>? launchProviders,
@@ -367,6 +396,7 @@ class LumideManifest {
       themes: themes ?? this.themes,
       iconThemes: iconThemes ?? this.iconThemes,
       fileNestingPatterns: fileNestingPatterns ?? this.fileNestingPatterns,
+      snippets: snippets ?? this.snippets,
       commands: commands ?? this.commands,
       keybindings: keybindings ?? this.keybindings,
       launchProviders: launchProviders ?? this.launchProviders,
@@ -455,4 +485,17 @@ class ManifestFileNestingPattern {
   /// Patterns may use `${capture}`, `${basename}`, `${extname}`,
   /// `${dirname}`, and at most one `*`.
   final List<String> childPatterns;
+}
+
+/// A TextMate snippet file declared under `contributes.snippets`.
+class ManifestSnippetContribution {
+  const ManifestSnippetContribution({required this.path, this.language});
+
+  /// Default language ID for snippets in the file.
+  ///
+  /// When omitted, individual snippets select languages with their `scope`.
+  final String? language;
+
+  /// Path to a JSON snippet file, relative to the plugin directory.
+  final String path;
 }
