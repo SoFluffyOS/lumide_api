@@ -339,6 +339,50 @@ contributes:
         isEmpty,
       );
     });
+
+    test('parses declarative snippet contributions', () {
+      const yaml = '''
+id: snippet-plugin
+name: Snippet Plugin
+version: 1.0.0
+description: Adds snippets
+entry_point: bin/main.dart
+contributes:
+  snippets:
+    - language: dart
+      path: snippets/dart.json
+    - path: snippets/global.code-snippets
+    - language: ignored
+      path: '  '
+    - invalid
+''';
+
+      final manifest = LumideManifest.fromYaml(yaml);
+
+      expect(manifest.snippets, hasLength(2));
+      expect(manifest.snippets[0].language, 'dart');
+      expect(manifest.snippets[0].path, 'snippets/dart.json');
+      expect(manifest.snippets[1].language, isNull);
+      expect(manifest.snippets[1].path, 'snippets/global.code-snippets');
+    });
+
+    test('copyWith preserves and replaces snippet contributions', () {
+      const contribution = ManifestSnippetContribution(
+        language: 'dart',
+        path: 'snippets/dart.json',
+      );
+      const manifest = LumideManifest(
+        id: 'test',
+        name: 'Test',
+        version: '1.0.0',
+        description: '',
+        entryPoint: 'bin/main.dart',
+        snippets: [contribution],
+      );
+
+      expect(manifest.copyWith(name: 'Updated').snippets, [contribution]);
+      expect(manifest.copyWith(snippets: []).snippets, isEmpty);
+    });
   });
 
   group('LumideLaunchConfiguration', () {

@@ -71,6 +71,35 @@ contributes:
     "pubspec.yaml": "pubspec.lock, pubspec_overrides.yaml"
 ```
 
+TextMate-compatible snippets can also be loaded without starting the plugin
+process. The contribution path is relative to the plugin directory:
+
+```yaml
+contributes:
+  snippets:
+    - language: dart
+      path: snippets/dart.json
+    - path: snippets/global.code-snippets
+```
+
+Each JSON file uses the VS Code snippet shape. `body` may be a string or a list
+of lines, and `prefix` may be a string or a list:
+
+```json
+{
+  "Flutter widget": {
+    "prefix": ["stless", "stateless"],
+    "body": [
+      "class ${1:WidgetName} extends StatelessWidget {",
+      "  const $1({super.key});",
+      "  $0",
+      "}"
+    ],
+    "description": "Create a stateless Flutter widget"
+  }
+}
+```
+
 ### 4. Write `bin/main.dart`
 
 ```dart
