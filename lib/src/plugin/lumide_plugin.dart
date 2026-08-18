@@ -203,8 +203,13 @@ abstract class LumideShell {
 
   /// Spawns a persistent shell process.
   ///
+  /// If [workingDirectory] is provided, the process is spawned in that directory.
   /// Returns the process ID (pid) of the spawned process.
-  Future<int> spawn(String command, List<String> arguments);
+  Future<int> spawn(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+  });
 
   /// Writes data to the stdin of the process with the given [pid].
   Future<void> writeStdin(int pid, String text);

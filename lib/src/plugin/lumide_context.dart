@@ -205,10 +205,15 @@ class _RpcShell implements LumideShell {
   }
 
   @override
-  Future<int> spawn(String command, List<String> arguments) async {
+  Future<int> spawn(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+  }) async {
     final result = await _session.sendRequest(PluginMethods.shellSpawn, {
       'command': command,
       'arguments': arguments,
+      if (workingDirectory != null) 'workingDirectory': workingDirectory,
     });
     return result as int;
   }
