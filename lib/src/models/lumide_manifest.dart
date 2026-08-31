@@ -4,6 +4,7 @@ library;
 import 'package:lumide_api/src/models/configuration_property.dart';
 import 'package:lumide_api/src/models/launch.dart';
 import 'package:lumide_api/src/models/permission.dart';
+import 'package:lumide_api/src/models/sdk.dart';
 import 'package:yaml/yaml.dart';
 
 /// Parsed plugin manifest from plugin.yaml.
@@ -20,6 +21,7 @@ class LumideManifest {
     this.commands = const [],
     this.keybindings = const [],
     this.launchProviders = const [],
+    this.sdkProviders = const [],
     this.activationEvents = const [],
     this.themes = const [],
     this.iconThemes = const [],
@@ -159,6 +161,24 @@ class LumideManifest {
             final provider = LumideLaunchProvider.fromJson(launchProviderMap);
             if (provider.id.isNotEmpty && provider.title.isNotEmpty) {
               launchProviders.add(provider);
+            }
+          }
+        }
+      }
+    }
+
+    // Parse contributes.sdkProviders. These allow the host to advertise and
+    // activate providers before their plugin process has started.
+    final sdkProviders = <LumideSdkProviderDescriptor>[];
+    if (contributes case final YamlMap contributesMap) {
+      if (contributesMap['sdkProviders'] case final YamlList providerList) {
+        for (final item in providerList) {
+          if (item case final YamlMap providerMap) {
+            final provider = LumideSdkProviderDescriptor.fromJson(providerMap);
+            if (provider.id.isNotEmpty &&
+                provider.kind.value.isNotEmpty &&
+                provider.title.isNotEmpty) {
+              sdkProviders.add(provider);
             }
           }
         }
@@ -308,6 +328,7 @@ class LumideManifest {
       commands: commands,
       keybindings: keybindings,
       launchProviders: launchProviders,
+      sdkProviders: sdkProviders,
       themes: themes,
       iconThemes: iconThemes,
       fileNestingPatterns: fileNestingPatterns,
@@ -364,6 +385,9 @@ class LumideManifest {
   /// Launch providers contributed by this plugin.
   final List<LumideLaunchProvider> launchProviders;
 
+  /// SDK providers advertised without requiring plugin activation.
+  final List<LumideSdkProviderDescriptor> sdkProviders;
+
   /// Creates a copy of this manifest with some fields replaced.
   LumideManifest copyWith({
     String? id,
@@ -382,6 +406,7 @@ class LumideManifest {
     List<ManifestCommand>? commands,
     List<ManifestKeybinding>? keybindings,
     List<LumideLaunchProvider>? launchProviders,
+    List<LumideSdkProviderDescriptor>? sdkProviders,
   }) {
     return LumideManifest(
       id: id ?? this.id,
@@ -400,6 +425,7 @@ class LumideManifest {
       commands: commands ?? this.commands,
       keybindings: keybindings ?? this.keybindings,
       launchProviders: launchProviders ?? this.launchProviders,
+      sdkProviders: sdkProviders ?? this.sdkProviders,
     );
   }
 }

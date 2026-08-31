@@ -3,6 +3,8 @@ library;
 
 import 'dart:async';
 
+import 'package:json_rpc_2/error_code.dart' as rpc_error_code;
+import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
 import 'package:lumide_api/lumide_api.dart';
 
 /// RPC-backed implementation of [LumideContext].
@@ -46,6 +48,9 @@ class RpcLumideContext implements LumideContext {
 
   @override
   late final LumideLaunch launch = _RpcLaunch(_session);
+
+  @override
+  late final LumideSdks sdks = _RpcSdks(_session);
 
   @override
   late final LumideLanguages languages = _RpcLanguages(_session);
@@ -1421,6 +1426,170 @@ class _RpcLaunch implements LumideLaunch {
   @override
   void onDidEnd(void Function(LumideLaunchEvent event) callback) {
     _didEndCallbacks.add(callback);
+  }
+}
+
+class _RpcSdks implements LumideSdks {
+  _RpcSdks(this._session) {
+    _session.registerMethod(HostMethods.sdkDidChangeSelection, (params) async {
+      final event = LumideSdkSelectionChangeEvent.fromJson(
+        params.value as Map,
+      );
+      for (final callback in _selectionChangeCallbacks) {
+        callback(event);
+      }
+      return null;
+    });
+    _session.registerMethod(HostMethods.sdkActivateProvider, (params) async {
+      final json = params.value as Map;
+      final id = json['id']?.toString();
+      final provider = id == null ? null : _registeredProviders[id];
+      if (provider == null) return false;
+      await _sendRequest(
+        PluginMethods.sdkRegisterProvider,
+        provider.toJson(),
+      );
+      return true;
+    });
+  }
+
+  final RpcSession _session;
+  final _registeredProviders = <String, LumideSdkProviderDescriptor>{};
+  final _selectionChangeCallbacks =
+      <void Function(LumideSdkSelectionChangeEvent event)>[];
+
+  @override
+  Future<void> registerProvider(LumideSdkProviderDescriptor provider) async {
+    _registeredProviders[provider.id] = provider;
+    await _sendRequest(
+      PluginMethods.sdkRegisterProvider,
+      provider.toJson(),
+    );
+  }
+
+  @override
+  Future<void> unregisterProvider(String id) async {
+    _registeredProviders.remove(id);
+    await _sendRequest(PluginMethods.sdkUnregisterProvider, {'id': id});
+  }
+
+  @override
+  Future<void> didChange(String providerId) async {
+    await _sendRequest(
+      PluginMethods.sdkDidChange,
+      {'providerId': providerId},
+    );
+  }
+
+  @override
+  Future<LumideSdkResolution?> resolve(LumideSdkResolveRequest request) async {
+    final result = await _sendRequest(
+      PluginMethods.sdkResolve,
+      request.toJson(),
+    );
+    if (result is! Map) return null;
+    return LumideSdkResolution.fromJson(result);
+  }
+
+  @override
+  Future<ProcessResult> run(
+    LumideSdkResolveRequest request,
+    List<String> arguments, {
+    String? workingDirectory,
+  }) async {
+    final result = await _sendRequest(PluginMethods.sdkRun, {
+      'request': request.toJson(),
+      'arguments': arguments,
+      if (workingDirectory != null) 'workingDirectory': workingDirectory,
+    });
+    final json = result as Map;
+    return ProcessResult(
+      exitCode: json['exitCode'] as int,
+      stdout: json['stdout']?.toString() ?? '',
+      stderr: json['stderr']?.toString() ?? '',
+    );
+  }
+
+  @override
+  void onDidChangeSelection(
+    void Function(LumideSdkSelectionChangeEvent event) callback,
+  ) {
+    _selectionChangeCallbacks.add(callback);
+  }
+
+  Future<dynamic> _sendRequest(String method, [dynamic params]) async {
+    try {
+      return await _session.sendRequest(method, params);
+    } on RpcException catch (error) {
+      if (error.code == rpc_error_code.METHOD_NOT_FOUND) {
+        throw UnsupportedError('The Lumide host does not support SDK APIs');
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  void onListAvailable(
+    Future<List<LumideSdkRelease>> Function(LumideSdkListRequest request)
+        callback,
+  ) {
+    _session.registerMethod(HostMethods.sdkListAvailable, (params) async {
+      final request = LumideSdkListRequest.fromJson(params.value as Map);
+      final releases = await callback(request);
+      return releases.map((release) => release.toJson()).toList();
+    });
+  }
+
+  @override
+  void onDiscover(
+    Future<List<LumideSdkInstallation>> Function(
+      LumideSdkDiscoveryRequest request,
+    ) callback,
+  ) {
+    _session.registerMethod(HostMethods.sdkDiscover, (params) async {
+      final request = LumideSdkDiscoveryRequest.fromJson(params.value as Map);
+      final installations = await callback(request);
+      return installations
+          .map((installation) => installation.toJson())
+          .toList();
+    });
+  }
+
+  @override
+  void onResolve(
+    Future<LumideSdkResolution?> Function(LumideSdkResolveRequest request)
+        callback,
+  ) {
+    _session.registerMethod(HostMethods.sdkResolve, (params) async {
+      final request = LumideSdkResolveRequest.fromJson(params.value as Map);
+      return (await callback(request))?.toJson();
+    });
+  }
+
+  @override
+  void onGetInstallPlan(
+    Future<LumideSdkInstallPlan> Function(LumideSdkInstallPlanRequest request)
+        callback,
+  ) {
+    _session.registerMethod(HostMethods.sdkGetInstallPlan, (params) async {
+      final request = LumideSdkInstallPlanRequest.fromJson(
+        params.value as Map,
+      );
+      return (await callback(request)).toJson();
+    });
+  }
+
+  @override
+  void onValidate(
+    Future<LumideSdkValidation> Function(LumideSdkValidationRequest request)
+        callback,
+  ) {
+    _session.registerMethod(HostMethods.sdkValidate, (params) async {
+      final request = LumideSdkValidationRequest.fromJson(
+        params.value as Map,
+      );
+      return (await callback(request)).toJson();
+    });
   }
 }
 

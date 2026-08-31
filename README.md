@@ -23,6 +23,7 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Languages API**: Register custom language servers for LSP support. **(New: Inline Completion, Custom LSP Requests)**
 - **Snippet Contributions**: Contribute TextMate-compatible snippets for one or more languages without starting a plugin process.
 - **Debug API**: Start debugger sessions, synchronize breakpoints, inspect stack frames/scopes/variables, evaluate expressions, and control exception pause mode.
+- **SDK Provider API**: Contribute SDK catalogs, discovery, validation, install plans, workspace resolution, and host-validated execution.
 
 ## Getting Started
 
@@ -89,6 +90,114 @@ Supported events:
 - `onStartup`: Activate immediately on IDE startup.
 - `onCommand:<commandId>`: Activate when a specific command is executed.
 - `workspaceContains:<fileName>`: Activate if the workspace contains a specific file pattern.
+- `onSdkProvider:<providerId>`: Activate when the native SDK Manager needs a provider.
+
+### SDK providers
+
+SDK providers describe toolchains while Lumide owns downloads, checksums,
+archive extraction, persistence, selection, progress, and native UI. Declare a
+provider statically so it remains visible in Settings even before the plugin
+process starts:
+
+```yaml
+activation_events:
+  - onSdkProvider:example
+
+permissions:
+  - network:
+      - downloads.example.dev
+
+contributes:
+  sdkProviders:
+    - id: example
+      kind: example
+      title: Example SDK
+      capabilities:
+        catalog: true
+        discovery: true
+        resolution: true
+        validation: true
+        install: true
+```
+
+Register matching callbacks during activation. Install plans are declarative:
+the host requires HTTPS and SHA-256, rejects unsafe archive paths, and performs
+the installation itself.
+
+```dart
+context.sdks.onListAvailable((request) async {
+  return [
+    LumideSdkRelease(
+      id: 'example-2.0.0',
+      version: '2.0.0',
+      channel: 'stable',
+      archiveUri: 'https://downloads.example.dev/example-2.0.0.zip',
+      sha256: releaseSha256,
+      archiveFormat: LumideSdkArchiveFormat.zip,
+      archiveRootDirectory: 'example-sdk',
+    ),
+  ];
+});
+
+context.sdks.onGetInstallPlan((request) async {
+  final release = request.release;
+  final archiveUri = release.archiveUri;
+  final sha256 = release.sha256;
+  final format = release.archiveFormat;
+  final rootDirectory = release.archiveRootDirectory;
+  if (archiveUri == null ||
+      sha256 == null ||
+      format == null ||
+      rootDirectory == null) {
+    throw StateError('Release is not installable');
+  }
+  return LumideSdkInstallPlan.archive(
+    releaseId: release.id,
+    archiveUri: archiveUri,
+    sha256: sha256,
+    format: format,
+    rootDirectory: rootDirectory,
+    executables: const {'example': 'bin/example'},
+  );
+});
+
+context.sdks.onDiscover(discoverInstalledSdks);
+context.sdks.onResolve(resolveExampleSdk);
+context.sdks.onValidate(validateExampleSdk);
+
+await context.sdks.registerProvider(
+  const LumideSdkProviderDescriptor(
+    id: 'example',
+    kind: LumideSdkKind('example'),
+    title: 'Example SDK',
+    capabilities: LumideSdkProviderCapabilities(
+      catalog: true,
+      install: true,
+    ),
+  ),
+);
+```
+
+Use logical execution for one-shot SDK commands. The host resolves the selected
+workspace SDK and validates that `example` belongs to its registered root.
+
+```dart
+final result = await context.sdks.run(
+  const LumideSdkResolveRequest(
+    kind: LumideSdkKind('example'),
+    providerId: 'example',
+    executable: 'example',
+    purpose: LumideSdkPurpose.build,
+  ),
+  const ['build'],
+  workingDirectory: workspaceRoot,
+);
+```
+
+Provider IDs are local in plugin code and are qualified by the host. Cache
+catalog data in `context.workspace.getPluginStorageDir()` so installed SDK
+management remains useful while offline. Never delete external SDK roots;
+Lumide only uninstalls SDKs it installed beneath its managed storage root.
 
 ### Workspace
 

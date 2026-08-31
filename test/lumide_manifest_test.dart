@@ -3,6 +3,30 @@ import 'package:test/test.dart';
 
 void main() {
   group('LumideManifest.fromYaml', () {
+    test('parses static SDK provider contributions', () {
+      final manifest = LumideManifest.fromYaml('''
+id: lumide_flutter
+name: Flutter
+version: 2.0.0
+contributes:
+  sdkProviders:
+    - id: flutter
+      kind: flutter
+      title: Flutter
+      iconPath: assets/flutter.svg
+      capabilities:
+        catalog: true
+        install: true
+activation_events:
+  - onSdkProvider:flutter
+''');
+
+      expect(manifest.sdkProviders, hasLength(1));
+      expect(manifest.sdkProviders.single.kind, LumideSdkKind.flutter);
+      expect(manifest.sdkProviders.single.capabilities.install, isTrue);
+      expect(manifest.activationEvents, contains('onSdkProvider:flutter'));
+    });
+
     test('parses contributes.themes list', () {
       const yaml = '''
 id: test-plugin

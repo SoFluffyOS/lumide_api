@@ -53,6 +53,15 @@ class HostMethods {
   static const launchDidStart = 'launch/onDidStart';
   static const launchDidEnd = 'launch/onDidEnd';
 
+  // SDK providers (IDE → Plugin)
+  static const sdkListAvailable = 'sdk/listAvailable';
+  static const sdkDiscover = 'sdk/discover';
+  static const sdkResolve = 'sdk/providerResolve';
+  static const sdkGetInstallPlan = 'sdk/getInstallPlan';
+  static const sdkValidate = 'sdk/validate';
+  static const sdkDidChangeSelection = 'sdk/onDidChangeSelection';
+  static const sdkActivateProvider = 'sdk/activateProvider';
+
   // Debug (IDE → Plugin)
   static const debugLaunch = 'debug/launch';
   static const debugContinue = 'debug/continue';
@@ -172,6 +181,13 @@ class PluginMethods {
   static const launchUnregisterProvider = 'launch/unregisterProvider';
   static const launchDidStart = 'launch/onDidStart';
   static const launchDidEnd = 'launch/onDidEnd';
+
+  // SDKs (Plugin → IDE)
+  static const sdkRegisterProvider = 'sdk/registerProvider';
+  static const sdkUnregisterProvider = 'sdk/unregisterProvider';
+  static const sdkDidChange = 'sdk/didChange';
+  static const sdkResolve = 'sdk/resolve';
+  static const sdkRun = 'sdk/run';
 
   // Languages (Plugin → IDE)
   static const languagesRegisterServer = 'languages/registerServer';
