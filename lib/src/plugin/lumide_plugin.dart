@@ -124,6 +124,9 @@ abstract class LumideContext {
   /// Launch provider operations.
   LumideLaunch get launch;
 
+  /// SDK provider, discovery, resolution, and execution operations.
+  LumideSdks get sdks;
+
   /// Language server registration.
   LumideLanguages get languages;
 }
@@ -602,6 +605,64 @@ abstract class LumideLaunch {
 
   /// Observes launch end events from the host.
   void onDidEnd(void Function(LumideLaunchEvent event) callback);
+}
+
+/// SDK provider bridge owned and orchestrated by the IDE.
+abstract class LumideSdks {
+  /// Registers a provider. The host qualifies its ID with the plugin ID.
+  Future<void> registerProvider(LumideSdkProviderDescriptor provider);
+
+  /// Removes a provider and invalidates resolutions owned by it.
+  Future<void> unregisterProvider(String id);
+
+  /// Notifies the host that discovery or catalog results changed.
+  Future<void> didChange(String providerId);
+
+  /// Resolves an SDK using host selection and workspace policy.
+  Future<LumideSdkResolution?> resolve(LumideSdkResolveRequest request);
+
+  /// Runs a logical executable through a host-validated SDK resolution.
+  Future<ProcessResult> run(
+    LumideSdkResolveRequest request,
+    List<String> arguments, {
+    String? workingDirectory,
+  });
+
+  /// Observes changes to the host's user or workspace SDK selection.
+  void onDidChangeSelection(
+    void Function(LumideSdkSelectionChangeEvent event) callback,
+  );
+
+  /// Handles catalog requests from the host.
+  void onListAvailable(
+    Future<List<LumideSdkRelease>> Function(LumideSdkListRequest request)
+        callback,
+  );
+
+  /// Handles local SDK discovery requests from the host.
+  void onDiscover(
+    Future<List<LumideSdkInstallation>> Function(
+      LumideSdkDiscoveryRequest request,
+    ) callback,
+  );
+
+  /// Handles provider-specific workspace resolution requests.
+  void onResolve(
+    Future<LumideSdkResolution?> Function(LumideSdkResolveRequest request)
+        callback,
+  );
+
+  /// Handles declarative install-plan requests from the host.
+  void onGetInstallPlan(
+    Future<LumideSdkInstallPlan> Function(LumideSdkInstallPlanRequest request)
+        callback,
+  );
+
+  /// Handles installation health checks from the host.
+  void onValidate(
+    Future<LumideSdkValidation> Function(LumideSdkValidationRequest request)
+        callback,
+  );
 }
 
 /// A webview panel.
