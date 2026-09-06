@@ -1,3 +1,11 @@
+# 1.10.0
+
+### New features
+
+- **SDK providers** — Plugins can contribute discoverable and installable SDK
+  catalogs through `contributes.sdkProviders` and `context.sdks`.
+- Add `workingDirectory` param for shell spawn API.
+
 # 1.9.0
 
 ### New features
