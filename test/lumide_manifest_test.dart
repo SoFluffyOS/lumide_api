@@ -457,5 +457,128 @@ contributes:
       expect(roundTrip.options[1].choices?[0].label, 'Debug');
       expect(roundTrip.options[1].choices?[1].value, 'release');
     });
+
+    test('identifies asset-only plugins correctly', () {
+      const themePlugin = LumideManifest(
+        id: 'theme-plugin',
+        name: 'Theme Plugin',
+        version: '1.0.0',
+        description: 'Theme only',
+        entryPoint: 'bin/main.dart',
+        executable: false,
+        themes: [
+          ManifestTheme(
+            id: 'dark',
+            label: 'Dark',
+            uiTheme: 'dark',
+            path: 'themes/dark.json',
+          ),
+        ],
+      );
+      expect(themePlugin.executable, isFalse);
+
+      const iconThemePlugin = LumideManifest(
+        id: 'icon-plugin',
+        name: 'Icon Plugin',
+        version: '1.0.0',
+        description: 'Icon theme only',
+        entryPoint: 'bin/main.dart',
+        executable: false,
+        iconThemes: [
+          ManifestIconTheme(
+            id: 'icons',
+            label: 'Icons',
+            path: 'icons/theme.json',
+          ),
+        ],
+      );
+      expect(iconThemePlugin.executable, isFalse);
+
+      const codePlugin = LumideManifest(
+        id: 'code-plugin',
+        name: 'Code Plugin',
+        version: '1.0.0',
+        description: 'Code plugin',
+        entryPoint: 'bin/main.dart',
+        commands: [
+          ManifestCommand(id: 'do.something', title: 'Do Something'),
+        ],
+      );
+      expect(codePlugin.executable, isTrue);
+
+      const mixedPlugin = LumideManifest(
+        id: 'mixed-plugin',
+        name: 'Mixed Plugin',
+        version: '1.0.0',
+        description: 'Mixed plugin',
+        entryPoint: 'bin/main.dart',
+        themes: [
+          ManifestTheme(
+            id: 'dark',
+            label: 'Dark',
+            uiTheme: 'dark',
+            path: 'themes/dark.json',
+          ),
+        ],
+        commands: [
+          ManifestCommand(id: 'toggle.theme', title: 'Toggle Theme'),
+        ],
+      );
+      expect(mixedPlugin.executable, isTrue);
+    });
+
+    test('parses executable field from YAML', () {
+      const yamlExplicitFalse = '''
+id: theme-pack
+name: Theme Pack
+version: 1.0.0
+executable: false
+contributes:
+  themes:
+    - id: dark
+      label: Dark
+      uiTheme: dark
+      path: themes/dark.json
+''';
+      final manifest1 = LumideManifest.fromYaml(yamlExplicitFalse);
+      expect(manifest1.executable, isFalse);
+
+      const yamlExplicitTrue = '''
+id: tool-plugin
+name: Tool Plugin
+version: 1.0.0
+executable: true
+entry_point: bin/main.dart
+''';
+      final manifest2 = LumideManifest.fromYaml(yamlExplicitTrue);
+      expect(manifest2.executable, isTrue);
+
+      const yamlInferredAsset = '''
+id: pure-theme
+name: Pure Theme
+version: 1.0.0
+contributes:
+  themes:
+    - id: light
+      label: Light
+      uiTheme: light
+      path: themes/light.json
+''';
+      final manifest3 = LumideManifest.fromYaml(yamlInferredAsset);
+      expect(manifest3.executable, isFalse);
+
+      const yamlInferredCodeWithNesting = '''
+id: nix-plugin
+name: Nix Plugin
+version: 1.0.0
+activation_events:
+  - workspaceContains:flake.nix
+contributes:
+  fileNesting:
+    flake.nix: flake.lock
+''';
+      final manifest4 = LumideManifest.fromYaml(yamlInferredCodeWithNesting);
+      expect(manifest4.executable, isTrue);
+    });
   });
 }
