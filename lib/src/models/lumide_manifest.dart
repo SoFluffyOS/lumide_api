@@ -14,7 +14,8 @@ class LumideManifest {
     required this.name,
     required this.version,
     required this.description,
-    required this.entryPoint,
+    this.entryPoint = 'bin/main.dart',
+    bool? executable,
     this.permissions = const [],
     this.uiCapabilities = const [],
     this.configuration = const [],
@@ -27,7 +28,7 @@ class LumideManifest {
     this.iconThemes = const [],
     this.fileNestingPatterns = const [],
     this.snippets = const [],
-  });
+  }) : _executable = executable;
 
   /// Parses a manifest from YAML content.
   factory LumideManifest.fromYaml(String yamlContent) {
@@ -316,12 +317,22 @@ class LumideManifest {
       }
     }
 
+    final bool? executable;
+    if (doc['executable'] case final bool exec) {
+      executable = exec;
+    } else if (doc['executable'] case final String execStr) {
+      executable = execStr.toLowerCase() == 'true';
+    } else {
+      executable = null;
+    }
+
     return LumideManifest(
       id: id,
       name: name,
       version: version,
       description: doc['description']?.toString() ?? '',
       entryPoint: entryPoint,
+      executable: executable,
       permissions: permissions,
       uiCapabilities: uiCapabilities,
       configuration: configuration,
@@ -351,6 +362,36 @@ class LumideManifest {
 
   /// Entry point executable or script.
   final String entryPoint;
+
+  final bool? _executable;
+
+  /// Whether this plugin runs as an external process.
+  ///
+  /// Set to `false` in `plugin.yaml` for declarative asset-only plugins
+  /// (such as color themes, icon themes, file nesting patterns, or snippet packs)
+  /// that do not run an external process and require no Start/Stop controls.
+  ///
+  /// When omitted, this is inferred based on whether the plugin declares
+  /// code hooks (activation events, permissions, commands, etc.) or only
+  /// static contributions.
+  bool get executable {
+    if (_executable case final exec?) {
+      return exec;
+    }
+    if (activationEvents.isNotEmpty ||
+        permissions.isNotEmpty ||
+        commands.isNotEmpty ||
+        launchProviders.isNotEmpty ||
+        sdkProviders.isNotEmpty ||
+        uiCapabilities.isNotEmpty) {
+      return true;
+    }
+    final isStaticOnly = themes.isNotEmpty ||
+        iconThemes.isNotEmpty ||
+        fileNestingPatterns.isNotEmpty ||
+        snippets.isNotEmpty;
+    return !isStaticOnly;
+  }
 
   /// Requested permissions.
   final List<Permission> permissions;
@@ -395,6 +436,7 @@ class LumideManifest {
     String? version,
     String? description,
     String? entryPoint,
+    bool? executable,
     List<Permission>? permissions,
     List<String>? uiCapabilities,
     List<String>? activationEvents,
@@ -414,6 +456,7 @@ class LumideManifest {
       version: version ?? this.version,
       description: description ?? this.description,
       entryPoint: entryPoint ?? this.entryPoint,
+      executable: executable ?? _executable,
       permissions: permissions ?? this.permissions,
       uiCapabilities: uiCapabilities ?? this.uiCapabilities,
       activationEvents: activationEvents ?? this.activationEvents,
