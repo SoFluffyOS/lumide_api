@@ -428,6 +428,21 @@ class LumideManifest {
       sdkProviders: sdkProviders ?? this.sdkProviders,
     );
   }
+
+  /// Whether this plugin only provides static assets (such as color themes,
+  /// icon themes, file nesting patterns, or snippets) and cannot run as an
+  /// external process.
+  bool get isAssetsOnly {
+    final hasStaticAssets = themes.isNotEmpty ||
+        iconThemes.isNotEmpty ||
+        fileNestingPatterns.isNotEmpty ||
+        snippets.isNotEmpty;
+    final hasNoCodeContributions = commands.isEmpty &&
+        launchProviders.isEmpty &&
+        sdkProviders.isEmpty &&
+        uiCapabilities.isEmpty;
+    return hasStaticAssets && hasNoCodeContributions;
+  }
 }
 
 /// A command declared in a plugin manifest.

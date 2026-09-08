@@ -457,5 +457,72 @@ contributes:
       expect(roundTrip.options[1].choices?[0].label, 'Debug');
       expect(roundTrip.options[1].choices?[1].value, 'release');
     });
+
+    test('identifies asset-only plugins correctly', () {
+      const themePlugin = LumideManifest(
+        id: 'theme-plugin',
+        name: 'Theme Plugin',
+        version: '1.0.0',
+        description: 'Theme only',
+        entryPoint: 'bin/main.dart',
+        themes: [
+          ManifestTheme(
+            id: 'dark',
+            label: 'Dark',
+            uiTheme: 'dark',
+            path: 'themes/dark.json',
+          ),
+        ],
+      );
+      expect(themePlugin.isAssetsOnly, isTrue);
+
+      const iconThemePlugin = LumideManifest(
+        id: 'icon-plugin',
+        name: 'Icon Plugin',
+        version: '1.0.0',
+        description: 'Icon theme only',
+        entryPoint: 'bin/main.dart',
+        iconThemes: [
+          ManifestIconTheme(
+            id: 'icons',
+            label: 'Icons',
+            path: 'icons/theme.json',
+          ),
+        ],
+      );
+      expect(iconThemePlugin.isAssetsOnly, isTrue);
+
+      const codePlugin = LumideManifest(
+        id: 'code-plugin',
+        name: 'Code Plugin',
+        version: '1.0.0',
+        description: 'Code plugin',
+        entryPoint: 'bin/main.dart',
+        commands: [
+          ManifestCommand(id: 'do.something', title: 'Do Something'),
+        ],
+      );
+      expect(codePlugin.isAssetsOnly, isFalse);
+
+      const mixedPlugin = LumideManifest(
+        id: 'mixed-plugin',
+        name: 'Mixed Plugin',
+        version: '1.0.0',
+        description: 'Mixed plugin',
+        entryPoint: 'bin/main.dart',
+        themes: [
+          ManifestTheme(
+            id: 'dark',
+            label: 'Dark',
+            uiTheme: 'dark',
+            path: 'themes/dark.json',
+          ),
+        ],
+        commands: [
+          ManifestCommand(id: 'toggle.theme', title: 'Toggle Theme'),
+        ],
+      );
+      expect(mixedPlugin.isAssetsOnly, isFalse);
+    });
   });
 }
