@@ -1,3 +1,10 @@
+# 1.11.0
+
+### New features
+
+- **Plugin process control** — Add the `executable` manifest field to explicitly mark asset-only plugins as non-executable. When omitted, the SDK infers whether a plugin needs a process from its declared contributions.
+- **Per-extension language IDs** — Add the optional `extensionLanguageMap` parameter to `languages.registerLanguageServer` so a language server can receive the correct language ID for each file extension.
+
 # 1.10.0
 
 ### New features

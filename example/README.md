@@ -32,6 +32,7 @@ version: '0.1.0'
 author: 'Your Name'
 license: 'MIT'
 entry_point: 'bin/main.dart'     # relative to plugin root
+executable: true                 # this plugin runs as a process
 
 permissions:
   - fileSystem:
@@ -82,6 +83,22 @@ contributes:
     - path: snippets/global.code-snippets
 ```
 
+For an asset-only plugin that contributes themes, file nesting, or snippets,
+set `executable: false` to prevent Lumide from starting a plugin process. When
+the field is omitted, Lumide infers whether a process is needed from the
+manifest contributions.
+
+```yaml
+id: my_snippet_pack
+name: 'My Snippet Pack'
+version: '1.0.0'
+executable: false
+contributes:
+  snippets:
+    - language: dart
+      path: snippets/dart.json
+```
+
 Each JSON file uses the VS Code snippet shape. `body` may be a string or a list
 of lines, and `prefix` may be a string or a list:
 
@@ -113,6 +130,15 @@ class MyPlugin extends LumidePlugin {
     log('Plugin activated!');
     final uri = await context.editor.getActiveDocumentUri();
     log('Active file: $uri');
+
+    // Map each extension to the language ID the server should receive.
+    await context.languages.registerLanguageServer(
+      id: 'template-lsp',
+      languageId: 'html',
+      fileExtensions: const ['.html', '.blade.php'],
+      extensionLanguageMap: const {'.blade.php': 'blade'},
+      command: 'template-language-server',
+    );
 
     // Register a command
     await context.commands.registerCommand(
