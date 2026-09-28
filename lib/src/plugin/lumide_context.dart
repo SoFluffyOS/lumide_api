@@ -1607,6 +1607,7 @@ class _RpcLanguages implements LumideLanguages {
     required List<String> fileExtensions,
     required String command,
     List<String> args = const [],
+    Map<String, String> extensionLanguageMap = const {},
     Map<String, dynamic>? initializationOptions,
     Future<String> Function()? checkStatus,
     Future<Map<String, dynamic>> Function()? signIn,
@@ -1646,6 +1647,8 @@ class _RpcLanguages implements LumideLanguages {
       'fileExtensions': fileExtensions,
       'command': command,
       'args': args,
+      if (extensionLanguageMap.isNotEmpty)
+        'extensionLanguageMap': extensionLanguageMap,
       if (initializationOptions != null)
         'initializationOptions': initializationOptions,
       'supportsAuth': checkStatus != null || signIn != null || signOut != null,
