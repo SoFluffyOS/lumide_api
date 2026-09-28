@@ -5,6 +5,41 @@ import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('language server registration forwards document language overrides',
+      () async {
+    final channels = StreamChannelController<String>(sync: true);
+    final pluginSession = RpcSession(channels.local);
+    final hostSession = RpcSession(channels.foreign);
+    final context = RpcLumideContext(pluginSession);
+    final pluginListening = pluginSession.listen();
+    final hostListening = hostSession.listen();
+    addTearDown(() async {
+      await Future.wait([pluginSession.close(), hostSession.close()]);
+      await Future.wait([pluginListening, hostListening]);
+    });
+
+    Map<dynamic, dynamic>? registration;
+    hostSession.registerMethod(PluginMethods.languagesRegisterServer, (params) {
+      registration = params.value as Map;
+      return null;
+    });
+    await context.languages.registerLanguageServer(
+      id: 'tailwind',
+      languageId: 'tailwindcss',
+      fileExtensions: const ['.tsx', '.astro'],
+      extensionLanguageMap: const {'.astro': 'astro'},
+      command: 'tailwind-server',
+      initializationOptions: const {
+        'userLanguages': {'astro': 'html'}
+      },
+    );
+
+    expect(registration?['extensionLanguageMap'], {'.astro': 'astro'});
+    expect(registration?['initializationOptions'], {
+      'userLanguages': {'astro': 'html'},
+    });
+  });
+
   test('SDK bridge routes every host and provider RPC contract', () async {
     final channels = StreamChannelController<String>(sync: true);
     final pluginSession = RpcSession(channels.local);

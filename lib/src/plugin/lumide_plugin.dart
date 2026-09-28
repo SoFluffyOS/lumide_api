@@ -976,6 +976,7 @@ abstract class LumideLanguages {
   /// [command] — executable to start the LSP server.
   /// [args] — arguments for the command.
   /// [initializationOptions] — optional map sent during server initialization.
+  /// [extensionLanguageMap] — optional per-extension LSP language IDs.
   Future<void> registerLanguageServer({
     required String id,
     required String languageId,
@@ -985,6 +986,7 @@ abstract class LumideLanguages {
     required List<String> fileExtensions,
     required String command,
     List<String> args = const [],
+    Map<String, String> extensionLanguageMap = const {},
     Map<String, dynamic>? initializationOptions,
     Future<String> Function()? checkStatus,
     Future<Map<String, dynamic>> Function()? signIn,
