@@ -20,7 +20,8 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Context Menu API**: Add actions to Add Pane, file tree, tab bar, and editor context menus with grouped sections.
 - **Terminal API**: Create and control integrated terminals.
 - **Output API**: Write logs and data to the Output Panel.
-- **Languages API**: Register custom language servers for LSP support. **(New: Inline Completion, Custom LSP Requests)**
+- **Languages API**: Register custom language servers for LSP support, including per-extension language IDs. **(New: Inline Completion, Custom LSP Requests)**
+- **Plugin manifests**: Mark declarative asset-only plugins as non-executable with `executable: false`; otherwise, process needs are inferred from the manifest.
 - **Snippet Contributions**: Contribute TextMate-compatible snippets for one or more languages without starting a plugin process.
 - **Debug API**: Start debugger sessions, synchronize breakpoints, inspect stack frames/scopes/variables, evaluate expressions, and control exception pause mode.
 - **SDK Provider API**: Contribute SDK catalogs, discovery, validation, install plans, workspace resolution, and host-validated execution.
@@ -31,7 +32,7 @@ Add `lumide_api` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lumide_api: ^1.2.0
+  lumide_api: ^1.11.0
 ```
 
 ## Basic Usage
@@ -771,6 +772,10 @@ await context.languages.registerLanguageServer(
   id: 'swift-lsp',
   languageId: 'swift',
   fileExtensions: ['.swift'],
+  extensionLanguageMap: {
+    '.swift': 'swift',
+    '.swiftinterface': 'swift',
+  },
   command: 'sourcekit-lsp',
   iconPath: 'assets/swift.svg',
   checkStatus: () async => 'ok', // Optional auth callbacks
