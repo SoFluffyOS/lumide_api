@@ -14,8 +14,11 @@
 
 - **Diagnostics** — `languages.setDiagnostics` and `languages.clearDiagnostics` publish `LumideDiagnostic`s from non-LSP tools. They appear as editor squiggles and in the Problems panel.
 
+- **Progress** — `window.createProgress` and `window.withProgress` show long-running tasks in the status bar, with optional cancellation (`LumideProgress.onCancel`).
+
 ### Breaking changes
 
+- Custom implementations of `LumideWindow` must implement `createProgress` and `withProgress`.
 - Custom implementations of `LumideLanguages` must implement `registerFormattingProvider`, `unregisterFormattingProvider`, `setDiagnostics`, and `clearDiagnostics`.
 - Custom implementations of `LumideShell` and `LumideSdks` must accept the new optional parameters and implement `sdks.spawn`.
 - Custom implementations of `LumideWorkspace`, `LumideEditor`, `LumideShell`, `LumideTerminal`, `LumideWebviewPanel`, `LumideToolbar`, `LumideLaunch`, and `LumideSdks` (e.g. test fakes) must return a `LumideDisposable` from those listener methods. Plugins that only call the API are unaffected.

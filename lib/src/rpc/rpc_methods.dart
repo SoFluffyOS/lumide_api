@@ -45,6 +45,9 @@ class HostMethods {
   static const aiSignOut = 'languages/aiSignOut';
   static const languagesProvideFormatting = 'languages/provideFormatting';
 
+  /// Sent when the user cancels a cancellable progress task.
+  static const windowCancelProgress = 'window/cancelProgress';
+
   // Debug (IDE → Plugin)
   static const launchResolveConfigurations = 'launch/resolveConfigurations';
   static const launchResolveConfiguration = 'launch/resolveConfiguration';
@@ -146,6 +149,11 @@ class PluginMethods {
   static const windowClearOutput = 'window/clearOutput';
   static const windowShowOutput = 'window/showOutput';
   static const windowDisposeOutputChannel = 'window/disposeOutputChannel';
+
+  // Progress
+  static const windowCreateProgress = 'window/createProgress';
+  static const windowReportProgress = 'window/reportProgress';
+  static const windowEndProgress = 'window/endProgress';
 
   // UI Panels
   static const uiCreatePanel = 'ui/createPanel';

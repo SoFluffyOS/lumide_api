@@ -387,6 +387,25 @@ abstract class LumideWindow {
   /// Opens an external URL in the default browser.
   Future<bool> openUrl(String url);
 
+  /// Shows a long-running task in the status bar until [LumideProgress.done].
+  ///
+  /// When [cancellable] is true the user can cancel it from the status bar;
+  /// listen with [LumideProgress.onCancel] and stop the work.
+  Future<LumideProgress> createProgress({
+    required String title,
+    String? message,
+    bool cancellable = false,
+  });
+
+  /// Runs [task] with a status bar progress and ends it when [task]
+  /// completes or throws.
+  Future<T> withProgress<T>({
+    required String title,
+    String? message,
+    bool cancellable = false,
+    required Future<T> Function(LumideProgress progress) task,
+  });
+
   /// Creates and shows a webview panel.
   Future<LumideWebviewPanel> createWebviewPanel(
     String viewType,
@@ -1000,6 +1019,23 @@ class InlineCompletion {
 
   /// The text to insert at the cursor position.
   final String text;
+}
+
+/// A status bar progress task created by [LumideWindow.createProgress].
+abstract class LumideProgress {
+  String get id;
+
+  /// Whether the user cancelled this task.
+  bool get isCancelled;
+
+  /// Updates the message and/or completion [percentage] (0–100).
+  Future<void> report({String? message, double? percentage});
+
+  /// Removes the task from the status bar. Calling it again is a no-op.
+  Future<void> done();
+
+  /// Called once when the user cancels the task.
+  LumideDisposable onCancel(void Function() callback);
 }
 
 /// Language server registration API.
