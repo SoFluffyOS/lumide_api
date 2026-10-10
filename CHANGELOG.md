@@ -1,27 +1,19 @@
 # 1.12.0
 
+> This release requires a Lumide version that ships the matching host APIs. On older hosts, document and file subscriptions stay silent and other new calls fail with method-not-found.
+
 ### New features
 
 - **Removable listeners** — Event registrations (`workspace.onDid*`, `editor.onDid*`, `shell.onStdout`/`onStderr`/`onExit`, `terminal.onData`, `webview.onDidReceiveMessage`, `toolbar.onTap`, `launch.onDidStart`/`onDidEnd`, `sdks.onDidChangeSelection`) now return a `LumideDisposable`. Call `dispose()` to stop receiving events.
-
 - **Document change events** — `workspace.onDidChangeTextDocument` now delivers batched, ordered edits from Lumide (it never fired before). Events carry a `version` and only cover documents allowed by the plugin's `fileSystem` permissions. The SDK asks the host to track edits only while a listener is registered (`workspace/setTextDocumentChangeSubscription`).
-
 - **Cross-platform keybindings** — Manifest keybindings accept `mod` (Cmd on macOS, Ctrl elsewhere), and Lumide now honors their `when` clause.
-
 - **Process control** — `shell.run` accepts `environment` and `stdin`, `shell.spawn` accepts `environment`, and `shell.kill` takes an optional `LumideProcessSignal`. `sdks.run` accepts `environment`, and the new `sdks.spawn` starts long-running SDK processes through host-validated resolution.
-
 - **Formatting providers** — `languages.registerFormattingProvider` contributes a whole-document formatter for Format Document and format-on-save. It receives the unsaved editor text, so formatters no longer need to rewrite files on disk.
-
 - **Diagnostics** — `languages.setDiagnostics` and `languages.clearDiagnostics` publish `LumideDiagnostic`s from non-LSP tools. They appear as editor squiggles and in the Problems panel.
-
 - **Progress** — `window.createProgress` and `window.withProgress` show long-running tasks in the status bar, with optional cancellation (`LumideProgress.onCancel`).
-
 - **File events** — `workspace.onDidChangeFiles` reports batched file and folder creates, changes, deletes, and renames, filtered by the plugin's `fileSystem` permissions.
-
 - **Run commands** — `commands.executeCommand` runs Lumide or plugin commands. With Lumide's matching release, manifest commands of plugins that activate `onCommand:<id>` appear in the Command Palette and start the plugin when run.
-
 - **Logpoints and conditions** — `LumideDebugBreakpoint` gains `logMessage` and `copyWith`. Lumide lets users edit breakpoint conditions and log messages; debug backends evaluate them.
-
 - **Test results** — `context.tests.createRun` reports `LumideTestResult` trees to Lumide's new Tests pane.
 
 ### Breaking changes
