@@ -224,10 +224,22 @@ await context.fs.writeString(
   '{"lastRun": "${DateTime.now().toIso8601String()}"}',
 );
 
-// Listen to file events
-context.workspace.onDidSaveTextDocument((uri) {
+// Listen to file events. Every listener returns a LumideDisposable.
+final saveListener = context.workspace.onDidSaveTextDocument((uri) {
   log('File saved: $uri');
 });
+
+// Batched, ordered edits. A change without a range replaces the document.
+// Lumide only tracks edits while at least one change listener exists.
+final changeListener = context.workspace.onDidChangeTextDocument((event) {
+  for (final change in event.changes) {
+    log('${event.uri} v${event.version}: ${change.startLine}:${change.startColumn}');
+  }
+});
+
+// Stop listening.
+saveListener.dispose();
+changeListener.dispose();
 ```
 
 ### Editor
