@@ -976,7 +976,11 @@ class _RpcWorkspace implements LumideWorkspace {
           endColumn: change['endColumn'] as int?,
         );
       }).toList();
-      final event = DocumentChangeEvent(uri: uri, changes: changes);
+      final event = DocumentChangeEvent(
+        uri: uri,
+        changes: changes,
+        version: data['version'] as int?,
+      );
       for (final cb in [..._changeCallbacks]) {
         cb(event);
       }
@@ -1037,7 +1041,25 @@ class _RpcWorkspace implements LumideWorkspace {
   LumideDisposable onDidChangeTextDocument(
     void Function(DocumentChangeEvent event) callback,
   ) {
-    return addListener(_changeCallbacks, callback);
+    final isFirstListener = _changeCallbacks.isEmpty;
+    final registration = addListener(_changeCallbacks, callback);
+    if (isFirstListener) _setTextDocumentChangeSubscription(enabled: true);
+    return LumideDisposable(() {
+      registration.dispose();
+      if (_changeCallbacks.isNotEmpty) return;
+      _setTextDocumentChangeSubscription(enabled: false);
+    });
+  }
+
+  /// Hosts older than 1.12 do not know this request and always stay silent,
+  /// so failures are ignored.
+  void _setTextDocumentChangeSubscription({required bool enabled}) {
+    unawaited(
+      _session.sendRequest(
+        PluginMethods.workspaceSetTextDocumentChangeSubscription,
+        {'enabled': enabled},
+      ).catchError((Object _) => null),
+    );
   }
 
   @override

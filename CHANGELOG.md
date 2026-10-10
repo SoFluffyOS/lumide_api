@@ -4,6 +4,8 @@
 
 - **Removable listeners** — Event registrations (`workspace.onDid*`, `editor.onDid*`, `shell.onStdout`/`onStderr`/`onExit`, `terminal.onData`, `webview.onDidReceiveMessage`, `toolbar.onTap`, `launch.onDidStart`/`onDidEnd`, `sdks.onDidChangeSelection`) now return a `LumideDisposable`. Call `dispose()` to stop receiving events.
 
+- **Document change events** — `workspace.onDidChangeTextDocument` now delivers batched, ordered edits from Lumide (it never fired before). Events carry a `version`. The SDK asks the host to track edits only while a listener is registered (`workspace/setTextDocumentChangeSubscription`).
+
 ### Breaking changes
 
 - Custom implementations of `LumideWorkspace`, `LumideEditor`, `LumideShell`, `LumideTerminal`, `LumideWebviewPanel`, `LumideToolbar`, `LumideLaunch`, and `LumideSdks` (e.g. test fakes) must return a `LumideDisposable` from those listener methods. Plugins that only call the API are unaffected.
