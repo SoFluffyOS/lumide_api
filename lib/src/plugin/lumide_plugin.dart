@@ -832,8 +832,10 @@ abstract class LumideWorkspace {
   ///
   /// Changes are batched (about 100 ms) and applied in order. A change
   /// without a range replaces the whole document. Only documents covered by
-  /// the plugin's `fileSystem` permissions are reported. The host only tracks
-  /// edits while at least one listener is registered.
+  /// the plugin's `fileSystem` permissions are reported. Like language
+  /// servers, documents over 500,000 characters or 20,000 lines are skipped;
+  /// one that shrinks below that resumes with a full-text change. The host
+  /// only tracks edits while at least one listener is registered.
   LumideDisposable onDidChangeTextDocument(
     void Function(DocumentChangeEvent event) callback,
   );
