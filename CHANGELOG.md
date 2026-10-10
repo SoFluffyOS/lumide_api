@@ -18,8 +18,11 @@
 
 - **File events** — `workspace.onDidChangeFiles` reports batched file and folder creates, changes, deletes, and renames, filtered by the plugin's `fileSystem` permissions.
 
+- **Run commands** — `commands.executeCommand` runs Lumide or plugin commands. With Lumide's matching release, manifest commands of plugins that activate `onCommand:<id>` appear in the Command Palette and start the plugin when run.
+
 ### Breaking changes
 
+- Custom implementations of `LumideCommands` must implement `executeCommand`.
 - Custom implementations of `LumideWindow` must implement `createProgress` and `withProgress`.
 - Custom implementations of `LumideLanguages` must implement `registerFormattingProvider`, `unregisterFormattingProvider`, `setDiagnostics`, and `clearDiagnostics`.
 - Custom implementations of `LumideShell` and `LumideSdks` must accept the new optional parameters and implement `sdks.spawn`.

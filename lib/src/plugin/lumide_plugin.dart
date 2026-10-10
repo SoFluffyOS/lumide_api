@@ -914,6 +914,13 @@ abstract class LumideCommands {
     String? category,
     required Future<void> Function([Map<String, dynamic>? args]) callback,
   });
+
+  /// Runs a Lumide or plugin command by [id], starting the owning plugin
+  /// first when it activates on `onCommand:<id>`.
+  ///
+  /// Returns false when no such command exists. The command runs
+  /// asynchronously; this does not wait for it to finish.
+  Future<bool> executeCommand(String id, [Map<String, dynamic>? args]);
 }
 
 /// Context menu contribution API.

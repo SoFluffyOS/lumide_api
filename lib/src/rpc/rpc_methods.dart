@@ -181,6 +181,7 @@ class PluginMethods {
 
   // Commands (Plugin → IDE)
   static const commandsRegister = 'commands/register';
+  static const commandsExecuteCommand = 'commands/executeCommand';
 
   // Menu actions (Plugin → IDE)
   static const menusRegisterAction = 'menus/registerAction';

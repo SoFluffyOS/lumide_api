@@ -60,6 +60,9 @@ class MyPlugin extends LumidePlugin {
       callback: () async => log('Command executed!'),
     );
 
+    // Run another command (Lumide's or another plugin's)
+    await context.commands.executeCommand('flutter.hotReload');
+
     // Create a status bar item with an icon
     await context.statusBar.createItem(
       id: 'status',
@@ -89,7 +92,7 @@ activation_events:
 
 Supported events:
 - `onStartup`: Activate immediately on IDE startup.
-- `onCommand:<commandId>`: Activate when a specific command is executed.
+- `onCommand:<commandId>`: Activate when a specific command is executed. Declare the command under `contributes.commands` so it appears in the Command Palette before the plugin starts.
 - `workspaceContains:<fileName>`: Activate if the workspace contains a specific file pattern.
 - `onSdkProvider:<providerId>`: Activate when the native SDK Manager needs a provider.
 
