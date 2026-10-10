@@ -1,30 +1,23 @@
 # 1.12.0
 
-> This release requires a Lumide version that ships the matching host APIs. On older hosts, document and file subscriptions stay silent and other new calls fail with method-not-found.
+> Note: This release requires Lumide version later than 0.22.0.
 
 ### New features
 
-- **Removable listeners** — Event registrations (`workspace.onDid*`, `editor.onDid*`, `shell.onStdout`/`onStderr`/`onExit`, `terminal.onData`, `webview.onDidReceiveMessage`, `toolbar.onTap`, `launch.onDidStart`/`onDidEnd`, `sdks.onDidChangeSelection`) now return a `LumideDisposable`. Call `dispose()` to stop receiving events.
-- **Document change events** — `workspace.onDidChangeTextDocument` now delivers batched, ordered edits from Lumide (it never fired before). Events carry a `version` and only cover documents allowed by the plugin's `fileSystem` permissions. The SDK asks the host to track edits only while a listener is registered (`workspace/setTextDocumentChangeSubscription`).
-- **Cross-platform keybindings** — Manifest keybindings accept `mod` (Cmd on macOS, Ctrl elsewhere), and Lumide now honors their `when` clause.
-- **Process control** — `shell.run` accepts `environment` and `stdin`, `shell.spawn` accepts `environment`, and `shell.kill` takes an optional `LumideProcessSignal`. `sdks.run` accepts `environment`, and the new `sdks.spawn` starts long-running SDK processes through host-validated resolution.
-- **Formatting providers** — `languages.registerFormattingProvider` contributes a whole-document formatter for Format Document and format-on-save. It receives the unsaved editor text, so formatters no longer need to rewrite files on disk.
-- **Diagnostics** — `languages.setDiagnostics` and `languages.clearDiagnostics` publish `LumideDiagnostic`s from non-LSP tools. They appear as editor squiggles and in the Problems panel.
-- **Progress** — `window.createProgress` and `window.withProgress` show long-running tasks in the status bar, with optional cancellation (`LumideProgress.onCancel`).
-- **File events** — `workspace.onDidChangeFiles` reports batched file and folder creates, changes, deletes, and renames, filtered by the plugin's `fileSystem` permissions.
-- **Run commands** — `commands.executeCommand` runs Lumide or plugin commands. Built-in commands that change Git state or files on disk are refused. With Lumide's matching release, manifest commands of plugins that activate `onCommand:<id>` appear in the Command Palette and start the plugin when run.
-- **Logpoints and conditions** — `LumideDebugBreakpoint` gains `logMessage` and `copyWith`. Lumide lets users edit breakpoint conditions and log messages; debug backends evaluate them.
-- **Test results** — `context.tests.createRun` reports `LumideTestResult` trees to Lumide's new Tests pane.
+- **Formatting API** — Add `languages.registerFormattingProvider` to format documents on Format Document and format-on-save, including unsaved changes.
+- **Diagnostics API** — Add `languages.setDiagnostics` and `clearDiagnostics` to show problems in the editor and Problems panel.
+- **Progress API** — Add `window.createProgress` and `withProgress` to show cancellable progress in the status bar.
+- **Tests API** — Add `context.tests` to report test runs to the Tests pane.
+- **Workspace events** — `onDidChangeTextDocument` now receives edits, and add `onDidChangeFiles` for file creates, changes, deletes, and renames.
+- **Commands API** — Add `commands.executeCommand` to run Lumide and plugin commands. Commands for `onCommand:` activation now show in the Command Palette before the plugin starts.
+- **Process API** — Add `environment` and `stdin` to shell commands, signals to `shell.kill`, and `sdks.spawn` for long-running SDK processes.
+- **Keybindings** — Support `mod` (Cmd on macOS, Ctrl elsewhere) and `when` clauses.
+- **Debug API** — Add `logMessage` to breakpoints. Users can edit breakpoint conditions and log messages.
 
 ### Breaking changes
 
-- Custom implementations of `LumideContext` must provide `tests`.
-- Custom implementations of `LumideCommands` must implement `executeCommand`.
-- Custom implementations of `LumideWindow` must implement `createProgress` and `withProgress`.
-- Custom implementations of `LumideLanguages` must implement `registerFormattingProvider`, `unregisterFormattingProvider`, `setDiagnostics`, and `clearDiagnostics`.
-- Custom implementations of `LumideShell` and `LumideSdks` must accept the new optional parameters and implement `sdks.spawn`.
-- Custom implementations of `LumideWorkspace` must implement `onDidChangeFiles`.
-- Custom implementations of `LumideWorkspace`, `LumideEditor`, `LumideShell`, `LumideTerminal`, `LumideWebviewPanel`, `LumideToolbar`, `LumideLaunch`, and `LumideSdks` (e.g. test fakes) must return a `LumideDisposable` from those listener methods. Plugins that only call the API are unaffected.
+- **Listeners** — `on*` listener methods return a `LumideDisposable` instead of `void`. Call `dispose()` to stop listening.
+- **Custom implementations** — Custom `LumideContext`, `LumideWorkspace`, `LumideCommands`, `LumideWindow`, `LumideLanguages`, `LumideShell`, and `LumideSdks` implementations (e.g. test fakes) must implement the new methods.
 
 # 1.11.0
 
