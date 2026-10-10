@@ -22,8 +22,11 @@
 
 - **Logpoints and conditions** — `LumideDebugBreakpoint` gains `logMessage` and `copyWith`. Lumide lets users edit breakpoint conditions and log messages; debug backends evaluate them.
 
+- **Test results** — `context.tests.createRun` reports `LumideTestResult` trees to Lumide's new Tests pane.
+
 ### Breaking changes
 
+- Custom implementations of `LumideContext` must provide `tests`.
 - Custom implementations of `LumideCommands` must implement `executeCommand`.
 - Custom implementations of `LumideWindow` must implement `createProgress` and `withProgress`.
 - Custom implementations of `LumideLanguages` must implement `registerFormattingProvider`, `unregisterFormattingProvider`, `setDiagnostics`, and `clearDiagnostics`.

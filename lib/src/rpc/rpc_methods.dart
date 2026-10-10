@@ -151,6 +151,11 @@ class PluginMethods {
   static const windowShowOutput = 'window/showOutput';
   static const windowDisposeOutputChannel = 'window/disposeOutputChannel';
 
+  // Tests
+  static const testsCreateRun = 'tests/createRun';
+  static const testsUpdateRun = 'tests/updateRun';
+  static const testsEndRun = 'tests/endRun';
+
   // Progress
   static const windowCreateProgress = 'window/createProgress';
   static const windowReportProgress = 'window/reportProgress';
