@@ -1781,6 +1781,8 @@ class _RpcSdks implements LumideSdks {
   }
 }
 
+typedef _ProviderHandler = Future<dynamic> Function(Map<String, dynamic> data);
+
 class _RpcLanguages implements LumideLanguages {
   _RpcLanguages(this._session) {
     _session.registerMethod(HostMethods.languagesProvideFormatting, (
@@ -1792,11 +1794,75 @@ class _RpcLanguages implements LumideLanguages {
       final formatted = await formatter(LumideFormattingRequest.fromJson(data));
       return {'text': formatted};
     });
+    for (final method in _providerMethods) {
+      _session.registerMethod(method, (params) async {
+        final data = params.value as Map<String, dynamic>;
+        final handler = _providerHandlers[method]?[data['id']];
+        if (handler == null) return null;
+        return await handler(data);
+      });
+    }
   }
+
+  /// Host requests shared by every provider, routed by provider `id`.
+  static const _providerMethods = [
+    HostMethods.aiCheckStatus,
+    HostMethods.aiSignIn,
+    HostMethods.aiSignOut,
+    HostMethods.inlineCompletionRequest,
+  ];
 
   final RpcSession _session;
   final _formatters =
       <String, Future<String?> Function(LumideFormattingRequest)>{};
+  final _providerHandlers = <String, Map<String, _ProviderHandler>>{};
+
+  /// Routes [method] requests for provider [id] to [handler], replacing a
+  /// previous registration. A null [handler] removes it.
+  void _setProviderHandler(
+      String method, String id, _ProviderHandler? handler) {
+    final handlers = _providerHandlers.putIfAbsent(method, () => {});
+    if (handler == null) {
+      handlers.remove(id);
+      return;
+    }
+    handlers[id] = handler;
+  }
+
+  void _setAuthHandlers(
+    String id, {
+    Future<String> Function()? checkStatus,
+    Future<Map<String, dynamic>> Function()? signIn,
+    Future<void> Function()? signOut,
+  }) {
+    _setProviderHandler(
+      HostMethods.aiCheckStatus,
+      id,
+      switch (checkStatus) {
+        final check? => (_) => check(),
+        null => null,
+      },
+    );
+    _setProviderHandler(
+      HostMethods.aiSignIn,
+      id,
+      switch (signIn) {
+        final signInHandler? => (_) => signInHandler(),
+        null => null,
+      },
+    );
+    _setProviderHandler(
+      HostMethods.aiSignOut,
+      id,
+      switch (signOut) {
+        final signOutHandler? => (_) async {
+            await signOutHandler();
+            return null;
+          },
+        null => null,
+      },
+    );
+  }
 
   @override
   Future<void> setDiagnostics(
@@ -1859,30 +1925,12 @@ class _RpcLanguages implements LumideLanguages {
     Future<Map<String, dynamic>> Function()? signIn,
     Future<void> Function()? signOut,
   }) async {
-    if (checkStatus != null) {
-      _session.registerMethod(HostMethods.aiCheckStatus, (params) async {
-        final data = params.value as Map<String, dynamic>;
-        if (data['id'] != id) return null;
-        return await checkStatus();
-      });
-    }
-
-    if (signIn != null) {
-      _session.registerMethod(HostMethods.aiSignIn, (params) async {
-        final data = params.value as Map<String, dynamic>;
-        if (data['id'] != id) return null;
-        return await signIn();
-      });
-    }
-
-    if (signOut != null) {
-      _session.registerMethod(HostMethods.aiSignOut, (params) async {
-        final data = params.value as Map<String, dynamic>;
-        if (data['id'] != id) return null;
-        await signOut();
-        return null;
-      });
-    }
+    _setAuthHandlers(
+      id,
+      checkStatus: checkStatus,
+      signIn: signIn,
+      signOut: signOut,
+    );
 
     await _session.sendRequest(PluginMethods.languagesRegisterServer, {
       'id': id,
@@ -1930,47 +1978,22 @@ class _RpcLanguages implements LumideLanguages {
     Future<Map<String, dynamic>> Function()? signIn,
     Future<void> Function()? signOut,
   }) async {
-    _session.registerMethod(HostMethods.inlineCompletionRequest, (
-      params,
-    ) async {
-      final data = params.value as Map<String, dynamic>;
-      if (data['id'] != id) return null;
-
+    _setProviderHandler(HostMethods.inlineCompletionRequest, id, (data) async {
       final request = InlineCompletionRequest(
         uri: data['uri'] as String,
         line: data['line'] as int,
         column: data['column'] as int,
         documentText: data['documentText'] as String,
       );
-
       final completions = await onProvideCompletions(request);
       return completions.map((c) => {'text': c.text}).toList();
     });
-
-    if (checkStatus != null) {
-      _session.registerMethod(HostMethods.aiCheckStatus, (params) async {
-        final data = params.value as Map<String, dynamic>;
-        if (data['id'] != id) return null;
-        return await checkStatus();
-      });
-    }
-
-    if (signIn != null) {
-      _session.registerMethod(HostMethods.aiSignIn, (params) async {
-        final data = params.value as Map<String, dynamic>;
-        if (data['id'] != id) return null;
-        return await signIn();
-      });
-    }
-
-    if (signOut != null) {
-      _session.registerMethod(HostMethods.aiSignOut, (params) async {
-        final data = params.value as Map<String, dynamic>;
-        if (data['id'] != id) return null;
-        await signOut();
-        return null;
-      });
-    }
+    _setAuthHandlers(
+      id,
+      checkStatus: checkStatus,
+      signIn: signIn,
+      signOut: signOut,
+    );
 
     await _session.sendRequest(PluginMethods.languagesRegisterInlineProvider, {
       'id': id,
