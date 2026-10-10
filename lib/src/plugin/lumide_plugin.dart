@@ -1040,6 +1040,26 @@ abstract class LumideLanguages {
     Map<String, dynamic>? params,
   ]);
 
+  /// Registers a whole-document formatter used by Format Document and
+  /// format-on-save for files matching [fileExtensions] (e.g. `.php`) or
+  /// [languageIds].
+  ///
+  /// [provideFormatting] receives the current editor text, including unsaved
+  /// changes, and returns the formatted text or null to leave it unchanged.
+  /// Lumide applies the result as one undoable edit and drops it if the user
+  /// kept typing. A formatter that takes longer than 10 seconds is skipped.
+  /// A plugin formatter takes precedence over language server formatting.
+  Future<void> registerFormattingProvider({
+    required String id,
+    List<String> fileExtensions = const [],
+    List<String> languageIds = const [],
+    required Future<String?> Function(LumideFormattingRequest request)
+        provideFormatting,
+  });
+
+  /// Removes a formatter registered with [registerFormattingProvider].
+  Future<void> unregisterFormattingProvider(String id);
+
   /// Registers a Dart callback as an inline completion provider.
   ///
   /// The IDE will call [onProvideCompletions] for every ghost-text request
