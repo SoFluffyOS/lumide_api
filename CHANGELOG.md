@@ -20,6 +20,8 @@
 
 - **Run commands** — `commands.executeCommand` runs Lumide or plugin commands. With Lumide's matching release, manifest commands of plugins that activate `onCommand:<id>` appear in the Command Palette and start the plugin when run.
 
+- **Logpoints and conditions** — `LumideDebugBreakpoint` gains `logMessage` and `copyWith`. Lumide lets users edit breakpoint conditions and log messages; debug backends evaluate them.
+
 ### Breaking changes
 
 - Custom implementations of `LumideCommands` must implement `executeCommand`.
