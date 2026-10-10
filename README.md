@@ -405,6 +405,29 @@ final folderPath = await context.window.showOpenFolderDialog(
 );
 ```
 
+### Progress
+
+Show long-running work in the status bar. `withProgress` ends the task even
+if the work throws. Cancellable tasks can be stopped from the status bar.
+
+```dart
+await context.window.withProgress(
+  title: 'Indexing',
+  cancellable: true,
+  task: (progress) async {
+    progress.onCancel(stopIndexing);
+    for (var index = 0; index < files.length; index++) {
+      if (progress.isCancelled) break;
+      await progress.report(
+        message: files[index],
+        percentage: index / files.length * 100,
+      );
+      await indexFile(files[index]);
+    }
+  },
+);
+```
+
 ### Toolbar
 
 Add buttons to the IDE toolbar:

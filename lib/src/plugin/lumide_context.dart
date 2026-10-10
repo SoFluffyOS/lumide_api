@@ -263,8 +263,60 @@ class _RpcShell implements LumideShell {
   }
 }
 
+class _RpcProgress implements LumideProgress {
+  _RpcProgress(this.id, this._session, this._onDone);
+
+  @override
+  final String id;
+  final RpcSession _session;
+  final void Function() _onDone;
+  final _cancelCallbacks = <void Function()>[];
+  bool _isCancelled = false;
+  bool _isDone = false;
+
+  @override
+  bool get isCancelled => _isCancelled;
+
+  @override
+  Future<void> report({String? message, double? percentage}) async {
+    if (_isDone) return;
+    await _session.sendRequest(PluginMethods.windowReportProgress, {
+      'id': id,
+      if (message != null) 'message': message,
+      if (percentage != null) 'percentage': percentage,
+    });
+  }
+
+  @override
+  Future<void> done() async {
+    if (_isDone) return;
+    _isDone = true;
+    _onDone();
+    await _session.sendRequest(PluginMethods.windowEndProgress, {'id': id});
+  }
+
+  @override
+  LumideDisposable onCancel(void Function() callback) {
+    return addListener(_cancelCallbacks, callback);
+  }
+
+  void _cancel() {
+    if (_isCancelled || _isDone) return;
+    _isCancelled = true;
+    for (final callback in [..._cancelCallbacks]) {
+      callback();
+    }
+  }
+}
+
 class _RpcWindow implements LumideWindow {
   _RpcWindow(this._session) {
+    _session.registerNotificationHandler(HostMethods.windowCancelProgress, (
+      params,
+    ) {
+      _progresses[params['id'].value as String]?._cancel();
+    });
+
     _session.registerMethod(PluginMethods.terminalOnData, (params) async {
       final id = params['id'].asString;
       final data = params['data'].asString;
@@ -398,6 +450,51 @@ class _RpcWindow implements LumideWindow {
       'url': url,
     });
     return result as bool;
+  }
+
+  final _progresses = <String, _RpcProgress>{};
+  int _lastProgressId = 0;
+
+  @override
+  Future<LumideProgress> createProgress({
+    required String title,
+    String? message,
+    bool cancellable = false,
+  }) async {
+    final id = 'progress-${++_lastProgressId}';
+    final progress = _RpcProgress(id, _session, () => _progresses.remove(id));
+    _progresses[id] = progress;
+    try {
+      await _session.sendRequest(PluginMethods.windowCreateProgress, {
+        'id': id,
+        'title': title,
+        if (message != null) 'message': message,
+        'cancellable': cancellable,
+      });
+    } catch (_) {
+      _progresses.remove(id);
+      rethrow;
+    }
+    return progress;
+  }
+
+  @override
+  Future<T> withProgress<T>({
+    required String title,
+    String? message,
+    bool cancellable = false,
+    required Future<T> Function(LumideProgress progress) task,
+  }) async {
+    final progress = await createProgress(
+      title: title,
+      message: message,
+      cancellable: cancellable,
+    );
+    try {
+      return await task(progress);
+    } finally {
+      await progress.done();
+    }
   }
 
   @override
