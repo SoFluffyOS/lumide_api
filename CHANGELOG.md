@@ -1,3 +1,8 @@
+# Unreleased
+
+### Fixed
+- Allow several language servers and inline completion providers with sign-in or status checks, and re-registering a provider, without crashing the plugin.
+
 # 1.12.0
 
 > Note: This release requires Lumide version later than 0.22.0.
