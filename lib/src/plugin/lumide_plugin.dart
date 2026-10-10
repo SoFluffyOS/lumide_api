@@ -1040,6 +1040,19 @@ abstract class LumideLanguages {
     Map<String, dynamic>? params,
   ]);
 
+  /// Replaces the diagnostics [collection] reports for [uri] (a `file:` URI
+  /// or an absolute path). They appear as editor squiggles and in the
+  /// Problems panel next to language server diagnostics. An empty list
+  /// clears the document. Collections are cleared when the plugin stops.
+  Future<void> setDiagnostics(
+    String collection,
+    String uri,
+    List<LumideDiagnostic> diagnostics,
+  );
+
+  /// Clears [collection] for one [uri], or entirely when [uri] is null.
+  Future<void> clearDiagnostics(String collection, {String? uri});
+
   /// Registers a whole-document formatter used by Format Document and
   /// format-on-save for files matching [fileExtensions] (e.g. `.php`) or
   /// [languageIds].

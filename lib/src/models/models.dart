@@ -8,6 +8,7 @@ export 'debug_session.dart';
 export 'debug_session_state.dart';
 export 'debug_stack_frame.dart';
 export 'debug_variable.dart';
+export 'diagnostic.dart';
 export 'formatting.dart';
 export 'launch.dart';
 export 'log_record.dart';
