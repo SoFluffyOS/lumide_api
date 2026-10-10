@@ -129,6 +129,27 @@ abstract class LumideContext {
 
   /// Language server registration.
   LumideLanguages get languages;
+
+  /// Test results shown in Lumide's Tests pane.
+  LumideTests get tests;
+}
+
+/// Reports test runs to Lumide's Tests pane.
+abstract class LumideTests {
+  /// Starts a run and opens the Tests pane.
+  Future<LumideTestRun> createRun({required String title});
+}
+
+/// A test run created by [LumideTests.createRun].
+abstract class LumideTestRun {
+  String get id;
+
+  /// Adds or updates results by [LumideTestResult.id]. Send groups before
+  /// the tests inside them.
+  Future<void> update(List<LumideTestResult> results);
+
+  /// Marks the run finished. Further updates are ignored.
+  Future<void> end({String? summary});
 }
 
 /// File system operations.

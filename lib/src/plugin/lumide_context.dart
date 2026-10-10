@@ -55,6 +55,9 @@ class RpcLumideContext implements LumideContext {
 
   @override
   late final LumideLanguages languages = _RpcLanguages(_session);
+
+  @override
+  late final LumideTests tests = _RpcTests(_session);
 }
 
 class _RpcFileSystem implements LumideFileSystem {
@@ -1980,6 +1983,51 @@ class _RpcLanguages implements LumideLanguages {
           checkStatus != null ||
           signIn != null ||
           signOut != null,
+    });
+  }
+}
+
+class _RpcTests implements LumideTests {
+  _RpcTests(this._session);
+
+  final RpcSession _session;
+  int _lastRunId = 0;
+
+  @override
+  Future<LumideTestRun> createRun({required String title}) async {
+    final id = 'run-${++_lastRunId}';
+    await _session.sendRequest(PluginMethods.testsCreateRun, {
+      'id': id,
+      'title': title,
+    });
+    return _RpcTestRun(id, _session);
+  }
+}
+
+class _RpcTestRun implements LumideTestRun {
+  _RpcTestRun(this.id, this._session);
+
+  @override
+  final String id;
+  final RpcSession _session;
+  bool _ended = false;
+
+  @override
+  Future<void> update(List<LumideTestResult> results) async {
+    if (_ended || results.isEmpty) return;
+    await _session.sendRequest(PluginMethods.testsUpdateRun, {
+      'id': id,
+      'results': [for (final result in results) result.toJson()],
+    });
+  }
+
+  @override
+  Future<void> end({String? summary}) async {
+    if (_ended) return;
+    _ended = true;
+    await _session.sendRequest(PluginMethods.testsEndRun, {
+      'id': id,
+      if (summary != null) 'summary': summary,
     });
   }
 }

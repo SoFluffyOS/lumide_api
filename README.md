@@ -443,6 +443,33 @@ await context.window.withProgress(
 );
 ```
 
+### Tests
+
+Report test results to Lumide's Tests pane. Results form a tree through
+`parentId`; sending a result with an existing `id` updates it.
+
+```dart
+final run = await context.tests.createRun(title: 'widget_test.dart');
+await run.update([
+  const LumideTestResult(
+    id: 'group-1',
+    label: 'Counter',
+    state: LumideTestState.running,
+  ),
+  LumideTestResult(
+    id: 'test-1',
+    parentId: 'group-1',
+    label: 'increments',
+    state: LumideTestState.failed,
+    uri: testFileUri,
+    line: 12,
+    message: 'Expected: 1\n  Actual: 0',
+    durationMs: 42,
+  ),
+]);
+await run.end(summary: '1 failed');
+```
+
 ### Toolbar
 
 Add buttons to the IDE toolbar:
