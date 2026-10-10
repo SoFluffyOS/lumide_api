@@ -195,30 +195,40 @@ class HttpResponse {
 
 /// Shell command operations.
 abstract class LumideShell {
-  /// Runs a shell command.
+  /// Runs a shell command and waits for it to exit.
   ///
   /// If [workingDirectory] is provided, the command runs in that directory.
+  /// [environment] entries are added to Lumide's environment; loader
+  /// variables such as `LD_PRELOAD` and `DYLD_*` are rejected. [stdin] is
+  /// written to the process before its input is closed.
   Future<ProcessResult> run(
     String command,
     List<String> arguments, {
     String? workingDirectory,
+    Map<String, String>? environment,
+    String? stdin,
   });
 
   /// Spawns a persistent shell process.
   ///
   /// If [workingDirectory] is provided, the process is spawned in that directory.
+  /// [environment] works as in [run].
   /// Returns the process ID (pid) of the spawned process.
   Future<int> spawn(
     String command,
     List<String> arguments, {
     String? workingDirectory,
+    Map<String, String>? environment,
   });
 
   /// Writes data to the stdin of the process with the given [pid].
   Future<void> writeStdin(int pid, String text);
 
-  /// Kills the process with the given [pid].
-  Future<bool> kill(int pid);
+  /// Stops the process with the given [pid].
+  ///
+  /// Without a [signal], Lumide terminates the process gracefully and then
+  /// force-kills it. With a [signal], only that signal is sent.
+  Future<bool> kill(int pid, {LumideProcessSignal? signal});
 
   /// Registers a callback for process stdout.
   LumideDisposable onStdout(void Function(int pid, String data) callback);
@@ -622,10 +632,24 @@ abstract class LumideSdks {
   Future<LumideSdkResolution?> resolve(LumideSdkResolveRequest request);
 
   /// Runs a logical executable through a host-validated SDK resolution.
+  ///
+  /// [environment] works as in [LumideShell.run].
   Future<ProcessResult> run(
     LumideSdkResolveRequest request,
     List<String> arguments, {
     String? workingDirectory,
+    Map<String, String>? environment,
+  });
+
+  /// Starts a long-running process through a host-validated SDK resolution.
+  ///
+  /// Returns its pid. Use `shell.onStdout`, `shell.onStderr`, `shell.onExit`,
+  /// `shell.writeStdin`, and `shell.kill` to interact with it.
+  Future<int> spawn(
+    LumideSdkResolveRequest request,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
   });
 
   /// Observes changes to the host's user or workspace SDK selection.
