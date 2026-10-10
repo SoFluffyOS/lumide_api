@@ -6,6 +6,8 @@
 
 - **Document change events** — `workspace.onDidChangeTextDocument` now delivers batched, ordered edits from Lumide (it never fired before). Events carry a `version`. The SDK asks the host to track edits only while a listener is registered (`workspace/setTextDocumentChangeSubscription`).
 
+- **Cross-platform keybindings** — Manifest keybindings accept `mod` (Cmd on macOS, Ctrl elsewhere), and Lumide now honors their `when` clause.
+
 ### Breaking changes
 
 - Custom implementations of `LumideWorkspace`, `LumideEditor`, `LumideShell`, `LumideTerminal`, `LumideWebviewPanel`, `LumideToolbar`, `LumideLaunch`, and `LumideSdks` (e.g. test fakes) must return a `LumideDisposable` from those listener methods. Plugins that only call the API are unaffected.

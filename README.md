@@ -93,6 +93,21 @@ Supported events:
 - `workspaceContains:<fileName>`: Activate if the workspace contains a specific file pattern.
 - `onSdkProvider:<providerId>`: Activate when the native SDK Manager needs a provider.
 
+### Keybindings
+
+Bind commands in `plugin.yaml`. Use `mod` for the primary modifier (Cmd on
+macOS, Ctrl on Windows and Linux) so one binding works everywhere. `when`
+takes the same context clauses as user keymaps, e.g. `editorTextFocus` or
+`terminalFocus && !editorFocus`.
+
+```yaml
+contributes:
+  keybindings:
+    - command: my_plugin.hello
+      key: 'mod+shift+h'
+      when: 'editorTextFocus'
+```
+
 ### SDK providers
 
 SDK providers describe toolchains while Lumide owns downloads, checksums,
