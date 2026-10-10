@@ -1643,8 +1643,45 @@ class _RpcSdks implements LumideSdks {
 }
 
 class _RpcLanguages implements LumideLanguages {
-  _RpcLanguages(this._session);
+  _RpcLanguages(this._session) {
+    _session.registerMethod(HostMethods.languagesProvideFormatting, (
+      params,
+    ) async {
+      final data = params.value as Map<String, dynamic>;
+      final formatter = _formatters[data['id']];
+      if (formatter == null) return null;
+      final formatted = await formatter(LumideFormattingRequest.fromJson(data));
+      return {'text': formatted};
+    });
+  }
+
   final RpcSession _session;
+  final _formatters =
+      <String, Future<String?> Function(LumideFormattingRequest)>{};
+
+  @override
+  Future<void> registerFormattingProvider({
+    required String id,
+    List<String> fileExtensions = const [],
+    List<String> languageIds = const [],
+    required Future<String?> Function(LumideFormattingRequest request)
+        provideFormatting,
+  }) async {
+    _formatters[id] = provideFormatting;
+    await _session.sendRequest(
+      PluginMethods.languagesRegisterFormattingProvider,
+      {'id': id, 'fileExtensions': fileExtensions, 'languageIds': languageIds},
+    );
+  }
+
+  @override
+  Future<void> unregisterFormattingProvider(String id) async {
+    _formatters.remove(id);
+    await _session.sendRequest(
+      PluginMethods.languagesUnregisterFormattingProvider,
+      {'id': id},
+    );
+  }
 
   @override
   Future<void> registerLanguageServer({

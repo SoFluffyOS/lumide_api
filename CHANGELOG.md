@@ -10,8 +10,11 @@
 
 - **Process control** — `shell.run` accepts `environment` and `stdin`, `shell.spawn` accepts `environment`, and `shell.kill` takes an optional `LumideProcessSignal`. `sdks.run` accepts `environment`, and the new `sdks.spawn` starts long-running SDK processes through host-validated resolution.
 
+- **Formatting providers** — `languages.registerFormattingProvider` contributes a whole-document formatter for Format Document and format-on-save. It receives the unsaved editor text, so formatters no longer need to rewrite files on disk.
+
 ### Breaking changes
 
+- Custom implementations of `LumideLanguages` must implement `registerFormattingProvider` and `unregisterFormattingProvider`.
 - Custom implementations of `LumideShell` and `LumideSdks` must accept the new optional parameters and implement `sdks.spawn`.
 - Custom implementations of `LumideWorkspace`, `LumideEditor`, `LumideShell`, `LumideTerminal`, `LumideWebviewPanel`, `LumideToolbar`, `LumideLaunch`, and `LumideSdks` (e.g. test fakes) must return a `LumideDisposable` from those listener methods. Plugins that only call the API are unaffected.
 

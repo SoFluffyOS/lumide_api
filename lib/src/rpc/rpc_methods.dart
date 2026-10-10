@@ -43,6 +43,7 @@ class HostMethods {
   static const aiCheckStatus = 'languages/aiCheckStatus';
   static const aiSignIn = 'languages/aiSignIn';
   static const aiSignOut = 'languages/aiSignOut';
+  static const languagesProvideFormatting = 'languages/provideFormatting';
 
   // Debug (IDE → Plugin)
   static const launchResolveConfigurations = 'launch/resolveConfigurations';
@@ -198,6 +199,10 @@ class PluginMethods {
 
   // Languages (Plugin → IDE)
   static const languagesRegisterServer = 'languages/registerServer';
+  static const languagesRegisterFormattingProvider =
+      'languages/registerFormattingProvider';
+  static const languagesUnregisterFormattingProvider =
+      'languages/unregisterFormattingProvider';
   static const languagesRegisterInlineProvider =
       'languages/registerInlineProvider';
   static const languagesSendLspRequest = 'languages/sendLspRequest';

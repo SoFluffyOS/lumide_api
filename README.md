@@ -857,6 +857,31 @@ final response = await context.languages.sendLspRequest(
 
 Once registered, the IDE automatically starts the language server when a matching file is opened, providing diagnostics, completions, and other LSP features.
 
+#### Formatters
+
+Contribute a whole-document formatter for Format Document and format-on-save.
+It receives the editor text, unsaved edits included, and returns the
+formatted text (or `null` to keep it). Lumide applies the result as one
+undoable edit, skips it if the user kept typing, and gives up after 10
+seconds. A plugin formatter takes precedence over language server formatting.
+
+```dart
+await context.languages.registerFormattingProvider(
+  id: 'myfmt',
+  fileExtensions: ['.my'],
+  provideFormatting: (request) async {
+    // Any formatter that reads source from stdin and prints the result.
+    final result = await context.shell.run(
+      'myfmt',
+      ['--stdin'],
+      stdin: request.text,
+    );
+    if (result.exitCode != 0) return null;
+    return result.stdout;
+  },
+);
+```
+
 ### WebViews
 
 Create custom UI panels using WebViews:
