@@ -939,7 +939,9 @@ abstract class LumideCommands {
   /// Runs a Lumide or plugin command by [id], starting the owning plugin
   /// first when it activates on `onCommand:<id>`.
   ///
-  /// Returns false when no such command exists. The command runs
+  /// Returns false when no such command exists. Built-in commands that
+  /// change Git state or files on disk (commit, push, discard, delete or
+  /// rename file, ...) are refused with an error. The command runs
   /// asynchronously; this does not wait for it to finish.
   Future<bool> executeCommand(String id, [Map<String, dynamic>? args]);
 }

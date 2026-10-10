@@ -12,7 +12,7 @@
 - **Diagnostics** — `languages.setDiagnostics` and `languages.clearDiagnostics` publish `LumideDiagnostic`s from non-LSP tools. They appear as editor squiggles and in the Problems panel.
 - **Progress** — `window.createProgress` and `window.withProgress` show long-running tasks in the status bar, with optional cancellation (`LumideProgress.onCancel`).
 - **File events** — `workspace.onDidChangeFiles` reports batched file and folder creates, changes, deletes, and renames, filtered by the plugin's `fileSystem` permissions.
-- **Run commands** — `commands.executeCommand` runs Lumide or plugin commands. With Lumide's matching release, manifest commands of plugins that activate `onCommand:<id>` appear in the Command Palette and start the plugin when run.
+- **Run commands** — `commands.executeCommand` runs Lumide or plugin commands. Built-in commands that change Git state or files on disk are refused. With Lumide's matching release, manifest commands of plugins that activate `onCommand:<id>` appear in the Command Palette and start the plugin when run.
 - **Logpoints and conditions** — `LumideDebugBreakpoint` gains `logMessage` and `copyWith`. Lumide lets users edit breakpoint conditions and log messages; debug backends evaluate them.
 - **Test results** — `context.tests.createRun` reports `LumideTestResult` trees to Lumide's new Tests pane.
 
