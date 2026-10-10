@@ -463,6 +463,17 @@ await channel.appendLog(
     message: 'Build finished',
   ),
 );
+
+await channel.appendLog(
+  LumideLogRecord(
+    level: 'ERROR',
+    message: 'Build failed',
+    error: 'SyntaxError: unexpected token',
+    stackTrace: '...',
+  ),
+);
+
+await channel.clear();
 ```
 
 ### Launch Providers
@@ -748,19 +759,6 @@ Key debug concepts:
 - `onGetVariables()` is reference-based: top-level scopes and nested children both flow through the same callback.
 - `variablesReference` enables lazy tree expansion for large objects, collections, and maps.
 - `exceptionPauseMode` reports the current filter and `onSetExceptionPauseMode()` lets the host change it.
-
-// Write structured logs
-await channel.appendLog(
-  LumideLogRecord(
-    level: 'ERROR',
-    message: 'Build failed',
-    error: 'SyntaxError: unexpected token',
-    stackTrace: '...',
-  ),
-);
-
-await channel.clear();
-```
 
 ### Languages
 
