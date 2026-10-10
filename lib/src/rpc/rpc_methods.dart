@@ -158,6 +158,12 @@ class PluginMethods {
   static const workspaceGetPluginStorageDir = 'workspace/getPluginStorageDir';
   static const workspaceFindFiles = 'workspace/findFiles';
 
+  /// Enables or disables `workspace/didChangeTextDocument` notifications.
+  /// Sent by the SDK when the first change listener is added and after the
+  /// last one is disposed, so hosts only track edits plugins consume.
+  static const workspaceSetTextDocumentChangeSubscription =
+      'workspace/setTextDocumentChangeSubscription';
+
   // Commands (Plugin → IDE)
   static const commandsRegister = 'commands/register';
 

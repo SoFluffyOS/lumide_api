@@ -765,6 +765,10 @@ abstract class LumideWorkspace {
   LumideDisposable onDidCloseTextDocument(void Function(String uri) callback);
 
   /// Registers a callback for when a text document changes.
+  ///
+  /// Changes are batched (about 100 ms) and applied in order. A change
+  /// without a range replaces the whole document. The host only tracks edits
+  /// while at least one listener is registered.
   LumideDisposable onDidChangeTextDocument(
     void Function(DocumentChangeEvent event) callback,
   );
@@ -799,10 +803,18 @@ abstract class LumideWorkspace {
 
 /// Event fired when a document's content changes.
 class DocumentChangeEvent {
-  const DocumentChangeEvent({required this.uri, required this.changes});
+  const DocumentChangeEvent({
+    required this.uri,
+    required this.changes,
+    this.version,
+  });
 
   /// The document URI.
   final String uri;
+
+  /// Increases with every change notification for [uri]. Null when the host
+  /// does not report versions.
+  final int? version;
 
   /// List of content changes.
   final List<DocumentContentChange> changes;
