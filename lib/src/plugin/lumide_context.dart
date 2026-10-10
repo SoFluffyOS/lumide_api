@@ -1098,6 +1098,12 @@ class _RpcWorkspace implements LumideWorkspace {
       }
       return null;
     });
+    _session.registerNotificationHandler(HostMethods.didChangeFiles, (params) {
+      final event = LumideFileChangeEvent.fromJson(params.value as Map);
+      for (final callback in [..._fileChangeCallbacks]) {
+        callback(event);
+      }
+    });
     _session.registerMethod(HostMethods.didSaveTextDocument, (params) async {
       final uri = (params.value as Map<String, dynamic>)['uri'] as String;
       for (final cb in [..._saveCallbacks]) {
@@ -1113,6 +1119,7 @@ class _RpcWorkspace implements LumideWorkspace {
   final _changeCallbacks = <void Function(DocumentChangeEvent)>[];
   final _configCallbacks = <void Function(Map<String, Object?>)>[];
   final _saveCallbacks = <void Function(String)>[];
+  final _fileChangeCallbacks = <void Function(LumideFileChangeEvent)>[];
 
   @override
   Future<Object?> getConfiguration(String section) async {
@@ -1171,6 +1178,29 @@ class _RpcWorkspace implements LumideWorkspace {
     void Function(Map<String, Object?> settings) callback,
   ) {
     return addListener(_configCallbacks, callback);
+  }
+
+  @override
+  LumideDisposable onDidChangeFiles(
+    void Function(LumideFileChangeEvent event) callback,
+  ) {
+    final isFirstListener = _fileChangeCallbacks.isEmpty;
+    final registration = addListener(_fileChangeCallbacks, callback);
+    if (isFirstListener) _setFileChangeSubscription(enabled: true);
+    return LumideDisposable(() {
+      registration.dispose();
+      if (_fileChangeCallbacks.isNotEmpty) return;
+      _setFileChangeSubscription(enabled: false);
+    });
+  }
+
+  void _setFileChangeSubscription({required bool enabled}) {
+    unawaited(
+      _session.sendRequest(
+        PluginMethods.workspaceSetFileChangeSubscription,
+        {'enabled': enabled},
+      ).catchError((Object _) => null),
+    );
   }
 
   @override

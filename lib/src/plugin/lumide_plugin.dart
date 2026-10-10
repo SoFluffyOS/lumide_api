@@ -810,8 +810,9 @@ abstract class LumideWorkspace {
   /// Registers a callback for when a text document changes.
   ///
   /// Changes are batched (about 100 ms) and applied in order. A change
-  /// without a range replaces the whole document. The host only tracks edits
-  /// while at least one listener is registered.
+  /// without a range replaces the whole document. Only documents covered by
+  /// the plugin's `fileSystem` permissions are reported. The host only tracks
+  /// edits while at least one listener is registered.
   LumideDisposable onDidChangeTextDocument(
     void Function(DocumentChangeEvent event) callback,
   );
@@ -822,6 +823,17 @@ abstract class LumideWorkspace {
   /// new values.
   LumideDisposable onDidChangeConfiguration(
     void Function(Map<String, Object?> settings) callback,
+  );
+
+  /// Registers a callback for files and folders created, changed, deleted,
+  /// or renamed in the workspace, whether by Lumide or other programs.
+  ///
+  /// Changes arrive in batches. Ignored folders (such as `.git`, `build`,
+  /// and `node_modules`) and paths outside the plugin's `fileSystem`
+  /// permissions are left out. Lumide only watches for the plugin while at
+  /// least one listener is registered.
+  LumideDisposable onDidChangeFiles(
+    void Function(LumideFileChangeEvent event) callback,
   );
 
   /// Registers a callback for when a text document is saved.

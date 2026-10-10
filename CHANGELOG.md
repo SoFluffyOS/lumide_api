@@ -4,7 +4,7 @@
 
 - **Removable listeners** — Event registrations (`workspace.onDid*`, `editor.onDid*`, `shell.onStdout`/`onStderr`/`onExit`, `terminal.onData`, `webview.onDidReceiveMessage`, `toolbar.onTap`, `launch.onDidStart`/`onDidEnd`, `sdks.onDidChangeSelection`) now return a `LumideDisposable`. Call `dispose()` to stop receiving events.
 
-- **Document change events** — `workspace.onDidChangeTextDocument` now delivers batched, ordered edits from Lumide (it never fired before). Events carry a `version`. The SDK asks the host to track edits only while a listener is registered (`workspace/setTextDocumentChangeSubscription`).
+- **Document change events** — `workspace.onDidChangeTextDocument` now delivers batched, ordered edits from Lumide (it never fired before). Events carry a `version` and only cover documents allowed by the plugin's `fileSystem` permissions. The SDK asks the host to track edits only while a listener is registered (`workspace/setTextDocumentChangeSubscription`).
 
 - **Cross-platform keybindings** — Manifest keybindings accept `mod` (Cmd on macOS, Ctrl elsewhere), and Lumide now honors their `when` clause.
 
@@ -16,11 +16,14 @@
 
 - **Progress** — `window.createProgress` and `window.withProgress` show long-running tasks in the status bar, with optional cancellation (`LumideProgress.onCancel`).
 
+- **File events** — `workspace.onDidChangeFiles` reports batched file and folder creates, changes, deletes, and renames, filtered by the plugin's `fileSystem` permissions.
+
 ### Breaking changes
 
 - Custom implementations of `LumideWindow` must implement `createProgress` and `withProgress`.
 - Custom implementations of `LumideLanguages` must implement `registerFormattingProvider`, `unregisterFormattingProvider`, `setDiagnostics`, and `clearDiagnostics`.
 - Custom implementations of `LumideShell` and `LumideSdks` must accept the new optional parameters and implement `sdks.spawn`.
+- Custom implementations of `LumideWorkspace` must implement `onDidChangeFiles`.
 - Custom implementations of `LumideWorkspace`, `LumideEditor`, `LumideShell`, `LumideTerminal`, `LumideWebviewPanel`, `LumideToolbar`, `LumideLaunch`, and `LumideSdks` (e.g. test fakes) must return a `LumideDisposable` from those listener methods. Plugins that only call the API are unaffected.
 
 # 1.11.0

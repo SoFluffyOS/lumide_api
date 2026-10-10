@@ -44,6 +44,7 @@ class HostMethods {
   static const aiSignIn = 'languages/aiSignIn';
   static const aiSignOut = 'languages/aiSignOut';
   static const languagesProvideFormatting = 'languages/provideFormatting';
+  static const didChangeFiles = 'workspace/didChangeFiles';
 
   /// Sent when the user cancels a cancellable progress task.
   static const windowCancelProgress = 'window/cancelProgress';
@@ -172,6 +173,11 @@ class PluginMethods {
   /// last one is disposed, so hosts only track edits plugins consume.
   static const workspaceSetTextDocumentChangeSubscription =
       'workspace/setTextDocumentChangeSubscription';
+
+  /// Enables or disables `workspace/didChangeFiles`, like the document
+  /// change subscription.
+  static const workspaceSetFileChangeSubscription =
+      'workspace/setFileChangeSubscription';
 
   // Commands (Plugin → IDE)
   static const commandsRegister = 'commands/register';
