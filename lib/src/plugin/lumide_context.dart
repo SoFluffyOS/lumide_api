@@ -1265,6 +1265,15 @@ class _RpcCommands implements LumideCommands {
       if (category != null) 'category': category,
     });
   }
+
+  @override
+  Future<bool> executeCommand(String id, [Map<String, dynamic>? args]) async {
+    final result = await _session.sendRequest(PluginMethods.commandsExecuteCommand, {
+      'id': id,
+      if (args != null) 'args': args,
+    });
+    return result == true;
+  }
 }
 
 class _RpcMenus implements LumideMenus {
