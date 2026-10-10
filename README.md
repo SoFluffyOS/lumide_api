@@ -927,7 +927,9 @@ Once registered, the IDE automatically starts the language server when a matchin
 
 Report problems from tools that are not language servers (build output,
 linters). They show as editor squiggles and in the Problems panel.
-Positions are zero-based. Lumide clears a plugin's collections when it stops.
+Positions are zero-based. Lumide clears a plugin's collections when it stops,
+keeps up to 1,000 diagnostics per file and 5,000 files per collection, and
+moves diagnostics with the user's edits until you publish again.
 
 ```dart
 await context.languages.setDiagnostics('phpstan', fileUri, [

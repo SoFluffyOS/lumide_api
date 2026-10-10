@@ -411,7 +411,8 @@ abstract class LumideWindow {
   /// Shows a long-running task in the status bar until [LumideProgress.done].
   ///
   /// When [cancellable] is true the user can cancel it from the status bar;
-  /// listen with [LumideProgress.onCancel] and stop the work.
+  /// listen with [LumideProgress.onCancel] and stop the work. A plugin can
+  /// have 20 open tasks; creating more ends the oldest.
   Future<LumideProgress> createProgress({
     required String title,
     String? message,
@@ -1124,6 +1125,8 @@ abstract class LumideLanguages {
   /// or an absolute path). They appear as editor squiggles and in the
   /// Problems panel next to language server diagnostics. An empty list
   /// clears the document. Collections are cleared when the plugin stops.
+  /// Lumide keeps up to 1,000 diagnostics per document (most severe first)
+  /// and 5,000 documents per collection.
   Future<void> setDiagnostics(
     String collection,
     String uri,
