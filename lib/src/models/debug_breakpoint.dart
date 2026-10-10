@@ -8,6 +8,7 @@ class LumideDebugBreakpoint {
     this.endLine,
     this.endColumn,
     this.condition,
+    this.logMessage,
     this.enabled = true,
     this.verified = false,
     this.message,
@@ -31,8 +32,12 @@ class LumideDebugBreakpoint {
   /// Optional 1-based end column number.
   final int? endColumn;
 
-  /// Optional conditional expression.
+  /// Optional expression; the backend only stops when it evaluates to true.
   final String? condition;
+
+  /// Optional message logged instead of stopping (a logpoint). Expressions
+  /// in `{braces}` are interpolated by the backend.
+  final String? logMessage;
 
   /// Whether the breakpoint should be active.
   final bool enabled;
@@ -43,6 +48,37 @@ class LumideDebugBreakpoint {
   /// Optional backend message describing the breakpoint state.
   final String? message;
 
+  /// Copies this breakpoint. Pass an empty string to clear [condition] or
+  /// [logMessage].
+  LumideDebugBreakpoint copyWith({
+    String? id,
+    String? condition,
+    String? logMessage,
+    bool? enabled,
+    bool? verified,
+    String? message,
+  }) {
+    return LumideDebugBreakpoint(
+      id: id ?? this.id,
+      sourceUri: sourceUri,
+      line: line,
+      column: column,
+      endLine: endLine,
+      endColumn: endColumn,
+      condition: _cleared(condition, this.condition),
+      logMessage: _cleared(logMessage, this.logMessage),
+      enabled: enabled ?? this.enabled,
+      verified: verified ?? this.verified,
+      message: message ?? this.message,
+    );
+  }
+
+  static String? _cleared(String? next, String? current) {
+    if (next == null) return current;
+    if (next.trim().isEmpty) return null;
+    return next;
+  }
+
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
@@ -52,6 +88,7 @@ class LumideDebugBreakpoint {
       if (endLine != null) 'endLine': endLine,
       if (endColumn != null) 'endColumn': endColumn,
       if (condition != null) 'condition': condition,
+      if (logMessage != null) 'logMessage': logMessage,
       'enabled': enabled,
       'verified': verified,
       if (message != null) 'message': message,
@@ -67,6 +104,7 @@ class LumideDebugBreakpoint {
       endLine: json['endLine'] as int?,
       endColumn: json['endColumn'] as int?,
       condition: json['condition'] as String?,
+      logMessage: json['logMessage'] as String?,
       enabled: json['enabled'] as bool? ?? true,
       verified: json['verified'] as bool? ?? false,
       message: json['message'] as String?,
