@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:json_rpc_2/error_code.dart' as rpc_error_code;
 import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
 import 'package:lumide_api/lumide_api.dart';
+import 'package:lumide_api/src/plugin/lumide_disposable.dart';
 
 /// RPC-backed implementation of [LumideContext].
 class RpcLumideContext implements LumideContext {
@@ -162,7 +163,7 @@ class _RpcShell implements LumideShell {
     _session.registerMethod(HostMethods.shellOnStdout, (params) async {
       final pid = params['pid'].asInt;
       final data = params['data'].asString;
-      for (final cb in _stdoutCallbacks) {
+      for (final cb in [..._stdoutCallbacks]) {
         cb(pid, data);
       }
       return null;
@@ -170,7 +171,7 @@ class _RpcShell implements LumideShell {
     _session.registerMethod(HostMethods.shellOnStderr, (params) async {
       final pid = params['pid'].asInt;
       final data = params['data'].asString;
-      for (final cb in _stderrCallbacks) {
+      for (final cb in [..._stderrCallbacks]) {
         cb(pid, data);
       }
       return null;
@@ -178,7 +179,7 @@ class _RpcShell implements LumideShell {
     _session.registerMethod(HostMethods.shellOnExit, (params) async {
       final pid = params['pid'].asInt;
       final exitCode = params['exitCode'].asInt;
-      for (final cb in _exitCallbacks) {
+      for (final cb in [..._exitCallbacks]) {
         cb(pid, exitCode);
       }
       return null;
@@ -240,18 +241,18 @@ class _RpcShell implements LumideShell {
   }
 
   @override
-  void onStdout(void Function(int pid, String data) callback) {
-    _stdoutCallbacks.add(callback);
+  LumideDisposable onStdout(void Function(int pid, String data) callback) {
+    return addListener(_stdoutCallbacks, callback);
   }
 
   @override
-  void onStderr(void Function(int pid, String data) callback) {
-    _stderrCallbacks.add(callback);
+  LumideDisposable onStderr(void Function(int pid, String data) callback) {
+    return addListener(_stderrCallbacks, callback);
   }
 
   @override
-  void onExit(void Function(int pid, int exitCode) callback) {
-    _exitCallbacks.add(callback);
+  LumideDisposable onExit(void Function(int pid, int exitCode) callback) {
+    return addListener(_exitCallbacks, callback);
   }
 }
 
@@ -481,8 +482,9 @@ class _RpcWebviewPanel implements LumideWebviewPanel {
   }
 
   @override
-  void onDidReceiveMessage(void Function(Object message) callback) {
-    _messageController.stream.listen(callback);
+  LumideDisposable onDidReceiveMessage(void Function(Object message) callback) {
+    final subscription = _messageController.stream.listen(callback);
+    return LumideDisposable(() => unawaited(subscription.cancel()));
   }
 
   @override
@@ -502,7 +504,7 @@ class _RpcTerminal implements LumideTerminal {
   final _dataCallbacks = <void Function(String)>[];
 
   void _emitData(String data) {
-    for (final cb in _dataCallbacks) {
+    for (final cb in [..._dataCallbacks]) {
       cb(data);
     }
   }
@@ -531,8 +533,8 @@ class _RpcTerminal implements LumideTerminal {
   }
 
   @override
-  void onData(void Function(String data) callback) {
-    _dataCallbacks.add(callback);
+  LumideDisposable onData(void Function(String data) callback) {
+    return addListener(_dataCallbacks, callback);
   }
 }
 
@@ -825,7 +827,7 @@ class _RpcEditor implements LumideEditor {
       final data = params.value as Map<String, dynamic>;
       final raw = data['selections'] as List? ?? [];
       final selections = raw.cast<Map<String, dynamic>>();
-      for (final cb in _selectionCallbacks) {
+      for (final cb in [..._selectionCallbacks]) {
         cb(selections);
       }
       return null;
@@ -835,7 +837,7 @@ class _RpcEditor implements LumideEditor {
       (params) async {
         final data = params.value as Map<String, dynamic>;
         final uri = data['uri'] as String?;
-        for (final cb in _activeDocCallbacks) {
+        for (final cb in [..._activeDocCallbacks]) {
           cb(uri);
         }
         return null;
@@ -892,15 +894,15 @@ class _RpcEditor implements LumideEditor {
   }
 
   @override
-  void onDidChangeSelections(
+  LumideDisposable onDidChangeSelections(
     void Function(List<Map<String, dynamic>> selections) callback,
   ) {
-    _selectionCallbacks.add(callback);
+    return addListener(_selectionCallbacks, callback);
   }
 
   @override
-  void onDidChangeActiveDocument(void Function(String? uri) callback) {
-    _activeDocCallbacks.add(callback);
+  LumideDisposable onDidChangeActiveDocument(void Function(String? uri) callback) {
+    return addListener(_activeDocCallbacks, callback);
   }
 
   @override
@@ -948,14 +950,14 @@ class _RpcWorkspace implements LumideWorkspace {
     // Register handlers for incoming document event notifications.
     _session.registerMethod(HostMethods.didOpenTextDocument, (params) async {
       final uri = (params.value as Map<String, dynamic>)['uri'] as String;
-      for (final cb in _openCallbacks) {
+      for (final cb in [..._openCallbacks]) {
         cb(uri);
       }
       return null;
     });
     _session.registerMethod(HostMethods.didCloseTextDocument, (params) async {
       final uri = (params.value as Map<String, dynamic>)['uri'] as String;
-      for (final cb in _closeCallbacks) {
+      for (final cb in [..._closeCallbacks]) {
         cb(uri);
       }
       return null;
@@ -975,7 +977,7 @@ class _RpcWorkspace implements LumideWorkspace {
         );
       }).toList();
       final event = DocumentChangeEvent(uri: uri, changes: changes);
-      for (final cb in _changeCallbacks) {
+      for (final cb in [..._changeCallbacks]) {
         cb(event);
       }
       return null;
@@ -983,14 +985,14 @@ class _RpcWorkspace implements LumideWorkspace {
     _session.registerMethod(HostMethods.didChangeConfiguration, (params) async {
       final data = params.value as Map<String, dynamic>;
       final settings = data['settings'] as Map<String, dynamic>? ?? {};
-      for (final cb in _configCallbacks) {
+      for (final cb in [..._configCallbacks]) {
         cb(settings);
       }
       return null;
     });
     _session.registerMethod(HostMethods.didSaveTextDocument, (params) async {
       final uri = (params.value as Map<String, dynamic>)['uri'] as String;
-      for (final cb in _saveCallbacks) {
+      for (final cb in [..._saveCallbacks]) {
         cb(uri);
       }
       return null;
@@ -1022,32 +1024,32 @@ class _RpcWorkspace implements LumideWorkspace {
   }
 
   @override
-  void onDidOpenTextDocument(void Function(String uri) callback) {
-    _openCallbacks.add(callback);
+  LumideDisposable onDidOpenTextDocument(void Function(String uri) callback) {
+    return addListener(_openCallbacks, callback);
   }
 
   @override
-  void onDidCloseTextDocument(void Function(String uri) callback) {
-    _closeCallbacks.add(callback);
+  LumideDisposable onDidCloseTextDocument(void Function(String uri) callback) {
+    return addListener(_closeCallbacks, callback);
   }
 
   @override
-  void onDidChangeTextDocument(
+  LumideDisposable onDidChangeTextDocument(
     void Function(DocumentChangeEvent event) callback,
   ) {
-    _changeCallbacks.add(callback);
+    return addListener(_changeCallbacks, callback);
   }
 
   @override
-  void onDidChangeConfiguration(
+  LumideDisposable onDidChangeConfiguration(
     void Function(Map<String, Object?> settings) callback,
   ) {
-    _configCallbacks.add(callback);
+    return addListener(_configCallbacks, callback);
   }
 
   @override
-  void onDidSaveTextDocument(void Function(String uri) callback) {
-    _saveCallbacks.add(callback);
+  LumideDisposable onDidSaveTextDocument(void Function(String uri) callback) {
+    return addListener(_saveCallbacks, callback);
   }
 
   @override
@@ -1220,7 +1222,7 @@ class _RpcToolbar implements LumideToolbar {
         }
       }
 
-      for (final cb in _onTapCallbacks) {
+      for (final cb in [..._onTapCallbacks]) {
         cb(id, position);
       }
     });
@@ -1256,8 +1258,8 @@ class _RpcToolbar implements LumideToolbar {
   }
 
   @override
-  void onTap(void Function(String id, Map<String, int> position) callback) {
-    _onTapCallbacks.add(callback);
+  LumideDisposable onTap(void Function(String id, Map<String, int> position) callback) {
+    return addListener(_onTapCallbacks, callback);
   }
 }
 
@@ -1265,14 +1267,14 @@ class _RpcLaunch implements LumideLaunch {
   _RpcLaunch(this._session) {
     _session.registerMethod(HostMethods.launchDidStart, (params) async {
       final event = LumideLaunchEvent.fromJson(params.value as Map);
-      for (final callback in _didStartCallbacks) {
+      for (final callback in [..._didStartCallbacks]) {
         callback(event);
       }
       return null;
     });
     _session.registerMethod(HostMethods.launchDidEnd, (params) async {
       final event = LumideLaunchEvent.fromJson(params.value as Map);
-      for (final callback in _didEndCallbacks) {
+      for (final callback in [..._didEndCallbacks]) {
         callback(event);
       }
       return null;
@@ -1419,13 +1421,13 @@ class _RpcLaunch implements LumideLaunch {
   }
 
   @override
-  void onDidStart(void Function(LumideLaunchEvent event) callback) {
-    _didStartCallbacks.add(callback);
+  LumideDisposable onDidStart(void Function(LumideLaunchEvent event) callback) {
+    return addListener(_didStartCallbacks, callback);
   }
 
   @override
-  void onDidEnd(void Function(LumideLaunchEvent event) callback) {
-    _didEndCallbacks.add(callback);
+  LumideDisposable onDidEnd(void Function(LumideLaunchEvent event) callback) {
+    return addListener(_didEndCallbacks, callback);
   }
 }
 
@@ -1435,7 +1437,7 @@ class _RpcSdks implements LumideSdks {
       final event = LumideSdkSelectionChangeEvent.fromJson(
         params.value as Map,
       );
-      for (final callback in _selectionChangeCallbacks) {
+      for (final callback in [..._selectionChangeCallbacks]) {
         callback(event);
       }
       return null;
@@ -1511,10 +1513,10 @@ class _RpcSdks implements LumideSdks {
   }
 
   @override
-  void onDidChangeSelection(
+  LumideDisposable onDidChangeSelection(
     void Function(LumideSdkSelectionChangeEvent event) callback,
   ) {
-    _selectionChangeCallbacks.add(callback);
+    return addListener(_selectionChangeCallbacks, callback);
   }
 
   Future<dynamic> _sendRequest(String method, [dynamic params]) async {

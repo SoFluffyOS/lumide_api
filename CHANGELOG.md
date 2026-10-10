@@ -1,3 +1,13 @@
+# 1.12.0
+
+### New features
+
+- **Removable listeners** — Event registrations (`workspace.onDid*`, `editor.onDid*`, `shell.onStdout`/`onStderr`/`onExit`, `terminal.onData`, `webview.onDidReceiveMessage`, `toolbar.onTap`, `launch.onDidStart`/`onDidEnd`, `sdks.onDidChangeSelection`) now return a `LumideDisposable`. Call `dispose()` to stop receiving events.
+
+### Breaking changes
+
+- Custom implementations of `LumideWorkspace`, `LumideEditor`, `LumideShell`, `LumideTerminal`, `LumideWebviewPanel`, `LumideToolbar`, `LumideLaunch`, and `LumideSdks` (e.g. test fakes) must return a `LumideDisposable` from those listener methods. Plugins that only call the API are unaffected.
+
 # 1.11.0
 
 ### New features

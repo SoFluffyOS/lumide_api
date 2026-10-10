@@ -221,13 +221,13 @@ abstract class LumideShell {
   Future<bool> kill(int pid);
 
   /// Registers a callback for process stdout.
-  void onStdout(void Function(int pid, String data) callback);
+  LumideDisposable onStdout(void Function(int pid, String data) callback);
 
   /// Registers a callback for process stderr.
-  void onStderr(void Function(int pid, String data) callback);
+  LumideDisposable onStderr(void Function(int pid, String data) callback);
 
   /// Registers a callback for process exit.
-  void onExit(void Function(int pid, int exitCode) callback);
+  LumideDisposable onExit(void Function(int pid, int exitCode) callback);
 }
 
 /// Process execution result.
@@ -428,7 +428,7 @@ abstract class LumideTerminal {
   Future<void> dispose();
 
   /// Registers a callback for data received from the terminal process (if supported).
-  void onData(void Function(String data) callback);
+  LumideDisposable onData(void Function(String data) callback);
 }
 
 /// A channel for streaming output (logs) to the UI.
@@ -601,10 +601,10 @@ abstract class LumideLaunch {
   );
 
   /// Observes launch start events from the host.
-  void onDidStart(void Function(LumideLaunchEvent event) callback);
+  LumideDisposable onDidStart(void Function(LumideLaunchEvent event) callback);
 
   /// Observes launch end events from the host.
-  void onDidEnd(void Function(LumideLaunchEvent event) callback);
+  LumideDisposable onDidEnd(void Function(LumideLaunchEvent event) callback);
 }
 
 /// SDK provider bridge owned and orchestrated by the IDE.
@@ -629,7 +629,7 @@ abstract class LumideSdks {
   });
 
   /// Observes changes to the host's user or workspace SDK selection.
-  void onDidChangeSelection(
+  LumideDisposable onDidChangeSelection(
     void Function(LumideSdkSelectionChangeEvent event) callback,
   );
 
@@ -671,7 +671,7 @@ abstract class LumideWebviewPanel {
   Future<void> postMessage(Object message);
 
   /// Registers a callback for messages received from the webview.
-  void onDidReceiveMessage(void Function(Object message) callback);
+  LumideDisposable onDidReceiveMessage(void Function(Object message) callback);
 
   /// Disposes the webview panel.
   Future<void> dispose();
@@ -709,7 +709,7 @@ abstract class LumideEditor {
   ///
   /// The callback receives the list of current selections in the same format
   /// as [getSelections].
-  void onDidChangeSelections(
+  LumideDisposable onDidChangeSelections(
     void Function(List<Map<String, dynamic>> selections) callback,
   );
 
@@ -717,7 +717,7 @@ abstract class LumideEditor {
   ///
   /// The callback receives the URI of the newly active document, or `null`
   /// if no document is active.
-  void onDidChangeActiveDocument(void Function(String? uri) callback);
+  LumideDisposable onDidChangeActiveDocument(void Function(String? uri) callback);
 
   /// Gets the text currently selected in the active editor.
   ///
@@ -759,13 +759,13 @@ abstract class LumideWorkspace {
   Future<void> updateConfiguration(String section, Object? value);
 
   /// Registers a callback for when a text document is opened.
-  void onDidOpenTextDocument(void Function(String uri) callback);
+  LumideDisposable onDidOpenTextDocument(void Function(String uri) callback);
 
   /// Registers a callback for when a text document is closed.
-  void onDidCloseTextDocument(void Function(String uri) callback);
+  LumideDisposable onDidCloseTextDocument(void Function(String uri) callback);
 
   /// Registers a callback for when a text document changes.
-  void onDidChangeTextDocument(
+  LumideDisposable onDidChangeTextDocument(
     void Function(DocumentChangeEvent event) callback,
   );
 
@@ -773,12 +773,12 @@ abstract class LumideWorkspace {
   ///
   /// The callback receives a map of changed configuration keys and their
   /// new values.
-  void onDidChangeConfiguration(
+  LumideDisposable onDidChangeConfiguration(
     void Function(Map<String, Object?> settings) callback,
   );
 
   /// Registers a callback for when a text document is saved.
-  void onDidSaveTextDocument(void Function(String uri) callback);
+  LumideDisposable onDidSaveTextDocument(void Function(String uri) callback);
 
   /// Gets the workspace root URI.
   ///
@@ -933,7 +933,7 @@ abstract class LumideToolbar {
   /// Registers a callback for when a toolbar item is tapped.
   ///
   /// The callback receives the [id] of the tapped item and screen [position].
-  void onTap(void Function(String id, Map<String, int> position) callback);
+  LumideDisposable onTap(void Function(String id, Map<String, int> position) callback);
 }
 
 /// A request for inline completions dispatched to a plugin callback provider.
