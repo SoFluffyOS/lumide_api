@@ -194,6 +194,7 @@ class PluginMethods {
   static const sdkDidChange = 'sdk/didChange';
   static const sdkResolve = 'sdk/resolve';
   static const sdkRun = 'sdk/run';
+  static const sdkSpawn = 'sdk/spawn';
 
   // Languages (Plugin → IDE)
   static const languagesRegisterServer = 'languages/registerServer';

@@ -326,6 +326,37 @@ final result = await context.shell.run(
 if (result.exitCode == 0) {
   log('stdout: ${result.stdout}');
 }
+
+// Extra environment variables and stdin. Loader variables such as
+// LD_PRELOAD and DYLD_* are rejected by the host.
+final formatted = await context.shell.run(
+  'pint',
+  ['--stdin'],
+  environment: {'XDEBUG_MODE': 'off'},
+  stdin: source,
+);
+
+// Long-running processes stream output through shell.onStdout/onExit.
+final pid = await context.shell.spawn('tailwindcss', ['--watch']);
+await context.shell.kill(pid, signal: LumideProcessSignal.interrupt);
+```
+
+For SDK tools, `context.sdks.spawn` starts a long-running process through
+the selected SDK (validated by the host) and returns its pid:
+
+```dart
+final pid = await context.sdks.spawn(
+  const LumideSdkResolveRequest(
+    kind: LumideSdkKind('flutter'),
+    executable: 'flutter',
+  ),
+  ['run', '--machine'],
+  workingDirectory: projectRoot,
+  environment: {'FLAVOR': 'dev'},
+);
+context.shell.onStdout((processId, data) {
+  if (processId == pid) handleMachineOutput(data);
+});
 ```
 
 ### Window & Dialogs

@@ -13,4 +13,5 @@ export 'log_record.dart';
 export 'lumide_manifest.dart';
 export 'menu_action.dart';
 export 'permission.dart';
+export 'process_signal.dart';
 export 'sdk.dart';

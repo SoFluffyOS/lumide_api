@@ -8,8 +8,11 @@
 
 - **Cross-platform keybindings** — Manifest keybindings accept `mod` (Cmd on macOS, Ctrl elsewhere), and Lumide now honors their `when` clause.
 
+- **Process control** — `shell.run` accepts `environment` and `stdin`, `shell.spawn` accepts `environment`, and `shell.kill` takes an optional `LumideProcessSignal`. `sdks.run` accepts `environment`, and the new `sdks.spawn` starts long-running SDK processes through host-validated resolution.
+
 ### Breaking changes
 
+- Custom implementations of `LumideShell` and `LumideSdks` must accept the new optional parameters and implement `sdks.spawn`.
 - Custom implementations of `LumideWorkspace`, `LumideEditor`, `LumideShell`, `LumideTerminal`, `LumideWebviewPanel`, `LumideToolbar`, `LumideLaunch`, and `LumideSdks` (e.g. test fakes) must return a `LumideDisposable` from those listener methods. Plugins that only call the API are unaffected.
 
 # 1.11.0

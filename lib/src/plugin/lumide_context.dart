@@ -196,11 +196,15 @@ class _RpcShell implements LumideShell {
     String command,
     List<String> arguments, {
     String? workingDirectory,
+    Map<String, String>? environment,
+    String? stdin,
   }) async {
     final result = await _session.sendRequest(PluginMethods.shellRun, {
       'command': command,
       'arguments': arguments,
       if (workingDirectory != null) 'workingDirectory': workingDirectory,
+      if (environment != null) 'environment': environment,
+      if (stdin != null) 'stdin': stdin,
     });
     final json = result as Map<String, dynamic>;
     return ProcessResult(
@@ -215,11 +219,13 @@ class _RpcShell implements LumideShell {
     String command,
     List<String> arguments, {
     String? workingDirectory,
+    Map<String, String>? environment,
   }) async {
     final result = await _session.sendRequest(PluginMethods.shellSpawn, {
       'command': command,
       'arguments': arguments,
       if (workingDirectory != null) 'workingDirectory': workingDirectory,
+      if (environment != null) 'environment': environment,
     });
     return result as int;
   }
@@ -233,9 +239,10 @@ class _RpcShell implements LumideShell {
   }
 
   @override
-  Future<bool> kill(int pid) async {
+  Future<bool> kill(int pid, {LumideProcessSignal? signal}) async {
     final result = await _session.sendRequest(PluginMethods.shellKill, {
       'pid': pid,
+      if (signal != null) 'signal': signal.wireName,
     });
     return result as bool;
   }
@@ -1520,11 +1527,13 @@ class _RpcSdks implements LumideSdks {
     LumideSdkResolveRequest request,
     List<String> arguments, {
     String? workingDirectory,
+    Map<String, String>? environment,
   }) async {
     final result = await _sendRequest(PluginMethods.sdkRun, {
       'request': request.toJson(),
       'arguments': arguments,
       if (workingDirectory != null) 'workingDirectory': workingDirectory,
+      if (environment != null) 'environment': environment,
     });
     final json = result as Map;
     return ProcessResult(
@@ -1532,6 +1541,22 @@ class _RpcSdks implements LumideSdks {
       stdout: json['stdout']?.toString() ?? '',
       stderr: json['stderr']?.toString() ?? '',
     );
+  }
+
+  @override
+  Future<int> spawn(
+    LumideSdkResolveRequest request,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+  }) async {
+    final result = await _sendRequest(PluginMethods.sdkSpawn, {
+      'request': request.toJson(),
+      'arguments': arguments,
+      if (workingDirectory != null) 'workingDirectory': workingDirectory,
+      if (environment != null) 'environment': environment,
+    });
+    return result as int;
   }
 
   @override
