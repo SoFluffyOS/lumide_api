@@ -199,6 +199,8 @@ class PluginMethods {
 
   // Languages (Plugin → IDE)
   static const languagesRegisterServer = 'languages/registerServer';
+  static const languagesSetDiagnostics = 'languages/setDiagnostics';
+  static const languagesClearDiagnostics = 'languages/clearDiagnostics';
   static const languagesRegisterFormattingProvider =
       'languages/registerFormattingProvider';
   static const languagesUnregisterFormattingProvider =

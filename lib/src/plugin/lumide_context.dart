@@ -1660,6 +1660,27 @@ class _RpcLanguages implements LumideLanguages {
       <String, Future<String?> Function(LumideFormattingRequest)>{};
 
   @override
+  Future<void> setDiagnostics(
+    String collection,
+    String uri,
+    List<LumideDiagnostic> diagnostics,
+  ) async {
+    await _session.sendRequest(PluginMethods.languagesSetDiagnostics, {
+      'collection': collection,
+      'uri': uri,
+      'diagnostics': [for (final diagnostic in diagnostics) diagnostic.toJson()],
+    });
+  }
+
+  @override
+  Future<void> clearDiagnostics(String collection, {String? uri}) async {
+    await _session.sendRequest(PluginMethods.languagesClearDiagnostics, {
+      'collection': collection,
+      if (uri != null) 'uri': uri,
+    });
+  }
+
+  @override
   Future<void> registerFormattingProvider({
     required String id,
     List<String> fileExtensions = const [],

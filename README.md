@@ -857,6 +857,29 @@ final response = await context.languages.sendLspRequest(
 
 Once registered, the IDE automatically starts the language server when a matching file is opened, providing diagnostics, completions, and other LSP features.
 
+#### Diagnostics
+
+Report problems from tools that are not language servers (build output,
+linters). They show as editor squiggles and in the Problems panel.
+Positions are zero-based. Lumide clears a plugin's collections when it stops.
+
+```dart
+await context.languages.setDiagnostics('phpstan', fileUri, [
+  const LumideDiagnostic(
+    message: 'Undefined variable \$user',
+    startLine: 11,
+    startColumn: 4,
+    endColumn: 9,
+    severity: LumideDiagnosticSeverity.warning,
+    source: 'phpstan',
+  ),
+]);
+
+// Clear one file, or the whole collection.
+await context.languages.clearDiagnostics('phpstan', uri: fileUri);
+await context.languages.clearDiagnostics('phpstan');
+```
+
 #### Formatters
 
 Contribute a whole-document formatter for Format Document and format-on-save.
