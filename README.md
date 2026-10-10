@@ -9,22 +9,23 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 ## Features
 
 - **Plugin Lifecycle**: Seamlessly handle plugin activation and deactivation.
-- **Commands API**: Register commands for the Command Palette with optional keybindings.
+- **Commands API**: Register commands for the Command Palette with cross-platform keybindings, and run other commands with `executeCommand`.
 - **Status Bar API**: Create and manage custom status bar items.
 - **Editor API**: Access active editor, selections, navigate to locations, and handle real-time events.
-- **Workspace API**: Access configurations, get workspace root, get private plugin storage, find files by glob, and listen to file events.
+- **Workspace API**: Access configurations, get workspace root, get private plugin storage, find files by glob, and listen to document edits, saves, and file changes. Every listener returns a `LumideDisposable`.
 - **FileSystem API**: Secure file operations within the workspace, including directory creation and checks.
-- **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs, file/folder pickers). **(New: `showDeviceAuthDialog`, `showOpenDialog`, `showOpenFolderDialog`)**
-- **Shell & HTTP APIs**: Controlled execution of shell commands (with working directory support) and standardized network requests.
+- **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs, file/folder pickers) and cancellable status bar progress.
+- **Shell & HTTP APIs**: Controlled execution of shell commands (working directory, environment, stdin, signals) and standardized network requests.
 - **Toolbar API**: Add custom buttons to the IDE toolbar.
 - **Context Menu API**: Add actions to Add Pane, file tree, tab bar, and editor context menus with grouped sections.
 - **Terminal API**: Create and control integrated terminals.
 - **Output API**: Write logs and data to the Output Panel.
-- **Languages API**: Register custom language servers for LSP support, including per-extension language IDs. **(New: Inline Completion, Custom LSP Requests)**
+- **Languages API**: Register language servers (with per-extension language IDs), inline completion providers, formatters, and diagnostics; send custom LSP requests.
 - **Plugin manifests**: Mark declarative asset-only plugins as non-executable with `executable: false`; otherwise, process needs are inferred from the manifest.
 - **Snippet Contributions**: Contribute TextMate-compatible snippets for one or more languages without starting a plugin process.
-- **Debug API**: Start debugger sessions, synchronize breakpoints, inspect stack frames/scopes/variables, evaluate expressions, and control exception pause mode.
-- **SDK Provider API**: Contribute SDK catalogs, discovery, validation, install plans, workspace resolution, and host-validated execution.
+- **Debug API**: Start debugger sessions, synchronize breakpoints (with conditions and log messages), inspect stack frames/scopes/variables, evaluate expressions, and control exception pause mode.
+- **Tests API**: Report test runs to Lumide's Tests pane.
+- **SDK Provider API**: Contribute SDK catalogs, discovery, validation, install plans, workspace resolution, and host-validated execution, including long-running processes.
 
 ## Getting Started
 
@@ -32,7 +33,7 @@ Add `lumide_api` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lumide_api: ^1.11.0
+  lumide_api: ^1.12.0
 ```
 
 ## Basic Usage
