@@ -252,10 +252,22 @@ final changeListener = context.workspace.onDidChangeTextDocument((event) {
   }
 });
 
+// Files created, changed, deleted, or renamed by Lumide or other programs.
+final filesListener = context.workspace.onDidChangeFiles((event) {
+  if (event.isOverflow) return rescanWorkspace();
+  for (final change in event.changes) {
+    if (change.uri.endsWith('/pubspec.yaml')) refreshDependencies();
+  }
+});
+
 // Stop listening.
 saveListener.dispose();
 changeListener.dispose();
+filesListener.dispose();
 ```
+
+Document and file events only cover paths allowed by the plugin's
+`fileSystem` permissions.
 
 ### Editor
 
