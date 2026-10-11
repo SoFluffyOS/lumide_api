@@ -167,6 +167,10 @@ abstract class LumideTestRun {
   /// the tests inside them.
   Future<void> update(List<LumideTestResult> results);
 
+  /// Shows line coverage for the run, replacing coverage sent before.
+  /// Lumide shades covered and uncovered lines in the editor.
+  Future<void> setCoverage(List<LumideFileCoverage> files);
+
   /// Marks the run finished. Further updates are ignored.
   Future<void> end({String? summary});
 }

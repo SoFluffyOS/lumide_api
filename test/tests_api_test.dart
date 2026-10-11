@@ -58,6 +58,34 @@ void main() {
     expect(calls.last.$2['summary'], '1 failed');
   });
 
+  test('setCoverage sends line coverage by file', () async {
+    final harness = RpcHarness.create();
+    final sent = <Map<dynamic, dynamic>>[];
+    harness.host
+      ..registerMethod(PluginMethods.testsCreateRun, (_) => null)
+      ..registerMethod(PluginMethods.testsSetCoverage, (params) {
+        sent.add(params.value as Map);
+        return null;
+      });
+
+    final run = await harness.context.tests.createRun(title: 'coverage');
+    await run.setCoverage(const [
+      LumideFileCoverage(
+        uri: 'file:///app/lib/math.dart',
+        coveredLines: [1, 2],
+        uncoveredLines: [5],
+      ),
+    ]);
+
+    expect(sent.single['id'], run.id);
+    final file = LumideFileCoverage.fromJson(
+      (sent.single['files'] as List).single as Map,
+    );
+    expect(file.uri, 'file:///app/lib/math.dart');
+    expect(file.coveredLines, [1, 2]);
+    expect(file.uncoveredLines, [5]);
+  });
+
   test('createRun sends output channel and run commands', () async {
     final harness = RpcHarness.create();
     final created = <Map<dynamic, dynamic>>[];

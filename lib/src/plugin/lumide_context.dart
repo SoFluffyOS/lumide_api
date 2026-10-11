@@ -2060,6 +2060,14 @@ class _RpcTestRun implements LumideTestRun {
   }
 
   @override
+  Future<void> setCoverage(List<LumideFileCoverage> files) async {
+    await _session.sendRequest(PluginMethods.testsSetCoverage, {
+      'id': id,
+      'files': [for (final file in files) file.toJson()],
+    });
+  }
+
+  @override
   Future<void> end({String? summary}) async {
     if (_ended) return;
     _ended = true;

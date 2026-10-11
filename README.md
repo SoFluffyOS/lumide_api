@@ -486,6 +486,19 @@ final run = await context.tests.createRun(
 );
 ```
 
+Send line coverage with `setCoverage`; Lumide shades covered and uncovered
+lines in the editor:
+
+```dart
+await run.setCoverage([
+  LumideFileCoverage(
+    uri: 'file:///app/lib/math.dart',
+    coveredLines: [3, 4],
+    uncoveredLines: [8],
+  ),
+]);
+```
+
 ### Toolbar
 
 Add buttons to the IDE toolbar:
