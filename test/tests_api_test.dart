@@ -84,6 +84,14 @@ void main() {
     expect(file.uri, 'file:///app/lib/math.dart');
     expect(file.coveredLines, [1, 2]);
     expect(file.uncoveredLines, [5]);
+
+    final lenient = LumideFileCoverage.fromJson({
+      'coveredLines': {'not': 'a list'},
+      'uncoveredLines': [1, 'two'],
+    });
+    expect(lenient.uri, isEmpty);
+    expect(lenient.coveredLines, isEmpty);
+    expect(lenient.uncoveredLines, [1]);
   });
 
   test('createRun sends output channel and run commands', () async {
