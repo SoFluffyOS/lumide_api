@@ -1008,7 +1008,8 @@ class _RpcEditor implements LumideEditor {
   }
 
   @override
-  LumideDisposable onDidChangeActiveDocument(void Function(String? uri) callback) {
+  LumideDisposable onDidChangeActiveDocument(
+      void Function(String? uri) callback) {
     return addListener(_activeDocCallbacks, callback);
   }
 
@@ -1271,7 +1272,8 @@ class _RpcCommands implements LumideCommands {
 
   @override
   Future<bool> executeCommand(String id, [Map<String, dynamic>? args]) async {
-    final result = await _session.sendRequest(PluginMethods.commandsExecuteCommand, {
+    final result =
+        await _session.sendRequest(PluginMethods.commandsExecuteCommand, {
       'id': id,
       if (args != null) 'args': args,
     });
@@ -1426,7 +1428,8 @@ class _RpcToolbar implements LumideToolbar {
   }
 
   @override
-  LumideDisposable onTap(void Function(String id, Map<String, int> position) callback) {
+  LumideDisposable onTap(
+      void Function(String id, Map<String, int> position) callback) {
     return addListener(_onTapCallbacks, callback);
   }
 }
@@ -1873,7 +1876,9 @@ class _RpcLanguages implements LumideLanguages {
     await _session.sendRequest(PluginMethods.languagesSetDiagnostics, {
       'collection': collection,
       'uri': uri,
-      'diagnostics': [for (final diagnostic in diagnostics) diagnostic.toJson()],
+      'diagnostics': [
+        for (final diagnostic in diagnostics) diagnostic.toJson()
+      ],
     });
   }
 
@@ -2021,6 +2026,7 @@ class _RpcTests implements LumideTests {
     required String title,
     LumideOutputChannel? output,
     String? runCommand,
+    String? debugCommand,
     String? stopCommand,
   }) async {
     final id = 'run-${++_lastRunId}';
@@ -2029,6 +2035,7 @@ class _RpcTests implements LumideTests {
       'title': title,
       if (output != null) 'outputChannelId': output.id,
       if (runCommand != null) 'runCommand': runCommand,
+      if (debugCommand != null) 'debugCommand': debugCommand,
       if (stopCommand != null) 'stopCommand': stopCommand,
     });
     return _RpcTestRun(id, _session);

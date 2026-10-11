@@ -145,12 +145,16 @@ abstract class LumideTests {
   /// `testIds` means the whole run. Ids are [LumideTestResult.id]s, so
   /// groups can be run too.
   ///
+  /// [debugCommand] lets users debug tests from the Tests pane. Lumide
+  /// executes it with the same arguments as [runCommand].
+  ///
   /// [stopCommand] adds a Stop button while the run is in progress. Lumide
   /// executes it with `{'runId': ...}`.
   Future<LumideTestRun> createRun({
     required String title,
     LumideOutputChannel? output,
     String? runCommand,
+    String? debugCommand,
     String? stopCommand,
   });
 }
@@ -797,7 +801,8 @@ abstract class LumideEditor {
   ///
   /// The callback receives the URI of the newly active document, or `null`
   /// if no document is active.
-  LumideDisposable onDidChangeActiveDocument(void Function(String? uri) callback);
+  LumideDisposable onDidChangeActiveDocument(
+      void Function(String? uri) callback);
 
   /// Gets the text currently selected in the active editor.
   ///
@@ -1048,7 +1053,8 @@ abstract class LumideToolbar {
   /// Registers a callback for when a toolbar item is tapped.
   ///
   /// The callback receives the [id] of the tapped item and screen [position].
-  LumideDisposable onTap(void Function(String id, Map<String, int> position) callback);
+  LumideDisposable onTap(
+      void Function(String id, Map<String, int> position) callback);
 }
 
 /// A request for inline completions dispatched to a plugin callback provider.

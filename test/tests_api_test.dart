@@ -73,6 +73,7 @@ void main() {
       title: 'all tests',
       output: output,
       runCommand: 'demo.runTests',
+      debugCommand: 'demo.debugTests',
       stopCommand: 'demo.stopTests',
     );
 
@@ -81,6 +82,7 @@ void main() {
       'title': 'all tests',
       'outputChannelId': 'ch-1',
       'runCommand': 'demo.runTests',
+      'debugCommand': 'demo.debugTests',
       'stopCommand': 'demo.stopTests',
     });
   });
