@@ -6,13 +6,19 @@ class LumideFileCoverage {
     this.uncoveredLines = const [],
   });
 
+  /// Reads coverage leniently: lines that are not numbers are skipped, and
+  /// a missing `uri` becomes empty.
   factory LumideFileCoverage.fromJson(Map<dynamic, dynamic> json) {
     List<int> lines(Object? value) => [
-          for (final line in value as List? ?? const [])
-            if (line is int) line,
+          if (value is List)
+            for (final line in value)
+              if (line is int) line,
         ];
     return LumideFileCoverage(
-      uri: json['uri'] as String,
+      uri: switch (json['uri']) {
+        final String uri => uri,
+        _ => '',
+      },
       coveredLines: lines(json['coveredLines']),
       uncoveredLines: lines(json['uncoveredLines']),
     );
