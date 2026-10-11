@@ -2017,11 +2017,19 @@ class _RpcTests implements LumideTests {
   int _lastRunId = 0;
 
   @override
-  Future<LumideTestRun> createRun({required String title}) async {
+  Future<LumideTestRun> createRun({
+    required String title,
+    LumideOutputChannel? output,
+    String? runCommand,
+    String? stopCommand,
+  }) async {
     final id = 'run-${++_lastRunId}';
     await _session.sendRequest(PluginMethods.testsCreateRun, {
       'id': id,
       'title': title,
+      if (output != null) 'outputChannelId': output.id,
+      if (runCommand != null) 'runCommand': runCommand,
+      if (stopCommand != null) 'stopCommand': stopCommand,
     });
     return _RpcTestRun(id, _session);
   }

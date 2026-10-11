@@ -1,5 +1,8 @@
 # Unreleased
 
+### New features
+- **Tests API** — Add `output`, `runCommand`, and `stopCommand` to `tests.createRun` so users can view output, rerun tests, and stop runs from the Tests pane.
+
 ### Fixed
 - Allow several language servers and inline completion providers with sign-in or status checks, and re-registering a provider, without crashing the plugin.
 

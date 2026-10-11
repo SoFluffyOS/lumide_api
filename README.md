@@ -471,6 +471,19 @@ await run.update([
 await run.end(summary: '1 failed');
 ```
 
+Pass `output`, `runCommand`, and `stopCommand` to show the run's logs and let
+users rerun or stop tests from the Tests pane. Lumide executes `runCommand`
+with `{'runId': ..., 'testIds': [...]}` (empty means the whole run):
+
+```dart
+final run = await context.tests.createRun(
+  title: 'All tests',
+  output: testOutput,
+  runCommand: 'my_plugin.runTests',
+  stopCommand: 'my_plugin.stopTests',
+);
+```
+
 ### Toolbar
 
 Add buttons to the IDE toolbar:
