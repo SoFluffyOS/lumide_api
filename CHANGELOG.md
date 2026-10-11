@@ -2,6 +2,10 @@
 
 ### New features
 - **Tests API** — Add `output`, `runCommand`, `debugCommand`, and `stopCommand` to `tests.createRun` so users can view output, rerun or debug tests, and stop runs from the Tests pane.
+- **Coverage** — Add `LumideTestRun.setCoverage` to shade covered and uncovered lines in the editor.
+
+### Breaking changes
+- **Custom implementations** — Custom `LumideTests` and `LumideTestRun` implementations (e.g. test fakes) must accept `debugCommand` and implement `setCoverage`.
 
 ### Fixed
 - Allow several language servers and inline completion providers with sign-in or status checks, and re-registering a provider, without crashing the plugin.

@@ -18,4 +18,5 @@ export 'menu_action.dart';
 export 'permission.dart';
 export 'process_signal.dart';
 export 'sdk.dart';
+export 'test_coverage.dart';
 export 'test_result.dart';

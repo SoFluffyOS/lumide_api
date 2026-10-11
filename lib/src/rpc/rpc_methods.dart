@@ -155,6 +155,7 @@ class PluginMethods {
   static const testsCreateRun = 'tests/createRun';
   static const testsUpdateRun = 'tests/updateRun';
   static const testsEndRun = 'tests/endRun';
+  static const testsSetCoverage = 'tests/setCoverage';
 
   // Progress
   static const windowCreateProgress = 'window/createProgress';
