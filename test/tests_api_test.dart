@@ -57,4 +57,31 @@ void main() {
     expect(failed.line, 12);
     expect(calls.last.$2['summary'], '1 failed');
   });
+
+  test('createRun sends output channel and run commands', () async {
+    final harness = RpcHarness.create();
+    final created = <Map<dynamic, dynamic>>[];
+    harness.host
+      ..registerMethod(PluginMethods.windowCreateOutputChannel, (_) => 'ch-1')
+      ..registerMethod(PluginMethods.testsCreateRun, (params) {
+        created.add(params.value as Map);
+        return null;
+      });
+
+    final output = await harness.context.window.createOutputChannel('Tests');
+    final run = await harness.context.tests.createRun(
+      title: 'all tests',
+      output: output,
+      runCommand: 'demo.runTests',
+      stopCommand: 'demo.stopTests',
+    );
+
+    expect(created.single, {
+      'id': run.id,
+      'title': 'all tests',
+      'outputChannelId': 'ch-1',
+      'runCommand': 'demo.runTests',
+      'stopCommand': 'demo.stopTests',
+    });
+  });
 }

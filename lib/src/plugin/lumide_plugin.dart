@@ -137,7 +137,22 @@ abstract class LumideContext {
 /// Reports test runs to Lumide's Tests pane.
 abstract class LumideTests {
   /// Starts a run and opens the Tests pane.
-  Future<LumideTestRun> createRun({required String title});
+  ///
+  /// [output] adds a Show Output button for the run's logs.
+  ///
+  /// [runCommand] lets users run tests again from the Tests pane. Lumide
+  /// executes it with `{'runId': ..., 'testIds': [...]}`; an empty
+  /// `testIds` means the whole run. Ids are [LumideTestResult.id]s, so
+  /// groups can be run too.
+  ///
+  /// [stopCommand] adds a Stop button while the run is in progress. Lumide
+  /// executes it with `{'runId': ...}`.
+  Future<LumideTestRun> createRun({
+    required String title,
+    LumideOutputChannel? output,
+    String? runCommand,
+    String? stopCommand,
+  });
 }
 
 /// A test run created by [LumideTests.createRun].
