@@ -895,14 +895,20 @@ abstract class LumideWorkspace {
 
   /// Gets every folder of the workspace, the one from [getRootUri] first.
   ///
-  /// Returns an empty list if no workspace is open.
-  Future<List<LumideWorkspaceFolder>> getWorkspaceFolders();
+  /// Returns an empty list if no workspace is open. The default lists the
+  /// folder of [getRootUri] alone.
+  Future<List<LumideWorkspaceFolder>> getWorkspaceFolders() async {
+    final rootUri = await getRootUri();
+    if (rootUri == null) return const [];
+    return [LumideWorkspaceFolder.fromUri(rootUri)];
+  }
 
   /// Registers a callback for folders added to or removed from the
-  /// workspace.
+  /// workspace, or whose label changed. The default never calls it.
   LumideDisposable onDidChangeWorkspaceFolders(
     void Function(LumideWorkspaceFoldersChangeEvent event) callback,
-  );
+  ) =>
+      LumideDisposable(() {});
 
   /// Gets this plugin's private storage directory.
   ///

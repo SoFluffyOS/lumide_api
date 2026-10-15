@@ -1234,9 +1234,18 @@ class _RpcWorkspace implements LumideWorkspace {
 
   @override
   Future<List<LumideWorkspaceFolder>> getWorkspaceFolders() async {
-    final result = await _session.sendRequest(
-      PluginMethods.workspaceGetWorkspaceFolders,
-    );
+    final Object? result;
+    try {
+      result = await _session.sendRequest(
+        PluginMethods.workspaceGetWorkspaceFolders,
+      );
+    } on RpcException catch (error) {
+      if (error.code != rpc_error_code.METHOD_NOT_FOUND) rethrow;
+      // A host older than workspace folders has only the root.
+      final rootUri = await getRootUri();
+      if (rootUri == null) return const [];
+      return [LumideWorkspaceFolder.fromUri(rootUri)];
+    }
     return [
       for (final folder in result as List? ?? const [])
         LumideWorkspaceFolder.fromJson(folder as Map),
