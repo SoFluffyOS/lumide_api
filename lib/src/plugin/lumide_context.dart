@@ -1989,6 +1989,7 @@ class _RpcLanguages implements LumideLanguages {
         line: data['line'] as int,
         column: data['column'] as int,
         documentText: data['documentText'] as String,
+        instructions: data['instructions'] as String?,
       );
       final completions = await onProvideCompletions(request);
       return completions.map((c) => {'text': c.text}).toList();

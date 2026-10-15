@@ -1,6 +1,7 @@
 # Unreleased
 
 ### New features
+- **Inline completions** — `InlineCompletionRequest.instructions` carries a system message for chat models, such as the commit message style to follow when the request is for a commit message. Null for source files.
 - **Tests API** — Add `output`, `runCommand`, `debugCommand`, and `stopCommand` to `tests.createRun` so users can view output, rerun or debug tests, and stop runs from the Tests pane.
 - **Coverage** — Add `LumideTestRun.setCoverage` to shade covered and uncovered lines in the editor.
 
