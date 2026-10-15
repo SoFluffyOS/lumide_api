@@ -1069,6 +1069,7 @@ class InlineCompletionRequest {
     required this.line,
     required this.column,
     required this.documentText,
+    this.instructions,
   });
 
   /// The document URI (e.g. 'file:///path/to/file.dart').
@@ -1082,6 +1083,10 @@ class InlineCompletionRequest {
 
   /// The full text of the document, with `<CURSOR>` marking the insert point.
   final String documentText;
+
+  /// A system message for models that take one, such as the commit message
+  /// style to follow when [uri] is a commit message. Null for source files.
+  final String? instructions;
 }
 
 /// A single inline completion suggestion returned by a plugin callback provider.
