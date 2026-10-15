@@ -888,10 +888,21 @@ abstract class LumideWorkspace {
   /// Registers a callback for when a text document is saved.
   LumideDisposable onDidSaveTextDocument(void Function(String uri) callback);
 
-  /// Gets the workspace root URI.
+  /// Gets the workspace root URI: the first folder of the workspace.
   ///
   /// Returns `null` if no workspace is open.
   Future<String?> getRootUri();
+
+  /// Gets every folder of the workspace, the one from [getRootUri] first.
+  ///
+  /// Returns an empty list if no workspace is open.
+  Future<List<LumideWorkspaceFolder>> getWorkspaceFolders();
+
+  /// Registers a callback for folders added to or removed from the
+  /// workspace.
+  LumideDisposable onDidChangeWorkspaceFolders(
+    void Function(LumideWorkspaceFoldersChangeEvent event) callback,
+  );
 
   /// Gets this plugin's private storage directory.
   ///
@@ -899,7 +910,7 @@ abstract class LumideWorkspace {
   /// without declaring extra file permissions in the plugin manifest.
   Future<String> getPluginStorageDir();
 
-  /// Finds files in the workspace matching a glob pattern.
+  /// Finds files in every workspace folder matching a glob pattern.
   ///
   /// [maxResults] limits the number of results (default: no limit).
   Future<List<String>> findFiles(String glob, {int? maxResults});

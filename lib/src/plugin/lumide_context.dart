@@ -1102,6 +1102,17 @@ class _RpcWorkspace implements LumideWorkspace {
       }
       return null;
     });
+    _session.registerNotificationHandler(
+      HostMethods.didChangeWorkspaceFolders,
+      (params) {
+        final event = LumideWorkspaceFoldersChangeEvent.fromJson(
+          params.value as Map,
+        );
+        for (final callback in [..._workspaceFolderCallbacks]) {
+          callback(event);
+        }
+      },
+    );
     _session.registerNotificationHandler(HostMethods.didChangeFiles, (params) {
       final event = LumideFileChangeEvent.fromJson(params.value as Map);
       for (final callback in [..._fileChangeCallbacks]) {
@@ -1124,6 +1135,8 @@ class _RpcWorkspace implements LumideWorkspace {
   final _configCallbacks = <void Function(Map<String, Object?>)>[];
   final _saveCallbacks = <void Function(String)>[];
   final _fileChangeCallbacks = <void Function(LumideFileChangeEvent)>[];
+  final _workspaceFolderCallbacks =
+      <void Function(LumideWorkspaceFoldersChangeEvent)>[];
 
   @override
   Future<Object?> getConfiguration(String section) async {
@@ -1217,6 +1230,24 @@ class _RpcWorkspace implements LumideWorkspace {
     final result =
         await _session.sendRequest(PluginMethods.workspaceGetRootUri);
     return result as String?;
+  }
+
+  @override
+  Future<List<LumideWorkspaceFolder>> getWorkspaceFolders() async {
+    final result = await _session.sendRequest(
+      PluginMethods.workspaceGetWorkspaceFolders,
+    );
+    return [
+      for (final folder in result as List? ?? const [])
+        LumideWorkspaceFolder.fromJson(folder as Map),
+    ];
+  }
+
+  @override
+  LumideDisposable onDidChangeWorkspaceFolders(
+    void Function(LumideWorkspaceFoldersChangeEvent event) callback,
+  ) {
+    return addListener(_workspaceFolderCallbacks, callback);
   }
 
   @override

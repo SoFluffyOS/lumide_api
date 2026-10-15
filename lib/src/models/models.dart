@@ -20,3 +20,4 @@ export 'process_signal.dart';
 export 'sdk.dart';
 export 'test_coverage.dart';
 export 'test_result.dart';
+export 'workspace_folder.dart';
