@@ -230,7 +230,7 @@ final root = await context.workspace.getRootUri();
 // Every folder of the workspace, and changes to them
 final folders = await context.workspace.getWorkspaceFolders();
 context.workspace.onDidChangeWorkspaceFolders((event) {
-  for (final folder in event.added) print('Added ${folder.name}');
+  for (final folder in event.added) indexFolder(folder.uri);
 });
 
 // Find all pubspec.yaml files in every workspace folder
