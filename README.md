@@ -224,10 +224,16 @@ Lumide only uninstalls SDKs it installed beneath its managed storage root.
 Query the workspace root and search for files:
 
 ```dart
-// Get the workspace root path
+// Get the workspace root path (the first folder)
 final root = await context.workspace.getRootUri();
 
-// Find all pubspec.yaml files in the workspace
+// Every folder of the workspace, and changes to them
+final folders = await context.workspace.getWorkspaceFolders();
+context.workspace.onDidChangeWorkspaceFolders((event) {
+  for (final folder in event.added) print('Added ${folder.name}');
+});
+
+// Find all pubspec.yaml files in every workspace folder
 final pubspecs = await context.workspace.findFiles(
   '**/pubspec.yaml',
   maxResults: 50,

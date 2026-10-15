@@ -46,6 +46,10 @@ class HostMethods {
   static const languagesProvideFormatting = 'languages/provideFormatting';
   static const didChangeFiles = 'workspace/didChangeFiles';
 
+  /// Folders were added to or removed from the workspace.
+  static const didChangeWorkspaceFolders =
+      'workspace/didChangeWorkspaceFolders';
+
   /// Sent when the user cancels a cancellable progress task.
   static const windowCancelProgress = 'window/cancelProgress';
 
@@ -173,6 +177,7 @@ class PluginMethods {
   static const workspaceGetRootUri = 'workspace/getRootUri';
   static const workspaceGetPluginStorageDir = 'workspace/getPluginStorageDir';
   static const workspaceFindFiles = 'workspace/findFiles';
+  static const workspaceGetWorkspaceFolders = 'workspace/getWorkspaceFolders';
 
   /// Enables or disables `workspace/didChangeTextDocument` notifications.
   /// Sent by the SDK when the first change listener is added and after the
