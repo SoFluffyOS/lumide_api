@@ -242,7 +242,9 @@ class HttpResponse {
 abstract class LumideShell {
   /// Runs a shell command and waits for it to exit.
   ///
-  /// If [workingDirectory] is provided, the command runs in that directory.
+  /// If [workingDirectory] is provided, the command runs in that directory;
+  /// otherwise in the workspace folder of the active file, else the first
+  /// folder.
   /// [environment] entries are added to Lumide's environment; loader
   /// variables such as `LD_PRELOAD` and `DYLD_*` are rejected. [stdin] is
   /// written to the process before its input is closed.
@@ -256,7 +258,8 @@ abstract class LumideShell {
 
   /// Spawns a persistent shell process.
   ///
-  /// If [workingDirectory] is provided, the process is spawned in that directory.
+  /// If [workingDirectory] is provided, the process is spawned in that
+  /// directory; otherwise as in [run].
   /// [environment] works as in [run].
   /// Returns the process ID (pid) of the spawned process.
   Future<int> spawn(
@@ -691,14 +694,22 @@ abstract class LumideSdks {
   Future<void> unregisterProvider(String id);
 
   /// Notifies the host that discovery or catalog results changed.
-  Future<void> didChange(String providerId);
+  ///
+  /// [workspaceFolder], the native path of a workspace folder, limits the
+  /// change to that folder, such as when its `.fvmrc` changed. Without it,
+  /// the host refreshes every folder. Older hosts refresh the first folder.
+  Future<void> didChange(String providerId, {String? workspaceFolder});
 
   /// Resolves an SDK using host selection and workspace policy.
+  ///
+  /// Set [LumideSdkResolveRequest.workspacePath] to the workspace folder the
+  /// SDK is for: each folder can select its own SDK, such as through its
+  /// `.fvmrc`.
   Future<LumideSdkResolution?> resolve(LumideSdkResolveRequest request);
 
   /// Runs a logical executable through a host-validated SDK resolution.
   ///
-  /// [environment] works as in [LumideShell.run].
+  /// [workingDirectory] and [environment] work as in [LumideShell.run].
   Future<ProcessResult> run(
     LumideSdkResolveRequest request,
     List<String> arguments, {
@@ -840,8 +851,13 @@ abstract class LumideEditor {
 abstract class LumideWorkspace {
   /// Gets a configuration value for the given section/key.
   ///
+  /// [scope] is the `file:` URI of a file or workspace folder the value is
+  /// for. Lumide resolves the same value for every folder today; pass the
+  /// scope anyway so folder settings apply once Lumide has them. Older
+  /// hosts ignore it.
+  ///
   /// Example: `getConfiguration('prettier.printWidth')` → `80`
-  Future<Object?> getConfiguration(String section);
+  Future<Object?> getConfiguration(String section, {String? scope});
 
   /// Updates a configuration value for the given section/key.
   ///
@@ -903,6 +919,15 @@ abstract class LumideWorkspace {
     return [LumideWorkspaceFolder.fromUri(rootUri)];
   }
 
+  /// Gets the workspace folder that holds [uri], a `file:` URI or absolute
+  /// path: the deepest one when folders nest. Returns `null` for a [uri]
+  /// outside every folder.
+  ///
+  /// The default picks from [getWorkspaceFolders].
+  Future<LumideWorkspaceFolder?> getWorkspaceFolder(String uri) async {
+    return LumideWorkspaceFolder.containing(await getWorkspaceFolders(), uri);
+  }
+
   /// Registers a callback for folders added to or removed from the
   /// workspace, or whose label changed. The default never calls it.
   LumideDisposable onDidChangeWorkspaceFolders(
@@ -916,10 +941,16 @@ abstract class LumideWorkspace {
   /// without declaring extra file permissions in the plugin manifest.
   Future<String> getPluginStorageDir();
 
-  /// Finds files in every workspace folder matching a glob pattern.
+  /// Finds files in every workspace folder matching a glob pattern, and
+  /// returns their `file:` URIs.
   ///
-  /// [maxResults] limits the number of results (default: no limit).
-  Future<List<String>> findFiles(String glob, {int? maxResults});
+  /// [folder], the `file:` URI of a workspace folder, searches that folder
+  /// alone. [maxResults] limits the number of results (default: no limit).
+  Future<List<String>> findFiles(
+    String glob, {
+    int? maxResults,
+    String? folder,
+  });
 }
 
 /// Event fired when a document's content changes.

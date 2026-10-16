@@ -145,6 +145,7 @@ class LumideLaunchConfiguration {
     this.options = const [],
     this.arguments = const {},
     this.isDefault = false,
+    this.workspaceFolder,
   });
 
   factory LumideLaunchConfiguration.fromJson(Map<dynamic, dynamic> json) {
@@ -163,6 +164,7 @@ class LumideLaunchConfiguration {
       options: _optionList(json['options'] ?? json['actions']),
       arguments: _objectMap(json['arguments']),
       isDefault: json['isDefault'] == true,
+      workspaceFolder: json['workspaceFolder']?.toString(),
     );
   }
 
@@ -189,6 +191,32 @@ class LumideLaunchConfiguration {
   final Map<String, Object?> arguments;
   final bool isDefault;
 
+  /// Canonical native path of the workspace folder this target belongs to:
+  /// where it runs and what `${workspaceFolder}` means for it. Lumide sets it
+  /// to the folder it asked about when a provider leaves it null.
+  final String? workspaceFolder;
+
+  /// This configuration with [workspaceFolder] set to [folder].
+  LumideLaunchConfiguration withWorkspaceFolder(String? folder) {
+    return LumideLaunchConfiguration(
+      id: id,
+      label: label,
+      kind: kind,
+      kinds: kinds,
+      description: description,
+      detail: detail,
+      deduplicationKey: deduplicationKey,
+      icon: icon,
+      iconPath: iconPath,
+      noTint: noTint,
+      isAction: isAction,
+      options: options,
+      arguments: arguments,
+      isDefault: isDefault,
+      workspaceFolder: folder,
+    );
+  }
+
   Map<String, Object?> toJson() {
     return {
       'id': id,
@@ -206,6 +234,7 @@ class LumideLaunchConfiguration {
         'options': options.map((option) => option.toJson()).toList(),
       'arguments': arguments,
       if (isDefault) 'isDefault': isDefault,
+      if (workspaceFolder != null) 'workspaceFolder': workspaceFolder,
     };
   }
 }
@@ -218,6 +247,7 @@ class LumideLaunchSourceConfiguration {
     required this.providerId,
     this.kinds = const [],
     this.config = const {},
+    this.workspaceFolder,
   });
 
   factory LumideLaunchSourceConfiguration.fromJson(Map<dynamic, dynamic> json) {
@@ -227,6 +257,7 @@ class LumideLaunchSourceConfiguration {
       providerId: json['providerId']?.toString() ?? '',
       kinds: _kindList(json['kinds']),
       config: _objectMap(json['config']),
+      workspaceFolder: json['workspaceFolder']?.toString(),
     );
   }
 
@@ -236,6 +267,10 @@ class LumideLaunchSourceConfiguration {
   final List<LumideLaunchKind> kinds;
   final Map<String, Object?> config;
 
+  /// Canonical native path of the workspace folder whose `launch.json`
+  /// holds this configuration.
+  final String? workspaceFolder;
+
   Map<String, Object?> toJson() {
     return {
       'id': id,
@@ -243,6 +278,7 @@ class LumideLaunchSourceConfiguration {
       'providerId': providerId,
       'kinds': kinds.map((kind) => kind.name).toList(),
       'config': config,
+      if (workspaceFolder != null) 'workspaceFolder': workspaceFolder,
     };
   }
 }
@@ -590,24 +626,34 @@ class LumideLaunchResolveRequest {
     required this.providerId,
     this.kind,
     this.workspacePath,
+    this.workspaceFolder,
   });
 
   factory LumideLaunchResolveRequest.fromJson(Map<dynamic, dynamic> json) {
+    final workspacePath =
+        (json['workspacePath'] ?? json['workspaceUri'])?.toString();
     return LumideLaunchResolveRequest(
       providerId: json['providerId']?.toString() ?? '',
       kind: json['kind'] == null
           ? null
           : LumideLaunchKind.fromName(json['kind']?.toString()),
-      workspacePath:
-          (json['workspacePath'] ?? json['workspaceUri'])?.toString(),
+      workspacePath: workspacePath,
+      workspaceFolder: json['workspaceFolder']?.toString() ?? workspacePath,
     );
   }
 
   final String providerId;
   final LumideLaunchKind? kind;
 
-  /// Canonical native filesystem path of the current workspace.
+  /// Canonical native filesystem path of the workspace folder to list
+  /// targets for. Lumide asks once per folder of the workspace; older hosts
+  /// ask for the first folder only.
   final String? workspacePath;
+
+  /// The workspace folder to list targets for, the same as [workspacePath].
+  /// Targets returned without a [LumideLaunchConfiguration.workspaceFolder]
+  /// belong to it.
+  final String? workspaceFolder;
 
   @Deprecated('Use workspacePath instead')
   String? get workspaceUri => workspacePath;
@@ -627,6 +673,8 @@ class LumideLaunchConfigureRequest {
 
   factory LumideLaunchConfigureRequest.fromJson(Map<dynamic, dynamic> json) {
     final rawConfiguration = json['configuration'];
+    final workspacePath =
+        (json['workspacePath'] ?? json['workspaceUri'])?.toString();
     return LumideLaunchConfigureRequest(
       providerId: json['providerId']?.toString() ?? '',
       actionId: json['actionId']?.toString(),
@@ -637,8 +685,7 @@ class LumideLaunchConfigureRequest {
       configuration: rawConfiguration is Map
           ? LumideLaunchConfiguration.fromJson(rawConfiguration)
           : null,
-      workspacePath:
-          (json['workspacePath'] ?? json['workspaceUri'])?.toString(),
+      workspacePath: workspacePath,
       position: _intMap(json['position']),
     );
   }
@@ -649,7 +696,8 @@ class LumideLaunchConfigureRequest {
   final LumideLaunchKind? kind;
   final LumideLaunchConfiguration? configuration;
 
-  /// Canonical native filesystem path of the current workspace.
+  /// Canonical native filesystem path of the workspace folder of
+  /// [configuration], or of the first folder when there is none.
   final String? workspacePath;
   final Map<String, int>? position;
 
@@ -701,6 +749,7 @@ class LumideLaunchEvent {
     required this.configurationId,
     this.exitCode,
     this.message,
+    this.workspaceFolder,
   });
 
   factory LumideLaunchEvent.fromJson(Map<dynamic, dynamic> json) {
@@ -710,6 +759,7 @@ class LumideLaunchEvent {
       configurationId: json['configurationId']?.toString() ?? '',
       exitCode: _nullableIntValue(json['exitCode']),
       message: json['message']?.toString(),
+      workspaceFolder: json['workspaceFolder']?.toString(),
     );
   }
 
@@ -719,6 +769,11 @@ class LumideLaunchEvent {
   final int? exitCode;
   final String? message;
 
+  /// The [LumideLaunchConfiguration.workspaceFolder] of the configuration
+  /// that started or ended. Set it when the same configuration ID can run
+  /// in several folders; Lumide otherwise matches the one it is starting.
+  final String? workspaceFolder;
+
   Map<String, Object?> toJson() {
     return {
       'providerId': providerId,
@@ -726,6 +781,7 @@ class LumideLaunchEvent {
       'configurationId': configurationId,
       if (exitCode != null) 'exitCode': exitCode,
       if (message != null) 'message': message,
+      if (workspaceFolder != null) 'workspaceFolder': workspaceFolder,
     };
   }
 }

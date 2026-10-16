@@ -45,7 +45,8 @@ final class LumideSdkManagerId {
 /// Describes a persisted SDK selection change made by the host.
 ///
 /// A null [workspacePath] means the user-level default changed and can affect
-/// every workspace. A non-null path limits the change to that workspace.
+/// every workspace. A non-null path limits the change to that workspace
+/// folder: in a workspace of several folders, each folder has its own.
 final class LumideSdkSelectionChangeEvent {
   const LumideSdkSelectionChangeEvent({
     required this.kind,

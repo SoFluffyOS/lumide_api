@@ -233,14 +233,24 @@ context.workspace.onDidChangeWorkspaceFolders((event) {
   for (final folder in event.added) indexFolder(folder.uri);
 });
 
-// Find all pubspec.yaml files in every workspace folder
+// The folder holding a file, or null outside every folder
+final folder = await context.workspace.getWorkspaceFolder(fileUri);
+
+// Find all pubspec.yaml files in every workspace folder, or in one
 final pubspecs = await context.workspace.findFiles(
   '**/pubspec.yaml',
   maxResults: 50,
 );
+final folderPubspecs = await context.workspace.findFiles(
+  '**/pubspec.yaml',
+  folder: folder?.uri,
+);
 
-// Read a configuration value
-final tabSize = await context.workspace.getConfiguration('editor.tabSize');
+// Read a configuration value, for the folder of a file
+final tabSize = await context.workspace.getConfiguration(
+  'editor.tabSize',
+  scope: fileUri,
+);
 
 // Get this plugin's private storage directory
 final storageDir = await context.workspace.getPluginStorageDir();
@@ -649,6 +659,13 @@ Key features:
 `workspacePath` values in launch requests are canonical native filesystem paths
 (for example, `/home/me/app` or `C:\\Users\\me\\app`), not file URIs.
 
+In a workspace of several folders, Lumide asks `onResolveConfigurations` once
+per folder, with `request.workspaceFolder` set to it. Each configuration
+carries its `workspaceFolder`; Lumide fills it in when you leave it null.
+Launch requests run a configuration in its own folder, so start processes
+there. Set `workspaceFolder` on `didStart`/`didEnd` events when the same
+configuration ID can run in several folders.
+
 ```dart
 // 1. Register the launch provider
 await context.launch.registerProvider(
@@ -755,7 +772,7 @@ await context.launch.updateConfigurations('flutter', [
 
 // 3. Resolve configurations dynamically when requested by the host
 context.launch.onResolveConfigurations((request) async {
-  log('Resolving configurations for workspace: ${request.workspacePath}');
+  log('Resolving configurations for folder: ${request.workspaceFolder}');
   return [
     const LumideLaunchConfiguration(id: 'resolved_target', label: 'Resolved Target'),
   ];
@@ -791,17 +808,23 @@ context.launch.onLaunch((request) async {
     providerId: request.providerId,
     kind: request.kind,
     configurationId: config.id,
+    workspaceFolder: config.workspaceFolder,
   );
   await context.launch.didStart(launchEvent);
 
-  // Spawn command/process and await completion
-  final result = await context.shell.run('flutter', ['run', '-d', 'chrome']);
+  // Spawn command/process in the configuration's folder and await completion
+  final result = await context.shell.run(
+    'flutter',
+    ['run', '-d', 'chrome'],
+    workingDirectory: config.workspaceFolder,
+  );
 
   // Notify the host that the launch ended
   await context.launch.didEnd(LumideLaunchEvent(
     providerId: request.providerId,
     kind: request.kind,
     configurationId: config.id,
+    workspaceFolder: config.workspaceFolder,
     exitCode: result.exitCode,
   ));
 });
