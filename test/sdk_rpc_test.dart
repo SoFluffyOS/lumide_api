@@ -38,6 +38,17 @@ void main() {
     expect(registration?['initializationOptions'], {
       'userLanguages': {'astro': 'html'},
     });
+    expect(registration?.containsKey('runsPerFolder'), isFalse);
+
+    await context.languages.registerLanguageServer(
+      id: 'pyright',
+      languageId: 'python',
+      fileExtensions: const ['.py'],
+      command: 'pyright-langserver',
+      runsPerFolder: true,
+    );
+
+    expect(registration?['runsPerFolder'], isTrue);
   });
 
   test('SDK bridge routes every host and provider RPC contract', () async {
