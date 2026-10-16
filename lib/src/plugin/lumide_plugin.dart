@@ -852,9 +852,12 @@ abstract class LumideWorkspace {
   /// Gets a configuration value for the given section/key.
   ///
   /// [scope] is the `file:` URI of a file or workspace folder the value is
-  /// for. Lumide resolves the same value for every folder today; pass the
-  /// scope anyway so folder settings apply once Lumide has them. Older
-  /// hosts ignore it.
+  /// for. Settings that can differ between folders, such as editor
+  /// behavior and plugin configuration, resolve from the settings of the
+  /// deepest workspace folder holding [scope], then the workspace's, the
+  /// user's and the defaults. Without [scope], or for a setting that
+  /// applies to the whole window, the value is the window's. Older hosts
+  /// ignore [scope].
   ///
   /// Example: `getConfiguration('prettier.printWidth')` → `80`
   Future<Object?> getConfiguration(String section, {String? scope});
@@ -1173,6 +1176,10 @@ abstract class LumideLanguages {
   /// [args] — arguments for the command.
   /// [initializationOptions] — optional map sent during server initialization.
   /// [extensionLanguageMap] — optional per-extension LSP language IDs.
+  /// [runsPerFolder] — start one server per workspace folder, rooted at
+  /// that folder, even when the server handles workspace folders itself.
+  /// Servers that don't handle workspace folders run per folder anyway.
+  /// Older hosts ignore it.
   Future<void> registerLanguageServer({
     required String id,
     required String languageId,
@@ -1184,6 +1191,7 @@ abstract class LumideLanguages {
     List<String> args = const [],
     Map<String, String> extensionLanguageMap = const {},
     Map<String, dynamic>? initializationOptions,
+    bool runsPerFolder = false,
     Future<String> Function()? checkStatus,
     Future<Map<String, dynamic>> Function()? signIn,
     Future<void> Function()? signOut,
