@@ -179,6 +179,9 @@ class PluginMethods {
   static const workspaceFindFiles = 'workspace/findFiles';
   static const workspaceGetWorkspaceFolders = 'workspace/getWorkspaceFolders';
 
+  /// The workspace folder holding a URI, or null outside every folder.
+  static const workspaceGetWorkspaceFolder = 'workspace/getWorkspaceFolder';
+
   /// Enables or disables `workspace/didChangeTextDocument` notifications.
   /// Sent by the SDK when the first change listener is added and after the
   /// last one is disposed, so hosts only track edits plugins consume.

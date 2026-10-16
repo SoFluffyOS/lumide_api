@@ -50,7 +50,47 @@ class LumideWorkspaceFolder {
 
   @override
   String toString() => 'LumideWorkspaceFolder($uri)';
+
+  /// The folder of [folders] that holds [uri], the deepest one when folders
+  /// nest, or null when [uri] is outside every folder. [uri] is a `file:`
+  /// URI or an absolute path.
+  static LumideWorkspaceFolder? containing(
+    Iterable<LumideWorkspaceFolder> folders,
+    String uri,
+  ) {
+    final target = _pathOf(uri);
+    LumideWorkspaceFolder? match;
+    var matchLength = -1;
+    for (final folder in folders) {
+      final folderPath = _pathOf(folder.uri);
+      final prefix = switch (folderPath.endsWith('/')) {
+        true => folderPath,
+        false => '$folderPath/',
+      };
+      final holds = target == folderPath || target.startsWith(prefix);
+      if (!holds || folderPath.length <= matchLength) continue;
+      match = folder;
+      matchLength = folderPath.length;
+    }
+    return match;
+  }
 }
+
+/// [uri] as a URI path without a trailing slash, so that `file:` URIs and
+/// native paths compare alike.
+String _pathOf(String uri) {
+  final parsed = Uri.tryParse(uri);
+  final path = switch (parsed) {
+    final value? when value.scheme == 'file' => value.path,
+    _ => Uri.file(uri, windows: _windowsPath.hasMatch(uri)).path,
+  };
+  if (path.length > 1 && path.endsWith('/')) {
+    return path.substring(0, path.length - 1);
+  }
+  return path;
+}
+
+final _windowsPath = RegExp(r'^[A-Za-z]:[\\/]|\\');
 
 String _basename(String uri) {
   final segments = Uri.parse(uri).pathSegments.where(

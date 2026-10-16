@@ -475,10 +475,12 @@ if (resp.statusCode == 200) {
 
 | Method | Description |
 |--------|-------------|
-| `getConfiguration(String key)` | Reads a plugin config value (falls back to manifest default) |
+| `getConfiguration(String key, {String? scope})` | Reads a plugin config value (falls back to manifest default); `scope` is the file or folder URI it is for |
 | `getPluginStorageDir()` | Returns this plugin's private writable storage directory |
 | `getRootUri()` | Returns the current workspace root path, or `null` |
-| `findFiles(String glob, {int? maxResults})` | Finds files in the current workspace |
+| `getWorkspaceFolders()` | Lists every workspace folder, the root first |
+| `getWorkspaceFolder(String uri)` | Returns the folder holding a file, or `null` |
+| `findFiles(String glob, {int? maxResults, String? folder})` | Finds files in every workspace folder, or in `folder` |
 | `onDidOpenTextDocument(callback)` | Called when a file is opened in the editor |
 | `onDidCloseTextDocument(callback)` | Called when a file tab is closed |
 | `onDidChangeTextDocument(callback)` | Called when file content changes |

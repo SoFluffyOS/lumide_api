@@ -1139,10 +1139,10 @@ class _RpcWorkspace implements LumideWorkspace {
       <void Function(LumideWorkspaceFoldersChangeEvent)>[];
 
   @override
-  Future<Object?> getConfiguration(String section) async {
+  Future<Object?> getConfiguration(String section, {String? scope}) async {
     final result = await _session.sendRequest(
       PluginMethods.workspaceGetConfiguration,
-      {'section': section},
+      {'section': section, if (scope != null) 'scope': scope},
     );
     return result;
   }
@@ -1253,6 +1253,25 @@ class _RpcWorkspace implements LumideWorkspace {
   }
 
   @override
+  Future<LumideWorkspaceFolder?> getWorkspaceFolder(String uri) async {
+    final Object? result;
+    try {
+      result = await _session.sendRequest(
+        PluginMethods.workspaceGetWorkspaceFolder,
+        {'uri': uri},
+      );
+    } on RpcException catch (error) {
+      if (error.code != rpc_error_code.METHOD_NOT_FOUND) rethrow;
+      return LumideWorkspaceFolder.containing(
+        await getWorkspaceFolders(),
+        uri,
+      );
+    }
+    if (result is! Map) return null;
+    return LumideWorkspaceFolder.fromJson(result);
+  }
+
+  @override
   LumideDisposable onDidChangeWorkspaceFolders(
     void Function(LumideWorkspaceFoldersChangeEvent event) callback,
   ) {
@@ -1268,13 +1287,25 @@ class _RpcWorkspace implements LumideWorkspace {
   }
 
   @override
-  Future<List<String>> findFiles(String glob, {int? maxResults}) async {
+  Future<List<String>> findFiles(
+    String glob, {
+    int? maxResults,
+    String? folder,
+  }) async {
     final result =
         await _session.sendRequest(PluginMethods.workspaceFindFiles, {
       'glob': glob,
       if (maxResults != null) 'maxResults': maxResults,
+      if (folder != null) 'folder': folder,
     });
-    return (result as List).cast<String>();
+    final files = (result as List).cast<String>();
+    if (folder == null) return files;
+    // Older hosts search every folder.
+    final scope = LumideWorkspaceFolder.fromUri(folder);
+    return [
+      for (final file in files)
+        if (LumideWorkspaceFolder.containing([scope], file) != null) file,
+    ];
   }
 }
 
@@ -1687,10 +1718,13 @@ class _RpcSdks implements LumideSdks {
   }
 
   @override
-  Future<void> didChange(String providerId) async {
+  Future<void> didChange(String providerId, {String? workspaceFolder}) async {
     await _sendRequest(
       PluginMethods.sdkDidChange,
-      {'providerId': providerId},
+      {
+        'providerId': providerId,
+        if (workspaceFolder != null) 'workspaceFolder': workspaceFolder,
+      },
     );
   }
 

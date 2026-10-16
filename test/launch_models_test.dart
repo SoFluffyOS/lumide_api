@@ -59,6 +59,63 @@ void main() {
     expect(decodedResolution.diagnostics.single.path, r'$.config.deviceId');
   });
 
+  test('launch models carry their workspace folder', () {
+    const configuration = LumideLaunchConfiguration(
+      id: 'main',
+      label: 'Main',
+      workspaceFolder: '/work/api',
+    );
+    const source = LumideLaunchSourceConfiguration(
+      id: 'main',
+      name: 'Main',
+      providerId: 'flutter',
+      workspaceFolder: '/work/api',
+    );
+    const event = LumideLaunchEvent(
+      providerId: 'flutter',
+      kind: LumideLaunchKind.run,
+      configurationId: 'main',
+      workspaceFolder: '/work/api',
+    );
+
+    expect(
+      LumideLaunchConfiguration.fromJson(configuration.toJson())
+          .workspaceFolder,
+      '/work/api',
+    );
+    expect(
+      LumideLaunchSourceConfiguration.fromJson(source.toJson()).workspaceFolder,
+      '/work/api',
+    );
+    expect(
+      LumideLaunchEvent.fromJson(event.toJson()).workspaceFolder,
+      '/work/api',
+    );
+    expect(
+      configuration.withWorkspaceFolder('/work/web').workspaceFolder,
+      '/work/web',
+    );
+    expect(
+      const LumideLaunchConfiguration(id: 'a', label: 'A').toJson(),
+      isNot(contains('workspaceFolder')),
+    );
+  });
+
+  test('resolve requests name their folder, falling back to the workspace', () {
+    final modern = LumideLaunchResolveRequest.fromJson(const {
+      'providerId': 'flutter',
+      'workspacePath': '/work/api',
+      'workspaceFolder': '/work/api',
+    });
+    final legacy = LumideLaunchResolveRequest.fromJson(const {
+      'providerId': 'flutter',
+      'workspacePath': '/work/app',
+    });
+
+    expect(modern.workspaceFolder, '/work/api');
+    expect(legacy.workspaceFolder, '/work/app');
+  });
+
   test('foreign import result round trips fidelity and diagnostics', () {
     const foreign = LumideForeignLaunchConfiguration(
       format: 'vscode',
