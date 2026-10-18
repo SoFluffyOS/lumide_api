@@ -231,6 +231,7 @@ final root = await context.workspace.getRootUri();
 final folders = await context.workspace.getWorkspaceFolders();
 context.workspace.onDidChangeWorkspaceFolders((event) {
   for (final folder in event.added) indexFolder(folder.uri);
+  // event.folders lists every folder in order; event.reordered says they moved.
 });
 
 // The folder holding a file, or null outside every folder

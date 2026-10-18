@@ -99,15 +99,19 @@ String _basename(String uri) {
   return segments.lastOrNull ?? uri;
 }
 
-/// Folders added to or removed from the workspace, or whose label changed.
+/// Folders added to or removed from the workspace, whose label changed, or
+/// that changed places.
 class LumideWorkspaceFoldersChangeEvent {
   LumideWorkspaceFoldersChangeEvent({
     List<LumideWorkspaceFolder> added = const [],
     List<LumideWorkspaceFolder> removed = const [],
     List<LumideWorkspaceFolder> changed = const [],
+    List<LumideWorkspaceFolder> folders = const [],
+    this.reordered = false,
   })  : added = List.unmodifiable(added),
         removed = List.unmodifiable(removed),
-        changed = List.unmodifiable(changed);
+        changed = List.unmodifiable(changed),
+        folders = List.unmodifiable(folders);
 
   factory LumideWorkspaceFoldersChangeEvent.fromJson(
     Map<dynamic, dynamic> json,
@@ -120,6 +124,8 @@ class LumideWorkspaceFoldersChangeEvent {
       added: folders(json['added']),
       removed: folders(json['removed']),
       changed: folders(json['changed']),
+      folders: folders(json['folders']),
+      reordered: json['reordered'] == true,
     );
   }
 
@@ -130,10 +136,20 @@ class LumideWorkspaceFoldersChangeEvent {
   /// changed, with their new label.
   final List<LumideWorkspaceFolder> changed;
 
+  /// Every folder of the workspace after the change, the first folder
+  /// first, as [LumideWorkspace.getWorkspaceFolders] lists them.
+  final List<LumideWorkspaceFolder> folders;
+
+  /// Whether folders that stayed changed places. A reorder alone, with
+  /// nothing added, removed or relabelled, is sent too.
+  final bool reordered;
+
   Map<String, Object?> toJson() => {
         'added': [for (final folder in added) folder.toJson()],
         'removed': [for (final folder in removed) folder.toJson()],
         if (changed.isNotEmpty)
           'changed': [for (final folder in changed) folder.toJson()],
+        'folders': [for (final folder in folders) folder.toJson()],
+        if (reordered) 'reordered': true,
       };
 }

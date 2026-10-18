@@ -932,7 +932,8 @@ abstract class LumideWorkspace {
   }
 
   /// Registers a callback for folders added to or removed from the
-  /// workspace, or whose label changed. The default never calls it.
+  /// workspace, whose label changed, or that changed places. The default
+  /// never calls it.
   LumideDisposable onDidChangeWorkspaceFolders(
     void Function(LumideWorkspaceFoldersChangeEvent event) callback,
   ) =>

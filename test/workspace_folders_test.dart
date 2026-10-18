@@ -87,6 +87,34 @@ void main() {
     expect(events, hasLength(1));
   });
 
+  test('reports every folder in its new order when they move', () async {
+    final harness = RpcHarness.create();
+    final events = <LumideWorkspaceFoldersChangeEvent>[];
+    harness.context.workspace.onDidChangeWorkspaceFolders(events.add);
+
+    harness.host.sendNotification(HostMethods.didChangeWorkspaceFolders, {
+      'folders': [
+        const LumideWorkspaceFolder(uri: 'file:///app', name: 'app').toJson(),
+        const LumideWorkspaceFolder(uri: 'file:///web', name: 'web').toJson(),
+        const LumideWorkspaceFolder(uri: 'file:///api', name: 'api').toJson(),
+      ],
+      'reordered': true,
+      'added': <Object?>[],
+      'removed': <Object?>[],
+      'changed': <Object?>[],
+    });
+    await pumpEventQueue();
+
+    final event = events.single;
+    expect(event.reordered, isTrue);
+    expect(event.folders.map((folder) => folder.name), ['app', 'web', 'api']);
+    expect(event.added, isEmpty);
+    final copy = LumideWorkspaceFoldersChangeEvent.fromJson(event.toJson());
+    expect(copy.reordered, isTrue);
+    expect(copy.folders, event.folders);
+    expect(LumideWorkspaceFoldersChangeEvent.fromJson({}).reordered, isFalse);
+  });
+
   test('custom workspaces get default folder implementations', () async {
     final workspace = _RootOnlyWorkspace();
 
