@@ -150,13 +150,23 @@ abstract class LumideTests {
   ///
   /// [stopCommand] adds a Stop button while the run is in progress. Lumide
   /// executes it with `{'runId': ...}`.
+  ///
+  /// [requestId] is the [requestIdArgument] Lumide adds to the arguments of
+  /// every command it executes to run or debug tests, such as [runCommand],
+  /// [debugCommand] and test lens commands. Pass it on, so the run takes
+  /// the place in the Tests pane it was asked for. Runs Lumide did not ask
+  /// for leave it null.
   Future<LumideTestRun> createRun({
     required String title,
     LumideOutputChannel? output,
     String? runCommand,
     String? debugCommand,
     String? stopCommand,
+    String? requestId,
   });
+
+  /// The command argument that carries the id to pass to [createRun].
+  static const requestIdArgument = 'requestId';
 }
 
 /// A test run created by [LumideTests.createRun].

@@ -2,7 +2,7 @@
 
 ### New features
 - **Inline completions** — `InlineCompletionRequest.instructions` carries a system message for chat models, such as the commit message style to follow when the request is for a commit message. Null for source files.
-- **Tests API** — Add `output`, `runCommand`, `debugCommand`, and `stopCommand` to `tests.createRun` so users can view output, rerun or debug tests, and stop runs from the Tests pane.
+- **Tests API** — Add `output`, `runCommand`, `debugCommand`, and `stopCommand` to `tests.createRun` so users can view output, rerun or debug tests, and stop runs from the Tests pane. Pass the `requestId` argument of the command Lumide ran to `createRun`, so the run takes the place it was asked for.
 - **Coverage** — Add `LumideTestRun.setCoverage` to shade covered and uncovered lines in the editor.
 - **Workspace folders** — Add `workspace.getWorkspaceFolders` and `onDidChangeWorkspaceFolders` for workspaces of several folders. A folder has a `name` (its basename) and the `label` Lumide shows; label changes arrive in `changed`, and every folder in its new order in `folders`, with `reordered` set when folders only moved. `getRootUri` stays the first folder; `findFiles` searches every folder. Both methods have default implementations, and `getWorkspaceFolders` falls back to the root on older Lumide versions.
 - **Folder scope** — Add `workspace.getWorkspaceFolder(uri)` for the folder holding a file, a `folder` argument to `findFiles`, and a `scope` argument to `getConfiguration`: settings that can differ between folders resolve from the settings of the folder holding the scope. `getWorkspaceFolder` has a default implementation and falls back to the folder list on older Lumide versions; `findFiles` keeps only the folder's files there.
@@ -11,7 +11,7 @@
 - **SDK per folder** — `sdks.didChange` takes an optional `workspaceFolder`. Resolve with `workspacePath` set to a folder for that folder's SDK.
 
 ### Breaking changes
-- **Custom implementations** — Custom `LumideTests` and `LumideTestRun` implementations (e.g. test fakes) must accept `debugCommand` and implement `setCoverage`. Custom `LumideWorkspace`, `LumideSdks` and `LumideLanguages` implementations must accept the new optional `scope`, `folder`, `workspaceFolder` and `runsPerFolder` arguments. Callers are unaffected.
+- **Custom implementations** — Custom `LumideTests` and `LumideTestRun` implementations (e.g. test fakes) must accept `debugCommand` and `requestId` and implement `setCoverage`. Custom `LumideWorkspace`, `LumideSdks` and `LumideLanguages` implementations must accept the new optional `scope`, `folder`, `workspaceFolder` and `runsPerFolder` arguments. Callers are unaffected.
 
 ### Fixed
 - Allow several language servers and inline completion providers with sign-in or status checks, and re-registering a provider, without crashing the plugin.

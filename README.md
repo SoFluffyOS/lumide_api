@@ -503,6 +503,24 @@ final run = await context.tests.createRun(
 );
 ```
 
+Every command Lumide runs to run or debug tests, test lens commands too,
+gets a `requestId` argument. Pass it to `createRun`, so the run fills the
+place in the Tests pane it was asked for:
+
+```dart
+await context.commands.registerCommand(
+  id: 'my_plugin.runTests',
+  title: 'Run Tests',
+  callback: ([args]) async {
+    final run = await context.tests.createRun(
+      title: 'All tests',
+      requestId: args?[LumideTests.requestIdArgument] as String?,
+    );
+    // ...
+  },
+);
+```
+
 Send line coverage with `setCoverage`; Lumide shades covered and uncovered
 lines in the editor:
 

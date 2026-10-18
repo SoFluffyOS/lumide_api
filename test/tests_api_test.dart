@@ -111,6 +111,7 @@ void main() {
       runCommand: 'demo.runTests',
       debugCommand: 'demo.debugTests',
       stopCommand: 'demo.stopTests',
+      requestId: 'request-7',
     );
 
     expect(created.single, {
@@ -120,6 +121,7 @@ void main() {
       'runCommand': 'demo.runTests',
       'debugCommand': 'demo.debugTests',
       'stopCommand': 'demo.stopTests',
+      'requestId': 'request-7',
     });
   });
 }

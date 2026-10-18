@@ -2105,6 +2105,7 @@ class _RpcTests implements LumideTests {
     String? runCommand,
     String? debugCommand,
     String? stopCommand,
+    String? requestId,
   }) async {
     final id = 'run-${++_lastRunId}';
     await _session.sendRequest(PluginMethods.testsCreateRun, {
@@ -2114,6 +2115,7 @@ class _RpcTests implements LumideTests {
       if (runCommand != null) 'runCommand': runCommand,
       if (debugCommand != null) 'debugCommand': debugCommand,
       if (stopCommand != null) 'stopCommand': stopCommand,
+      if (requestId != null) 'requestId': requestId,
     });
     return _RpcTestRun(id, _session);
   }
