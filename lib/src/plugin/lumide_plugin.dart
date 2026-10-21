@@ -652,6 +652,12 @@ abstract class LumideLaunch {
   /// Announces that a launch process started.
   Future<void> didStart(LumideLaunchEvent event);
 
+  /// Tells Lumide a started launch is reachable: its
+  /// [LumideLaunchEvent.deviceId] and [LumideLaunchEvent.vmServiceUri] are
+  /// known. Hosts older than 0.25.0 do not have this method; catch the error
+  /// and carry on.
+  Future<void> didAttach(LumideLaunchEvent event);
+
   /// Announces that a launch process ended.
   Future<void> didEnd(LumideLaunchEvent event);
 

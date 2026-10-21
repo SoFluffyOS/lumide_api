@@ -59,6 +59,30 @@ void main() {
     expect(decodedResolution.diagnostics.single.path, r'$.config.deviceId');
   });
 
+  test('launch events carry the device and VM service they attached to', () {
+    const event = LumideLaunchEvent(
+      providerId: 'flutter',
+      kind: LumideLaunchKind.run,
+      configurationId: 'main',
+      deviceId: 'raccoon',
+      vmServiceUri: 'http://127.0.0.1:4000/abc=/',
+    );
+
+    final decoded = LumideLaunchEvent.fromJson(event.toJson());
+
+    expect(decoded.deviceId, 'raccoon');
+    expect(decoded.vmServiceUri, 'http://127.0.0.1:4000/abc=/');
+    expect(
+      LumideLaunchEvent.fromJson(const {
+        'providerId': 'flutter',
+        'kind': 'run',
+        'configurationId': 'main',
+      }).vmServiceUri,
+      isNull,
+      reason: 'older plugins send neither field',
+    );
+  });
+
   test('launch models carry their workspace folder', () {
     const configuration = LumideLaunchConfiguration(
       id: 'main',

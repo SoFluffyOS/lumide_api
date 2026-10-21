@@ -1591,6 +1591,11 @@ class _RpcLaunch implements LumideLaunch {
   }
 
   @override
+  Future<void> didAttach(LumideLaunchEvent event) async {
+    await _session.sendRequest(PluginMethods.launchDidAttach, event.toJson());
+  }
+
+  @override
   void onResolveConfigurations(
     Future<List<LumideLaunchConfiguration>> Function(
       LumideLaunchResolveRequest request,

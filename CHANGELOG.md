@@ -1,3 +1,8 @@
+# Unreleased
+
+### New features
+- **Launch events** — `LumideLaunchEvent.deviceId` and `vmServiceUri`, and `launch.didAttach(event)` to report them once a started launch is reachable. Both fields are optional; hosts before 0.25.0 ignore them and do not have `didAttach`, so catch its error.
+
 # 1.13.0
 
 ### New features

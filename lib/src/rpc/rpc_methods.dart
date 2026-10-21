@@ -61,6 +61,7 @@ class HostMethods {
   static const launchStart = 'launch/start';
   static const launchDidStart = 'launch/onDidStart';
   static const launchDidEnd = 'launch/onDidEnd';
+  static const launchDidAttach = 'launch/onDidAttach';
 
   // SDK providers (IDE → Plugin)
   static const sdkListAvailable = 'sdk/listAvailable';
@@ -217,6 +218,7 @@ class PluginMethods {
   static const launchUnregisterProvider = 'launch/unregisterProvider';
   static const launchDidStart = 'launch/onDidStart';
   static const launchDidEnd = 'launch/onDidEnd';
+  static const launchDidAttach = 'launch/onDidAttach';
 
   // SDKs (Plugin → IDE)
   static const sdkRegisterProvider = 'sdk/registerProvider';
