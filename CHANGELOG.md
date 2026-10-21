@@ -1,4 +1,4 @@
-# Unreleased
+# 1.13.0
 
 ### New features
 - **Inline completions** — `InlineCompletionRequest.instructions` carries a system message for chat models, such as the commit message style to follow when the request is for a commit message. Null for source files.
