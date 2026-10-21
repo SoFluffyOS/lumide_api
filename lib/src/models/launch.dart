@@ -750,6 +750,8 @@ class LumideLaunchEvent {
     this.exitCode,
     this.message,
     this.workspaceFolder,
+    this.deviceId,
+    this.vmServiceUri,
   });
 
   factory LumideLaunchEvent.fromJson(Map<dynamic, dynamic> json) {
@@ -760,6 +762,8 @@ class LumideLaunchEvent {
       exitCode: _nullableIntValue(json['exitCode']),
       message: json['message']?.toString(),
       workspaceFolder: json['workspaceFolder']?.toString(),
+      deviceId: json['deviceId']?.toString(),
+      vmServiceUri: json['vmServiceUri']?.toString(),
     );
   }
 
@@ -774,6 +778,14 @@ class LumideLaunchEvent {
   /// in several folders; Lumide otherwise matches the one it is starting.
   final String? workspaceFolder;
 
+  /// The device the app runs on, as the provider names it (`raccoon`,
+  /// `linux`, an Android serial), when the provider knows it.
+  final String? deviceId;
+
+  /// The Dart VM service the app exposes, when the provider knows it.
+  /// Reported with [LumideLaunch.didAttach], which may come after the start.
+  final String? vmServiceUri;
+
   Map<String, Object?> toJson() {
     return {
       'providerId': providerId,
@@ -782,6 +794,8 @@ class LumideLaunchEvent {
       if (exitCode != null) 'exitCode': exitCode,
       if (message != null) 'message': message,
       if (workspaceFolder != null) 'workspaceFolder': workspaceFolder,
+      if (deviceId != null) 'deviceId': deviceId,
+      if (vmServiceUri != null) 'vmServiceUri': vmServiceUri,
     };
   }
 }
