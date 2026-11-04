@@ -85,6 +85,30 @@ void main() {
     expect(decodedValidation.isValid, isTrue);
   });
 
+  test('installation environment round trips', () {
+    const installation = LumideSdkInstallation(
+      id: 'venv:/work/app/.venv',
+      providerId: 'lumide_python.python',
+      kind: LumideSdkKind('python'),
+      version: '3.13.1',
+      rootPath: '/work/app/.venv',
+      source: LumideSdkSource.system,
+      managerScope: LumideSdkManagerScope.workspace,
+      executables: {'python': 'bin/python'},
+      environment: {'VIRTUAL_ENV': '/work/app/.venv'},
+    );
+
+    final decoded = LumideSdkInstallation.fromJson(installation.toJson());
+
+    expect(decoded.environment, {'VIRTUAL_ENV': '/work/app/.venv'});
+    expect(
+      LumideSdkInstallation.fromJson(const {}).toJson().containsKey(
+            'environment',
+          ),
+      isFalse,
+    );
+  });
+
   test('external manager provenance round trips', () {
     const installation = LumideSdkInstallation(
       id: 'fvm-stable',

@@ -1197,6 +1197,11 @@ abstract class LumideLanguages {
   /// that folder, even when the server handles workspace folders itself.
   /// Servers that don't handle workspace folders run per folder anyway.
   /// Older hosts ignore it.
+  /// [sdk] — the SDK kind the server runs with, such as a provider's
+  /// `python`. Lumide resolves that kind for the server's folder and starts
+  /// the server with the SDK's environment and its executable's directory
+  /// first on `PATH`, and restarts the server when that SDK selection
+  /// changes. Older hosts ignore it.
   Future<void> registerLanguageServer({
     required String id,
     required String languageId,
@@ -1209,6 +1214,7 @@ abstract class LumideLanguages {
     Map<String, String> extensionLanguageMap = const {},
     Map<String, dynamic>? initializationOptions,
     bool runsPerFolder = false,
+    LumideSdkKind? sdk,
     Future<String> Function()? checkStatus,
     Future<Map<String, dynamic>> Function()? signIn,
     Future<void> Function()? signOut,

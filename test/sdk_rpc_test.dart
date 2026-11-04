@@ -39,6 +39,7 @@ void main() {
       'userLanguages': {'astro': 'html'},
     });
     expect(registration?.containsKey('runsPerFolder'), isFalse);
+    expect(registration?.containsKey('sdk'), isFalse);
 
     await context.languages.registerLanguageServer(
       id: 'pyright',
@@ -46,9 +47,11 @@ void main() {
       fileExtensions: const ['.py'],
       command: 'pyright-langserver',
       runsPerFolder: true,
+      sdk: const LumideSdkKind('python'),
     );
 
     expect(registration?['runsPerFolder'], isTrue);
+    expect(registration?['sdk'], 'python');
   });
 
   test('SDK bridge routes every host and provider RPC contract', () async {

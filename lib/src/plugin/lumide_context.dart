@@ -2006,6 +2006,7 @@ class _RpcLanguages implements LumideLanguages {
     Map<String, String> extensionLanguageMap = const {},
     Map<String, dynamic>? initializationOptions,
     bool runsPerFolder = false,
+    LumideSdkKind? sdk,
     Future<String> Function()? checkStatus,
     Future<Map<String, dynamic>> Function()? signIn,
     Future<void> Function()? signOut,
@@ -2031,6 +2032,7 @@ class _RpcLanguages implements LumideLanguages {
       if (initializationOptions != null)
         'initializationOptions': initializationOptions,
       if (runsPerFolder) 'runsPerFolder': true,
+      if (sdk != null) 'sdk': sdk.value,
       'supportsAuth': checkStatus != null || signIn != null || signOut != null,
     });
   }

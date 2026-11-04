@@ -350,6 +350,7 @@ class LumideSdkInstallation {
     this.managerId,
     this.managerScope,
     this.executables = const {},
+    this.environment = const {},
     this.embeddedSdks = const [],
     this.metadata = const {},
   });
@@ -372,6 +373,7 @@ class LumideSdkInstallation {
         json['managerScope']?.toString(),
       ),
       executables: _stringMap(json['executables']),
+      environment: _stringMap(json['environment']),
       embeddedSdks: _mapList(json['embeddedSdks'])
           .map(LumideEmbeddedSdk.fromJson)
           .toList(),
@@ -390,6 +392,11 @@ class LumideSdkInstallation {
   final LumideSdkManagerId? managerId;
   final LumideSdkManagerScope? managerScope;
   final Map<String, String> executables;
+
+  /// Variables set for processes run with this installation, such as a
+  /// Python environment's `VIRTUAL_ENV`. Lumide adds them wherever it uses
+  /// the installation: SDK runs, language servers and terminals.
+  final Map<String, String> environment;
   final List<LumideEmbeddedSdk> embeddedSdks;
   final Map<String, Object?> metadata;
 
@@ -405,6 +412,7 @@ class LumideSdkInstallation {
         if (managerId != null) 'managerId': managerId?.value,
         if (managerScope != null) 'managerScope': managerScope?.name,
         if (executables.isNotEmpty) 'executables': executables,
+        if (environment.isNotEmpty) 'environment': environment,
         if (embeddedSdks.isNotEmpty)
           'embeddedSdks': embeddedSdks.map((sdk) => sdk.toJson()).toList(),
         if (metadata.isNotEmpty) 'metadata': metadata,

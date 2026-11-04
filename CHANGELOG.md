@@ -2,6 +2,8 @@
 
 ### New features
 - **Launch events** — `LumideLaunchEvent.deviceId` and `vmServiceUri`, and `launch.didAttach(event)` to report them once a started launch is reachable. Both fields are optional; hosts before 0.25.0 ignore them and do not have `didAttach`, so catch its error.
+- **Language servers on an SDK** — `languages.registerLanguageServer` takes an optional `sdk` kind. Lumide starts the server with that folder's SDK (its environment, and its executable's directory first on `PATH`) and restarts it when the selection changes. Hosts before 0.25.0 ignore it.
+- **SDK environment** — `LumideSdkInstallation.environment` holds variables for processes run with the installation, such as a Python environment's `VIRTUAL_ENV`. Lumide keeps them when the installation is selected.
 
 # 1.13.0
 
