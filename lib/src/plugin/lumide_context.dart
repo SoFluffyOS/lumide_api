@@ -2007,6 +2007,7 @@ class _RpcLanguages implements LumideLanguages {
     Map<String, dynamic>? initializationOptions,
     bool runsPerFolder = false,
     LumideSdkKind? sdk,
+    List<String> rootMarkers = const [],
     Future<String> Function()? checkStatus,
     Future<Map<String, dynamic>> Function()? signIn,
     Future<void> Function()? signOut,
@@ -2033,6 +2034,7 @@ class _RpcLanguages implements LumideLanguages {
         'initializationOptions': initializationOptions,
       if (runsPerFolder) 'runsPerFolder': true,
       if (sdk != null) 'sdk': sdk.value,
+      if (rootMarkers.isNotEmpty) 'rootMarkers': rootMarkers,
       'supportsAuth': checkStatus != null || signIn != null || signOut != null,
     });
   }

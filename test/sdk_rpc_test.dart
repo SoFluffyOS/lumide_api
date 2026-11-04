@@ -40,6 +40,7 @@ void main() {
     });
     expect(registration?.containsKey('runsPerFolder'), isFalse);
     expect(registration?.containsKey('sdk'), isFalse);
+    expect(registration?.containsKey('rootMarkers'), isFalse);
 
     await context.languages.registerLanguageServer(
       id: 'pyright',
@@ -48,10 +49,12 @@ void main() {
       command: 'pyright-langserver',
       runsPerFolder: true,
       sdk: const LumideSdkKind('python'),
+      rootMarkers: const ['pyproject.toml'],
     );
 
     expect(registration?['runsPerFolder'], isTrue);
     expect(registration?['sdk'], 'python');
+    expect(registration?['rootMarkers'], ['pyproject.toml']);
   });
 
   test('SDK bridge routes every host and provider RPC contract', () async {

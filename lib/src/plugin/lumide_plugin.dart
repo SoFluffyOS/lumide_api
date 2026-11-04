@@ -1202,6 +1202,12 @@ abstract class LumideLanguages {
   /// the server with the SDK's environment and its executable's directory
   /// first on `PATH`, and restarts the server when that SDK selection
   /// changes. Older hosts ignore it.
+  /// [rootMarkers] — names of files or folders that mark a project, such as
+  /// `pyproject.toml`. A file's server then runs at the nearest folder above
+  /// it holding one, within its workspace folder, so a folder of several
+  /// projects runs one server per project, each on that project's SDK.
+  /// Files outside any project use the workspace folder's server. Older
+  /// hosts ignore it.
   Future<void> registerLanguageServer({
     required String id,
     required String languageId,
@@ -1215,6 +1221,7 @@ abstract class LumideLanguages {
     Map<String, dynamic>? initializationOptions,
     bool runsPerFolder = false,
     LumideSdkKind? sdk,
+    List<String> rootMarkers = const [],
     Future<String> Function()? checkStatus,
     Future<Map<String, dynamic>> Function()? signIn,
     Future<void> Function()? signOut,
