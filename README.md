@@ -94,7 +94,7 @@ activation_events:
 Supported events:
 - `onStartup`: Activate immediately on IDE startup.
 - `onCommand:<commandId>`: Activate when a specific command is executed. Declare the command under `contributes.commands` so it appears in the Command Palette before the plugin starts.
-- `workspaceContains:<fileName>`: Activate if the workspace contains a specific file pattern.
+- `workspaceContains:<fileName>`: Activate if the workspace contains a specific file pattern. Start it with `**/` (`workspaceContains:**/pyproject.toml`) to look a few folders deep too, for a folder of several projects.
 - `onSdkProvider:<providerId>`: Activate when the native SDK Manager needs a provider.
 
 ### Keybindings
