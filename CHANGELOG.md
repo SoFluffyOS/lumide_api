@@ -5,6 +5,7 @@
 - **Language servers on an SDK** — `languages.registerLanguageServer` takes an optional `sdk` kind. Lumide starts the server with that folder's SDK (its environment, and its executable's directory first on `PATH`) and restarts it when the selection changes. Hosts before 0.25.0 ignore it.
 - **Language servers per project** — `languages.registerLanguageServer` takes optional `rootMarkers`, such as `pyproject.toml`. A file's server runs at the nearest folder above it holding one, so a folder of several projects runs a server per project, each on its own SDK. Hosts before 0.25.0 ignore it.
 - **Nested activation** — `workspaceContains:**/<pattern>` activates a plugin for a file a few folders deep, not only at the top. Hosts before 0.25.0 look only at the top.
+- **Toolbar overflow** — when the toolbar runs out of room, items with the lowest `priority` move into its overflow menu first, with their icon and label (or tooltip). A tap there arrives through `toolbar.onTap` as usual, at the menu's position. Hosts before 0.25.0 cut them off instead.
 - **SDK environment** — `LumideSdkInstallation.environment` holds variables for processes run with the installation, such as a Python environment's `VIRTUAL_ENV`. Lumide keeps them when the installation is selected.
 
 # 1.13.0

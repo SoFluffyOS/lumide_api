@@ -1109,7 +1109,9 @@ abstract class LumideToolbar {
   /// [icon] is the name of the icon (e.g. 'play', 'stop', 'refresh').
   /// [tooltip] is the text shown on hover.
   /// [alignment] controls horizontal position (defaults to right).
-  /// [priority] controls ordering (higher = further from center).
+  /// [priority] orders items (higher first), and decides which stay when
+  /// the toolbar runs out of room: the lowest go first, into its overflow
+  /// menu.
   Future<void> registerItem({
     required String id,
     required String icon,
