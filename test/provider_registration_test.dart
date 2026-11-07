@@ -99,4 +99,41 @@ void main() {
       isNull,
     );
   });
+
+  test('a completion with a range reaches the host as a next edit', () async {
+    await harness.context.languages.registerInlineCompletionProvider(
+      id: 'edits',
+      displayName: 'Edits',
+      onProvideCompletions: (_) async => const [
+        InlineCompletion(
+          text: 'left',
+          range: InlineCompletionRange(
+            startLine: 3,
+            startColumn: 12,
+            endLine: 3,
+            endColumn: 13,
+          ),
+        ),
+      ],
+    );
+
+    expect(
+      await harness.host.sendRequest(HostMethods.inlineCompletionRequest, {
+        'id': 'edits',
+        'uri': 'file:///point.dart',
+        'line': 1,
+        'column': 4,
+        'documentText': '',
+      }),
+      [
+        {
+          'text': 'left',
+          'range': {
+            'start': {'line': 3, 'character': 12},
+            'end': {'line': 3, 'character': 13},
+          },
+        },
+      ],
+    );
+  });
 }

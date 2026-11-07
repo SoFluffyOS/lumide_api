@@ -1160,11 +1160,47 @@ class InlineCompletionRequest {
 }
 
 /// A single inline completion suggestion returned by a plugin callback provider.
+///
+/// Without a [range] it inserts [text] at the cursor. With one it is a next
+/// edit: [text] replaces the range, which may lie anywhere in the document
+/// and may remove code. Lumide shows an edit near the cursor beside the
+/// code and offers a jump to one further away.
 class InlineCompletion {
-  const InlineCompletion({required this.text});
+  const InlineCompletion({required this.text, this.range});
 
-  /// The text to insert at the cursor position.
+  /// The text to insert at the cursor, or to put in place of [range].
   final String text;
+
+  /// The document text [text] replaces; null to insert at the cursor.
+  final InlineCompletionRange? range;
+
+  /// The completion as the host reads it.
+  Map<String, Object?> toJson() => {
+        'text': text,
+        if (range case final range?) 'range': range.toJson(),
+      };
+}
+
+/// A range of a document, by zero-based lines and columns, as LSP counts
+/// them (UTF-16 code units).
+class InlineCompletionRange {
+  const InlineCompletionRange({
+    required this.startLine,
+    required this.startColumn,
+    required this.endLine,
+    required this.endColumn,
+  });
+
+  final int startLine;
+  final int startColumn;
+  final int endLine;
+  final int endColumn;
+
+  /// The range as LSP writes one: `start` and `end` positions.
+  Map<String, Object?> toJson() => {
+        'start': {'line': startLine, 'character': startColumn},
+        'end': {'line': endLine, 'character': endColumn},
+      };
 }
 
 /// A status bar progress task created by [LumideWindow.createProgress].

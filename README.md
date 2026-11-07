@@ -989,6 +989,19 @@ await context.languages.registerInlineCompletionProvider(
   },
 );
 
+// A next edit: text that replaces a range anywhere in the document.
+// Near the cursor Lumide shows it beside the code; further away, Tab
+// jumps there first.
+InlineCompletion(
+  text: 'final int left;',
+  range: InlineCompletionRange(
+    startLine: 3,
+    startColumn: 2,
+    endLine: 3,
+    endColumn: 14,
+  ),
+);
+
 // Send custom JSON-RPC requests to an active language server
 final response = await context.languages.sendLspRequest(
   'swift-lsp',

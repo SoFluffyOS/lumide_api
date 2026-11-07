@@ -6,6 +6,7 @@
 - **Language servers per project** — `languages.registerLanguageServer` takes optional `rootMarkers`, such as `pyproject.toml`. A file's server runs at the nearest folder above it holding one, so a folder of several projects runs a server per project, each on its own SDK. Hosts before 0.25.0 ignore it.
 - **Nested activation** — `workspaceContains:**/<pattern>` activates a plugin for a file a few folders deep, not only at the top. Hosts before 0.25.0 look only at the top.
 - **Toolbar overflow** — when the toolbar runs out of room, items with the lowest `priority` move into its overflow menu first, with their icon and label (or tooltip). A tap there arrives through `toolbar.onTap` as usual, at the menu's position. Hosts before 0.25.0 cut them off instead.
+- **Next edits** — an `InlineCompletion` may carry a `range`: its `text` then replaces that range, anywhere in the document, and may remove code. Lumide shows an edit near the cursor beside the code and offers Tab to jump to one further away. Hosts before 0.25.0 insert the text at the cursor instead.
 - **SDK environment** — `LumideSdkInstallation.environment` holds variables for processes run with the installation, such as a Python environment's `VIRTUAL_ENV`. Lumide keeps them when the installation is selected.
 
 # 1.13.0

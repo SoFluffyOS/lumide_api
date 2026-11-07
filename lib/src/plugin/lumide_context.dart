@@ -2077,7 +2077,7 @@ class _RpcLanguages implements LumideLanguages {
         instructions: data['instructions'] as String?,
       );
       final completions = await onProvideCompletions(request);
-      return completions.map((c) => {'text': c.text}).toList();
+      return [for (final completion in completions) completion.toJson()];
     });
     _setAuthHandlers(
       id,
