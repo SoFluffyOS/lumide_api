@@ -4,6 +4,7 @@ library;
 import 'package:lumide_api/src/models/configuration_property.dart';
 import 'package:lumide_api/src/models/launch.dart';
 import 'package:lumide_api/src/models/permission.dart';
+import 'package:lumide_api/src/models/project_template.dart';
 import 'package:lumide_api/src/models/sdk.dart';
 import 'package:yaml/yaml.dart';
 
@@ -28,6 +29,7 @@ class LumideManifest {
     this.iconThemes = const [],
     this.fileNestingPatterns = const [],
     this.snippets = const [],
+    this.projectTemplates = const [],
   }) : _executable = executable;
 
   /// Parses a manifest from YAML content.
@@ -126,6 +128,20 @@ class LumideManifest {
                 title: title,
                 category: commandMap['category']?.toString(),
               ));
+            }
+          }
+        }
+      }
+    }
+
+    // Parse contributes.projectTemplates
+    final projectTemplates = <LumideProjectTemplate>[];
+    if (contributes case final YamlMap contributesMap) {
+      if (contributesMap['projectTemplates'] case final YamlList templateList) {
+        for (final item in templateList) {
+          if (item case final YamlMap templateMap) {
+            if (LumideProjectTemplate.fromMap(templateMap) case final parsed?) {
+              projectTemplates.add(parsed);
             }
           }
         }
@@ -344,6 +360,7 @@ class LumideManifest {
       iconThemes: iconThemes,
       fileNestingPatterns: fileNestingPatterns,
       snippets: snippets,
+      projectTemplates: projectTemplates,
       activationEvents: activationEvents,
     );
   }
@@ -383,6 +400,7 @@ class LumideManifest {
         commands.isNotEmpty ||
         launchProviders.isNotEmpty ||
         sdkProviders.isNotEmpty ||
+        projectTemplates.isNotEmpty ||
         uiCapabilities.isNotEmpty) {
       return true;
     }
@@ -429,6 +447,10 @@ class LumideManifest {
   /// SDK providers advertised without requiring plugin activation.
   final List<LumideSdkProviderDescriptor> sdkProviders;
 
+  /// Kinds of project the plugin creates, listed in the New Project dialog
+  /// without starting it.
+  final List<LumideProjectTemplate> projectTemplates;
+
   /// Creates a copy of this manifest with some fields replaced.
   LumideManifest copyWith({
     String? id,
@@ -449,6 +471,7 @@ class LumideManifest {
     List<ManifestKeybinding>? keybindings,
     List<LumideLaunchProvider>? launchProviders,
     List<LumideSdkProviderDescriptor>? sdkProviders,
+    List<LumideProjectTemplate>? projectTemplates,
   }) {
     return LumideManifest(
       id: id ?? this.id,
@@ -469,6 +492,7 @@ class LumideManifest {
       keybindings: keybindings ?? this.keybindings,
       launchProviders: launchProviders ?? this.launchProviders,
       sdkProviders: sdkProviders ?? this.sdkProviders,
+      projectTemplates: projectTemplates ?? this.projectTemplates,
     );
   }
 }

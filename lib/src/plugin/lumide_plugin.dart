@@ -132,6 +132,23 @@ abstract class LumideContext {
 
   /// Test results shown in Lumide's Tests pane.
   LumideTests get tests;
+
+  /// Creating the projects of the plugin's templates.
+  LumideProjects get projects;
+}
+
+/// Creates projects from the templates a plugin declares under
+/// `contributes.projectTemplates`.
+abstract class LumideProjects {
+  /// Handles creating projects from template [templateId]: Lumide calls
+  /// [create] once the user fills in the New Project dialog. Throw to fail,
+  /// with the error's message shown to the user. Register it in `activate`,
+  /// as Lumide starts the plugin with `onProjectTemplate:<templateId>`.
+  void onCreate(
+    String templateId,
+    Future<LumideProjectCreation> Function(LumideProjectCreateRequest request)
+        create,
+  );
 }
 
 /// Reports test runs to Lumide's Tests pane.

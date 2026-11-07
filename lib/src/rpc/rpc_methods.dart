@@ -72,6 +72,10 @@ class HostMethods {
   static const sdkDidChangeSelection = 'sdk/onDidChangeSelection';
   static const sdkActivateProvider = 'sdk/activateProvider';
 
+  // Projects (IDE → Plugin)
+  /// Create a project from one of the plugin's templates.
+  static const projectCreate = 'project/create';
+
   // Debug (IDE → Plugin)
   static const debugLaunch = 'debug/launch';
   static const debugContinue = 'debug/continue';

@@ -58,6 +58,51 @@ class RpcLumideContext implements LumideContext {
 
   @override
   late final LumideTests tests = _RpcTests(_session);
+
+  @override
+  late final LumideProjects projects = _RpcProjects(_session);
+}
+
+class _RpcProjects implements LumideProjects {
+  _RpcProjects(this._session) {
+    _session.registerMethod(HostMethods.projectCreate, (params) async {
+      final request = LumideProjectCreateRequest.fromJson(params.value as Map);
+      final create = _creators[request.templateId];
+      if (create == null) {
+        throw RpcException(
+          rpc_error_code.METHOD_NOT_FOUND,
+          'No project template ${request.templateId}',
+        );
+      }
+
+      try {
+        return (await create(request)).toJson();
+      } on RpcException {
+        rethrow;
+      } catch (error) {
+        throw RpcException(rpc_error_code.SERVER_ERROR, _messageOf(error));
+      }
+    });
+  }
+
+  final RpcSession _session;
+  final _creators = <String,
+      Future<LumideProjectCreation> Function(LumideProjectCreateRequest)>{};
+
+  @override
+  void onCreate(
+    String templateId,
+    Future<LumideProjectCreation> Function(LumideProjectCreateRequest request)
+        create,
+  ) {
+    _creators[templateId] = create;
+  }
+
+  static String _messageOf(Object error) => switch (error) {
+        final Exception exception =>
+          exception.toString().replaceFirst('Exception: ', ''),
+        _ => error.toString(),
+      };
 }
 
 class _RpcFileSystem implements LumideFileSystem {

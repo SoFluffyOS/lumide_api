@@ -1,6 +1,7 @@
 # Unreleased
 
 ### New features
+- **Project templates** — declare `contributes.projectTemplates` in `plugin.yaml`, with `text`, `select`, `multiSelect` and `boolean` fields, and Lumide lists them in its New Project dialog. It starts the plugin with `onProjectTemplate:<id>` and calls `context.projects.onCreate`'s handler with the name, folder and values; while the handler runs, the plugin may write to that folder without a file system permission. Hosts before 0.25.0 ignore templates.
 - **Launch events** — `LumideLaunchEvent.deviceId` and `vmServiceUri`, and `launch.didAttach(event)` to report them once a started launch is reachable. Both fields are optional; hosts before 0.25.0 ignore them and do not have `didAttach`, so catch its error.
 - **Language servers on an SDK** — `languages.registerLanguageServer` takes an optional `sdk` kind. Lumide starts the server with that folder's SDK (its environment, and its executable's directory first on `PATH`) and restarts it when the selection changes. Hosts before 0.25.0 ignore it.
 - **Language servers per project** — `languages.registerLanguageServer` takes optional `rootMarkers`, such as `pyproject.toml`. A file's server runs at the nearest folder above it holding one, so a folder of several projects runs a server per project, each on its own SDK. Hosts before 0.25.0 ignore it.
@@ -8,6 +9,9 @@
 - **Toolbar overflow** — when the toolbar runs out of room, items with the lowest `priority` move into its overflow menu first, with their icon and label (or tooltip). A tap there arrives through `toolbar.onTap` as usual, at the menu's position. Hosts before 0.25.0 cut them off instead.
 - **Next edits** — an `InlineCompletion` may carry a `range`: its `text` then replaces that range, anywhere in the document, and may remove code. Lumide shows an edit near the cursor beside the code and offers Tab to jump to one further away. Hosts before 0.25.0 insert the text at the cursor instead.
 - **SDK environment** — `LumideSdkInstallation.environment` holds variables for processes run with the installation, such as a Python environment's `VIRTUAL_ENV`. Lumide keeps them when the installation is selected.
+
+### Breaking changes
+- **Custom implementations** — custom `LumideContext` implementations (e.g. test fakes) must implement `projects`. Callers are unaffected.
 
 # 1.13.0
 

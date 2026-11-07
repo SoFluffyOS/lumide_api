@@ -96,6 +96,7 @@ Supported events:
 - `onCommand:<commandId>`: Activate when a specific command is executed. Declare the command under `contributes.commands` so it appears in the Command Palette before the plugin starts.
 - `workspaceContains:<fileName>`: Activate if the workspace contains a specific file pattern. Start it with `**/` (`workspaceContains:**/pyproject.toml`) to look a few folders deep too, for a folder of several projects.
 - `onSdkProvider:<providerId>`: Activate when the native SDK Manager needs a provider.
+- `onProjectTemplate:<templateId>`: Activate when the user creates a project from one of your templates.
 
 ### Keybindings
 
@@ -218,6 +219,49 @@ Provider IDs are local in plugin code and are qualified by the host. Cache
 catalog data in `context.workspace.getPluginStorageDir()` so installed SDK
 management remains useful while offline. Never delete external SDK roots;
 Lumide only uninstalls SDKs it installed beneath its managed storage root.
+
+### Project Templates
+
+List the kinds of project you create under `contributes.projectTemplates`. Lumide shows them in its **New Project** dialog without starting your plugin, asks for the name and folder itself, and draws your fields:
+
+```yaml
+activation_events:
+  - onProjectTemplate:my_plugin.app
+contributes:
+  projectTemplates:
+    - id: my_plugin.app
+      name: App
+      description: A starter app
+      group: My Language
+      nameHint: my_app
+      namePattern: '^[a-z][a-z0-9_]*$'
+      nameRule: Use lowercase letters, digits and underscores.
+      fields:
+        - { id: platforms, type: multiSelect, label: Platforms, options: [web, desktop], default: [web, desktop], required: true }
+        - { id: org, type: text, label: Organization, default: com.example, remember: true, note: Can't change after release }
+        - { id: offline, type: boolean, label: Offline, advanced: true }
+```
+
+Field types are `text`, `select`, `multiSelect` (a list of values) and `boolean`. `advanced` folds a field under **More**, and `remember` makes the user's last value the next default. Options are values, or `{ value, label }` maps.
+
+When the user presses **Create**, Lumide starts your plugin with `onProjectTemplate:<id>` and calls your handler. While it runs, you may write to `request.parent` without a file system permission:
+
+```dart
+context.projects.onCreate('my_plugin.app', (request) async {
+  final result = await context.shell.run(
+    'my-tool',
+    ['new', request.name, '--org', request.text('org')],
+    workingDirectory: request.parent,
+  );
+  if (result.exitCode != 0) {
+    throw Exception(result.stderr);
+  }
+
+  return const LumideProjectCreation(openFiles: ['src/main.ext']);
+});
+```
+
+Throw to fail: Lumide shows the error's message in the dialog. Once you return, Lumide initializes Git if asked, opens the folder and your `openFiles`.
 
 ### Workspace
 
