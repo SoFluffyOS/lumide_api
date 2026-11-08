@@ -236,6 +236,7 @@ contributes:
       nameHint: my_app
       namePattern: '^[a-z][a-z0-9_]*$'
       nameRule: Use lowercase letters, digits and underscores.
+      packageName: true
       fields:
         - { id: platforms, type: multiSelect, label: Platforms, options: [web, desktop], default: [web, desktop], required: true }
         - { id: org, type: text, label: Organization, default: com.example, remember: true, note: Can't change after release }
@@ -244,13 +245,15 @@ contributes:
 
 Field types are `text`, `select`, `multiSelect` (a list of values) and `boolean`. `advanced` folds a field under **More**, and `remember` makes the user's last value the next default. Options are values, or `{ value, label }` maps.
 
+`packageName: true` lets the folder and the package have different names. Lumide adds a **Package name** under **More** that follows the name until the user changes it; `namePattern` then checks the package name, and the folder can be called anything. Read it as `request.packageName`, which is `request.name` otherwise.
+
 When the user presses **Create**, Lumide starts your plugin with `onProjectTemplate:<id>` and calls your handler. While it runs, you may write to `request.parent` without a file system permission:
 
 ```dart
 context.projects.onCreate('my_plugin.app', (request) async {
   final result = await context.shell.run(
     'my-tool',
-    ['new', request.name, '--org', request.text('org')],
+    ['new', request.name, '--package', request.packageName],
     workingDirectory: request.parent,
   );
   if (result.exitCode != 0) {

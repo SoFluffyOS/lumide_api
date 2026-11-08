@@ -14,6 +14,7 @@ class LumideProjectTemplate {
     this.nameHint,
     this.namePattern,
     this.nameRule,
+    this.packageName = false,
     this.fields = const [],
   });
 
@@ -34,6 +35,7 @@ class LumideProjectTemplate {
       nameHint: map['nameHint']?.toString(),
       namePattern: map['namePattern']?.toString(),
       nameRule: map['nameRule']?.toString(),
+      packageName: map['packageName'] == true,
       fields: [
         if (map['fields'] case final List<dynamic> fields)
           for (final field in fields)
@@ -69,6 +71,12 @@ class LumideProjectTemplate {
   /// What [namePattern] asks for, shown when the name doesn't match.
   final String? nameRule;
 
+  /// Whether the project's package name may differ from its folder's name.
+  /// Lumide then offers a Package name under More, which follows the name
+  /// until the user changes it. Once it does, [namePattern] checks the
+  /// package name, and the folder only needs a name a folder can have.
+  final bool packageName;
+
   /// What the user fills in besides the name and folder, which Lumide asks
   /// for itself.
   final List<LumideProjectTemplateField> fields;
@@ -81,6 +89,7 @@ class LumideProjectTemplate {
         if (nameHint != null) 'nameHint': nameHint,
         if (namePattern != null) 'namePattern': namePattern,
         if (nameRule != null) 'nameRule': nameRule,
+        if (packageName) 'packageName': true,
         if (fields.isNotEmpty)
           'fields': [for (final field in fields) field.toJson()],
       };
@@ -273,8 +282,9 @@ class LumideProjectCreateRequest {
     required this.name,
     required this.parent,
     required this.path,
+    String? packageName,
     this.values = const {},
-  });
+  }) : packageName = packageName ?? name;
 
   factory LumideProjectCreateRequest.fromJson(Map<dynamic, dynamic> json) =>
       LumideProjectCreateRequest(
@@ -282,6 +292,7 @@ class LumideProjectCreateRequest {
         name: json['name'].toString(),
         parent: json['parent'].toString(),
         path: json['path'].toString(),
+        packageName: json['packageName']?.toString(),
         values: switch (json['values']) {
           final Map<dynamic, dynamic> values => {
               for (final MapEntry(:key, :value) in values.entries)
@@ -294,9 +305,15 @@ class LumideProjectCreateRequest {
   /// The template's id.
   final String templateId;
 
-  /// The project's name, as the user typed it and the template's
-  /// `namePattern` allows.
+  /// The project's name, as the user typed it: its folder's name. The
+  /// template's `namePattern` allows it, unless the user set a different
+  /// [packageName].
   final String name;
+
+  /// The project's package name, which the template's `namePattern`
+  /// allows: [name], unless the template declares `packageName` and the
+  /// user set another.
+  final String packageName;
 
   /// The folder the project goes in. The plugin may write here, and in
   /// [path], while it creates the project, without a file system
@@ -327,6 +344,7 @@ class LumideProjectCreateRequest {
         'name': name,
         'parent': parent,
         'path': path,
+        'packageName': packageName,
         'values': values,
       };
 }

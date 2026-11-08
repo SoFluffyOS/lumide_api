@@ -19,6 +19,7 @@ contributes:
       nameHint: my_app
       namePattern: '^[a-z][a-z0-9_]*\$'
       nameRule: Lowercase letters, digits and underscores
+      packageName: true
       fields:
         - id: platforms
           type: multiSelect
@@ -57,6 +58,8 @@ contributes:
     expect(template.group, 'Flutter');
     expect(template.nameHint, 'my_app');
     expect(RegExp(template.namePattern ?? '').hasMatch('my_app'), isTrue);
+    expect(template.packageName, isTrue);
+    expect(template.toJson()['packageName'], isTrue);
     expect([
       for (final field in template.fields) field.id
     ], [
@@ -97,7 +100,8 @@ contributes:
       'templateId': 'flutter.app',
       'name': 'my_app',
       'parent': '/projects',
-      'path': '/projects/my_app',
+      'path': '/projects/My App',
+      'packageName': 'my_app',
       'values': {
         'platforms': ['ios'],
         'org': 'dev.lumide',
@@ -108,11 +112,24 @@ contributes:
     expect(result, {
       'openFiles': ['lib/main.dart'],
     });
-    expect(received?.path, '/projects/my_app');
+    expect(received?.path, '/projects/My App');
+    expect(received?.packageName, 'my_app');
     expect(received?.choices('platforms'), ['ios']);
     expect(received?.text('org'), 'dev.lumide');
     expect(received?.flag('offline'), isTrue);
     expect(received?.text('missing'), '');
+  });
+
+  test('the package name is the name, unless the user set another', () {
+    expect(
+      LumideProjectCreateRequest.fromJson({
+        'templateId': 'flutter.app',
+        'name': 'my_app',
+        'parent': '/projects',
+        'path': '/projects/my_app',
+      }).packageName,
+      'my_app',
+    );
   });
 
   test("a failed creation reaches the host as the error's message", () async {
