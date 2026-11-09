@@ -727,6 +727,19 @@ class _RpcWindow implements LumideWindow {
   @override
   LumideDisposable onDidChangeFocus(void Function(bool focused) callback) =>
       _focusListeners.add(callback);
+
+  @override
+  Future<bool> isFocused() async {
+    try {
+      return await _session.sendRequest(PluginMethods.windowIsFocused) != false;
+    } on RpcException catch (error) {
+      if (error.code != rpc_error_code.METHOD_NOT_FOUND) {
+        rethrow;
+      }
+
+      return true;
+    }
+  }
 }
 
 class _RpcWebviewPanel implements LumideWebviewPanel {

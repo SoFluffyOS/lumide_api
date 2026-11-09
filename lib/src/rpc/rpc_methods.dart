@@ -147,6 +147,9 @@ class PluginMethods {
   /// subscription.
   static const windowSetFocusSubscription = 'window/setFocusSubscription';
 
+  /// Whether Lumide's window is in front now.
+  static const windowIsFocused = 'window/isFocused';
+
   // Webview API
   static const webviewPostMessage = 'webview/postMessage';
   static const webviewOnDidReceiveMessage = 'webview/onDidReceiveMessage';

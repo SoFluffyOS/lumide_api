@@ -549,10 +549,14 @@ abstract class LumideWindow {
 
   /// Registers a callback for when Lumide's window comes to the front
   /// ([focused] true) or goes to the back. Lumide only sends changes to the
-  /// plugin while at least one listener is registered. The default never
-  /// calls it.
+  /// plugin while at least one listener is registered; [isFocused] reads
+  /// the current value. The default never calls it.
   LumideDisposable onDidChangeFocus(void Function(bool focused) callback) =>
       LumideDisposable(() {});
+
+  /// Whether Lumide's window is in front now. Hosts before 0.25.0, and the
+  /// default, answer true.
+  Future<bool> isFocused() async => true;
 }
 
 /// A terminal instance in the IDE.

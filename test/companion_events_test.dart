@@ -200,6 +200,19 @@ void main() {
     expect(subscriptions, [true, false]);
   });
 
+  test('isFocused asks the host', () async {
+    final harness = RpcHarness.create();
+    harness.host.registerMethod(PluginMethods.windowIsFocused, (_) => false);
+
+    expect(await harness.context.window.isFocused(), isFalse);
+  });
+
+  test('isFocused is true on hosts that do not know it', () async {
+    final harness = RpcHarness.create();
+
+    expect(await harness.context.window.isFocused(), isTrue);
+  });
+
   test('subscriptions are ignored by hosts that do not know them', () async {
     final harness = RpcHarness.create();
 

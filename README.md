@@ -492,6 +492,8 @@ Hear when Lumide's window comes to the front or goes to the back:
 context.window.onDidChangeFocus((focused) {
   if (!focused) startDozing();
 });
+
+final focused = await context.window.isFocused();
 ```
 
 ### Progress
