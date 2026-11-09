@@ -144,8 +144,22 @@ class _RpcAgents implements LumideAgents {
 
     return [
       for (final agent in result as List? ?? const [])
-        LumideAgent.fromJson(agent as Map),
+        if (_agentOrNull(agent) case final agent?) agent,
     ];
+  }
+
+  /// A newer or broken host's entry this SDK cannot read is skipped, so the
+  /// others still arrive.
+  static LumideAgent? _agentOrNull(Object? json) {
+    if (json is! Map) {
+      return null;
+    }
+
+    try {
+      return LumideAgent.fromJson(json);
+    } on FormatException {
+      return null;
+    }
   }
 
   @override

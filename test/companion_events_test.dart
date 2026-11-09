@@ -93,6 +93,39 @@ void main() {
       expect(agents.last.workspaceFolder, isNull);
     });
 
+    test('values from newer hosts read as unknown', () async {
+      final harness = RpcHarness.create();
+      harness.host.registerMethod(PluginMethods.agentsGetAgents, (_) {
+        return [
+          {'id': 'chat:2', 'kind': 'remote', 'state': 'compacting'},
+          {'name': 'No id'},
+          'not an agent',
+          agent.toJson(),
+        ];
+      });
+      final events = <LumideAgentStateEvent>[];
+      harness.context.agents.onDidChangeState(events.add);
+      await pumpEventQueue();
+
+      final agents = await harness.context.agents.getAgents();
+      harness.host
+        ..sendNotification(HostMethods.agentsDidChangeState, {
+          'agent': {'id': 'chat:2', 'kind': 'chat', 'state': 'compacting'},
+          'previousState': 'paused',
+        })
+        ..sendNotification(HostMethods.agentsDidChangeState, {
+          'agent': {'id': 'chat:3', 'kind': 'chat', 'state': 'working'},
+        });
+      await pumpEventQueue();
+
+      expect(agents.map((agent) => agent.id), ['chat:2', 'chat:1']);
+      expect(agents.first.kind, LumideAgentKind.unknown);
+      expect(agents.first.state, LumideAgentState.unknown);
+      expect(events.first.agent.state, LumideAgentState.unknown);
+      expect(events.first.previousState, LumideAgentState.unknown);
+      expect(events.last.previousState, isNull);
+    });
+
     test('getAgents is empty on hosts without agents', () async {
       final harness = RpcHarness.create();
 
@@ -135,6 +168,11 @@ void main() {
     expect(summaries.first.workspaceFolder, 'file:///work/app');
     expect(summaries.first.trigger, LumideTestRunTrigger.rerunOnSave);
     expect(summaries.last.trigger, isNull);
+    expect(
+      LumideTestRunSummary.fromJson({'title': 'later', 'trigger': 'schedule'})
+          .trigger,
+      LumideTestRunTrigger.unknown,
+    );
 
     listener.dispose();
     await pumpEventQueue();

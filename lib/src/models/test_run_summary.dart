@@ -8,6 +8,9 @@ enum LumideTestRunTrigger {
 
   /// An agent, through Lumide's `run_tests` tool.
   agent,
+
+  /// A trigger a newer Lumide reports that this SDK does not know yet.
+  unknown,
 }
 
 /// A test run that ended in Lumide's Tests pane, from any plugin.
@@ -22,16 +25,20 @@ class LumideTestRunSummary {
   });
 
   factory LumideTestRunSummary.fromJson(Map<dynamic, dynamic> json) {
-    final triggerName = json['trigger'] as String?;
+    final triggerName = json['trigger'];
     return LumideTestRunSummary(
       title: json['title'] as String? ?? '',
       passed: (json['passed'] as num?)?.toInt() ?? 0,
       failed: (json['failed'] as num?)?.toInt() ?? 0,
       skipped: (json['skipped'] as num?)?.toInt() ?? 0,
       workspaceFolder: json['workspaceFolder'] as String?,
-      trigger: LumideTestRunTrigger.values
-          .where((trigger) => trigger.name == triggerName)
-          .firstOrNull,
+      trigger: switch (triggerName) {
+        null => null,
+        _ => LumideTestRunTrigger.values
+                .where((trigger) => trigger.name == triggerName)
+                .firstOrNull ??
+            LumideTestRunTrigger.unknown,
+      },
     );
   }
 
@@ -50,7 +57,8 @@ class LumideTestRunSummary {
   final String? workspaceFolder;
 
   /// What started the run; null for runs Lumide did not ask for, such as
-  /// one a plugin started on its own.
+  /// one a plugin started on its own; `unknown` for a trigger this SDK
+  /// does not know.
   final LumideTestRunTrigger? trigger;
 
   Map<String, Object?> toJson() => {

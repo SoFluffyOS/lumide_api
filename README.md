@@ -593,7 +593,7 @@ await run.setCoverage([
 Hear when any run in the Tests pane ends, whichever plugin reported it.
 The counts are the Tests pane's; `trigger` says whether the user, Rerun on
 Save or an agent started it, and is null for runs a plugin started on its
-own:
+own (`unknown` for a trigger from a newer Lumide):
 
 ```dart
 context.tests.onDidEndRun((summary) {
@@ -624,8 +624,10 @@ final agents = await context.agents.getAgents();
 ```
 
 Only Agent Chats whose agent reports it carry `tokenUsage`; terminal agents
-never do. A terminal agent waits after it rings the bell, until the user
-types in its terminal.
+never do. A terminal agent counts as done until it prints after the user
+types, and waits after it rings the bell, until the user types in its
+terminal. A newer Lumide may report states and kinds this SDK does not
+know: they read as `unknown`, so keep a `default` in your switches.
 
 ### Toolbar
 

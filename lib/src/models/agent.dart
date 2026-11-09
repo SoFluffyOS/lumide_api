@@ -5,6 +5,9 @@ enum LumideAgentKind {
 
   /// A coding agent's program in a terminal, such as `claude`.
   terminal,
+
+  /// A kind a newer Lumide reports that this SDK does not know yet.
+  unknown,
 }
 
 /// What a [LumideAgent] is doing.
@@ -25,7 +28,13 @@ enum LumideAgentState {
 
   /// Its chat closed, or its program exited.
   ended,
+
+  /// A state a newer Lumide reports that this SDK does not know yet.
+  unknown,
 }
+
+T _enumByName<T extends Enum>(List<T> values, Object? name, T unknown) =>
+    values.where((value) => value.name == name).firstOrNull ?? unknown;
 
 /// The context window an Agent Chat's session uses, as its agent reports
 /// it.
@@ -78,19 +87,26 @@ class LumideAgent {
     this.tokenUsage,
   });
 
+  /// Reads an agent a host sent. Kinds and states this SDK does not know
+  /// read as `unknown`. Throws a [FormatException] without an `id`.
   factory LumideAgent.fromJson(Map<dynamic, dynamic> json) {
-    final kindName = json['kind'] as String?;
-    final stateName = json['state'] as String?;
+    final id = json['id'];
+    if (id is! String) {
+      throw FormatException('An agent needs an id', json);
+    }
+
     return LumideAgent(
-      id: json['id'] as String,
+      id: id,
       name: json['name'] as String? ?? 'Agent',
-      kind: LumideAgentKind.values.firstWhere(
-        (kind) => kind.name == kindName,
-        orElse: () => LumideAgentKind.chat,
+      kind: _enumByName(
+        LumideAgentKind.values,
+        json['kind'],
+        LumideAgentKind.unknown,
       ),
-      state: LumideAgentState.values.firstWhere(
-        (state) => state.name == stateName,
-        orElse: () => LumideAgentState.working,
+      state: _enumByName(
+        LumideAgentState.values,
+        json['state'],
+        LumideAgentState.unknown,
       ),
       title: json['title'] as String? ?? '',
       workspaceFolder: json['workspaceFolder'] as String?,
@@ -138,18 +154,24 @@ class LumideAgentStateEvent {
   const LumideAgentStateEvent({required this.agent, this.previousState});
 
   factory LumideAgentStateEvent.fromJson(Map<dynamic, dynamic> json) {
-    final previousName = json['previousState'] as String?;
+    final previousName = json['previousState'];
     return LumideAgentStateEvent(
       agent: LumideAgent.fromJson(json['agent'] as Map),
-      previousState: LumideAgentState.values
-          .where((state) => state.name == previousName)
-          .firstOrNull,
+      previousState: switch (previousName) {
+        null => null,
+        _ => _enumByName(
+            LumideAgentState.values,
+            previousName,
+            LumideAgentState.unknown,
+          ),
+      },
     );
   }
 
   final LumideAgent agent;
 
-  /// Its state before, or null for an agent Lumide had not reported yet.
+  /// Its state before, or null for an agent Lumide had not reported yet;
+  /// `unknown` for a state this SDK does not know.
   final LumideAgentState? previousState;
 
   Map<String, Object?> toJson() => {
