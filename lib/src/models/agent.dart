@@ -20,7 +20,8 @@ enum LumideAgentState {
   /// notification, until the user types in its terminal.
   waitingForInput,
 
-  /// Its turn finished, or it has not started one yet.
+  /// Its turn finished, or it has not started one yet. A terminal agent is
+  /// done until it prints after the user submits a line with Enter.
   done,
 
   /// Its connection or session failed.

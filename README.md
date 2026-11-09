@@ -626,9 +626,9 @@ final agents = await context.agents.getAgents();
 ```
 
 Only Agent Chats whose agent reports it carry `tokenUsage`; terminal agents
-never do. A terminal agent counts as done until it prints after the user
-types, and waits after it rings the bell, until the user types in its
-terminal. A newer Lumide may report states and kinds this SDK does not
+never do. A terminal agent is done until it prints after the user submits
+a line with Enter, and waits after it rings the bell or sends a
+notification, until the user types in its terminal. A newer Lumide may report states and kinds this SDK does not
 know: they read as `unknown`, so keep a `default` in your switches.
 
 ### Toolbar
