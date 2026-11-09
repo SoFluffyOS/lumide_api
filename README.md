@@ -14,7 +14,7 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Editor API**: Access active editor, selections, navigate to locations, and handle real-time events.
 - **Workspace API**: Access configurations, get workspace root, get private plugin storage, find files by glob, and listen to document edits, saves, and file changes. Every listener returns a `LumideDisposable`.
 - **FileSystem API**: Secure file operations within the workspace, including directory creation and checks.
-- **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs, file/folder pickers) and cancellable status bar progress.
+- **Window API**: UI interactions (messages with titles, quick picks, input boxes, confirm dialogs, file/folder pickers), cancellable status bar progress, and window focus changes.
 - **Shell & HTTP APIs**: Controlled execution of shell commands (working directory, environment, stdin, signals) and standardized network requests.
 - **Toolbar API**: Add custom buttons to the IDE toolbar.
 - **Context Menu API**: Add actions to Add Pane, file tree, tab bar, and editor context menus with grouped sections.
@@ -24,7 +24,8 @@ The official SDK for building plugins for [Lumide IDE](https://lumide.dev).
 - **Plugin manifests**: Mark declarative asset-only plugins as non-executable with `executable: false`; otherwise, process needs are inferred from the manifest.
 - **Snippet Contributions**: Contribute TextMate-compatible snippets for one or more languages without starting a plugin process.
 - **Debug API**: Start debugger sessions, synchronize breakpoints (with conditions and log messages), inspect stack frames/scopes/variables, evaluate expressions, and control exception pause mode.
-- **Tests API**: Report test runs to Lumide's Tests pane.
+- **Tests API**: Report test runs to Lumide's Tests pane, and hear when any run ends.
+- **Agents API**: Follow the coding agents Lumide runs, Agent Chats and terminal agents: working, waiting for input, done, failed or ended.
 - **SDK Provider API**: Contribute SDK catalogs, discovery, validation, install plans, workspace resolution, and host-validated execution, including long-running processes.
 
 ## Getting Started
@@ -485,6 +486,14 @@ final folderPath = await context.window.showOpenFolderDialog(
 );
 ```
 
+Hear when Lumide's window comes to the front or goes to the back:
+
+```dart
+context.window.onDidChangeFocus((focused) {
+  if (!focused) startDozing();
+});
+```
+
 ### Progress
 
 Show long-running work in the status bar. `withProgress` ends the task even
@@ -580,6 +589,43 @@ await run.setCoverage([
   ),
 ]);
 ```
+
+Hear when any run in the Tests pane ends, whichever plugin reported it.
+The counts are the Tests pane's; `trigger` says whether the user, Rerun on
+Save or an agent started it, and is null for runs a plugin started on its
+own:
+
+```dart
+context.tests.onDidEndRun((summary) {
+  if (summary.failed > 0) showSadFace();
+});
+```
+
+### Agents
+
+Follow the coding agents running in Lumide: Agent Chats, and agents such
+as Claude Code running in a terminal. An event arrives when an agent starts
+working, waits for input, finishes, fails or ends:
+
+```dart
+context.agents.onDidChangeState((event) {
+  final agent = event.agent;
+  switch (agent.state) {
+    case LumideAgentState.waitingForInput:
+      showBubble('${agent.name} needs you');
+    case LumideAgentState.done:
+      gainXp(agent.tokenUsage?.used ?? 0);
+    default:
+      break;
+  }
+});
+
+final agents = await context.agents.getAgents();
+```
+
+Only Agent Chats whose agent reports it carry `tokenUsage`; terminal agents
+never do. A terminal agent waits after it rings the bell, until the user
+types in its terminal.
 
 ### Toolbar
 

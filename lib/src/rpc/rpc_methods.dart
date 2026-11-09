@@ -53,6 +53,15 @@ class HostMethods {
   /// Sent when the user cancels a cancellable progress task.
   static const windowCancelProgress = 'window/cancelProgress';
 
+  /// Lumide's window came to the front or went to the back.
+  static const windowDidChangeFocus = 'window/didChangeFocus';
+
+  /// An agent's state changed.
+  static const agentsDidChangeState = 'agents/didChangeState';
+
+  /// A test run in the Tests pane ended.
+  static const testsDidEndRun = 'tests/didEndRun';
+
   // Debug (IDE → Plugin)
   static const launchResolveConfigurations = 'launch/resolveConfigurations';
   static const launchResolveConfiguration = 'launch/resolveConfiguration';
@@ -134,6 +143,10 @@ class PluginMethods {
   static const windowShowOpenDialog = 'window/showOpenDialog';
   static const windowShowOpenFolderDialog = 'window/showOpenFolderDialog';
 
+  /// Enables or disables `window/didChangeFocus`, like the document change
+  /// subscription.
+  static const windowSetFocusSubscription = 'window/setFocusSubscription';
+
   // Webview API
   static const webviewPostMessage = 'webview/postMessage';
   static const webviewOnDidReceiveMessage = 'webview/onDidReceiveMessage';
@@ -165,6 +178,17 @@ class PluginMethods {
   static const testsUpdateRun = 'tests/updateRun';
   static const testsEndRun = 'tests/endRun';
   static const testsSetCoverage = 'tests/setCoverage';
+
+  /// Enables or disables `tests/didEndRun`, like the document change
+  /// subscription.
+  static const testsSetRunEndSubscription = 'tests/setRunEndSubscription';
+
+  // Agents
+  static const agentsGetAgents = 'agents/getAgents';
+
+  /// Enables or disables `agents/didChangeState`, like the document change
+  /// subscription.
+  static const agentsSetStateSubscription = 'agents/setStateSubscription';
 
   // Progress
   static const windowCreateProgress = 'window/createProgress';

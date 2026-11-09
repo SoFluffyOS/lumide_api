@@ -1,3 +1,4 @@
+export 'agent.dart';
 export 'configuration_property.dart';
 export 'debug_breakpoint.dart';
 export 'debug_capabilities.dart';
@@ -21,4 +22,5 @@ export 'project_template.dart';
 export 'sdk.dart';
 export 'test_coverage.dart';
 export 'test_result.dart';
+export 'test_run_summary.dart';
 export 'workspace_folder.dart';

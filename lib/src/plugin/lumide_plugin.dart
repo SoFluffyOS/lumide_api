@@ -135,6 +135,26 @@ abstract class LumideContext {
 
   /// Creating the projects of the plugin's templates.
   LumideProjects get projects;
+
+  /// The coding agents running in Lumide and their states.
+  LumideAgents get agents;
+}
+
+/// Follows the coding agents running in Lumide: Agent Chats and agents
+/// running in terminals, such as Claude Code.
+abstract class LumideAgents {
+  /// Every agent of the window, chats first. Hosts before 0.25.0 have
+  /// none.
+  Future<List<LumideAgent>> getAgents();
+
+  /// Registers a callback for when an agent starts working, waits on the
+  /// user, finishes, fails or ends. A chat opened but not started yet is
+  /// only reported once it starts; [getAgents] lists it. Title and token
+  /// usage changes alone are not reported. Lumide only tracks agents for
+  /// the plugin while at least one listener is registered.
+  LumideDisposable onDidChangeState(
+    void Function(LumideAgentStateEvent event) callback,
+  );
 }
 
 /// Creates projects from the templates a plugin declares under
@@ -184,6 +204,15 @@ abstract class LumideTests {
 
   /// The command argument that carries the id to pass to [createRun].
   static const requestIdArgument = 'requestId';
+
+  /// Registers a callback for when a test run in the Tests pane ends,
+  /// whichever plugin reported it. Its counts are the Tests pane's. Lumide
+  /// only sends runs to the plugin while at least one listener is
+  /// registered. The default never calls it.
+  LumideDisposable onDidEndRun(
+    void Function(LumideTestRunSummary summary) callback,
+  ) =>
+      LumideDisposable(() {});
 }
 
 /// A test run created by [LumideTests.createRun].
@@ -517,6 +546,13 @@ abstract class LumideWindow {
     String? title,
     String? defaultPath,
   });
+
+  /// Registers a callback for when Lumide's window comes to the front
+  /// ([focused] true) or goes to the back. Lumide only sends changes to the
+  /// plugin while at least one listener is registered. The default never
+  /// calls it.
+  LumideDisposable onDidChangeFocus(void Function(bool focused) callback) =>
+      LumideDisposable(() {});
 }
 
 /// A terminal instance in the IDE.

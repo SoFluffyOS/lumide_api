@@ -61,6 +61,98 @@ class RpcLumideContext implements LumideContext {
 
   @override
   late final LumideProjects projects = _RpcProjects(_session);
+
+  @override
+  late final LumideAgents agents = _RpcAgents(_session);
+}
+
+/// Listeners of a host event that Lumide only sends while a plugin listens:
+/// the first listener turns [subscriptionMethod] on, and disposing the last
+/// turns it off.
+class _SubscribedListeners<T> {
+  _SubscribedListeners(
+    this._session, {
+    required String subscriptionMethod,
+    required String eventMethod,
+    required T Function(Object? params) parse,
+  }) : _subscriptionMethod = subscriptionMethod {
+    _session.registerNotificationHandler(eventMethod, (params) {
+      final event = parse(params.value);
+      for (final callback in [..._callbacks]) {
+        callback(event);
+      }
+    });
+  }
+
+  final RpcSession _session;
+  final String _subscriptionMethod;
+  final _callbacks = <void Function(T)>[];
+
+  LumideDisposable add(void Function(T event) callback) {
+    final isFirstListener = _callbacks.isEmpty;
+    final registration = addListener(_callbacks, callback);
+    if (isFirstListener) {
+      _setSubscription(enabled: true);
+    }
+
+    return LumideDisposable(() {
+      registration.dispose();
+      if (_callbacks.isNotEmpty) {
+        return;
+      }
+
+      _setSubscription(enabled: false);
+    });
+  }
+
+  /// Hosts before 0.25.0 do not know the request and never send the event,
+  /// so failures are ignored.
+  void _setSubscription({required bool enabled}) {
+    unawaited(
+      _session
+          .sendRequest(_subscriptionMethod, {'enabled': enabled}).catchError(
+        (Object _) => null,
+      ),
+    );
+  }
+}
+
+class _RpcAgents implements LumideAgents {
+  _RpcAgents(this._session)
+      : _stateListeners = _SubscribedListeners(
+          _session,
+          subscriptionMethod: PluginMethods.agentsSetStateSubscription,
+          eventMethod: HostMethods.agentsDidChangeState,
+          parse: (params) => LumideAgentStateEvent.fromJson(params as Map),
+        );
+
+  final RpcSession _session;
+  final _SubscribedListeners<LumideAgentStateEvent> _stateListeners;
+
+  @override
+  Future<List<LumideAgent>> getAgents() async {
+    final Object? result;
+    try {
+      result = await _session.sendRequest(PluginMethods.agentsGetAgents);
+    } on RpcException catch (error) {
+      if (error.code != rpc_error_code.METHOD_NOT_FOUND) {
+        rethrow;
+      }
+
+      return const [];
+    }
+
+    return [
+      for (final agent in result as List? ?? const [])
+        LumideAgent.fromJson(agent as Map),
+    ];
+  }
+
+  @override
+  LumideDisposable onDidChangeState(
+    void Function(LumideAgentStateEvent event) callback,
+  ) =>
+      _stateListeners.add(callback);
 }
 
 class _RpcProjects implements LumideProjects {
@@ -403,6 +495,12 @@ class _RpcWindow implements LumideWindow {
   final RpcSession _session;
   final _terminals = <String, _RpcTerminal>{};
   final _webviewPanels = <String, _RpcWebviewPanel>{};
+  late final _focusListeners = _SubscribedListeners<bool>(
+    _session,
+    subscriptionMethod: PluginMethods.windowSetFocusSubscription,
+    eventMethod: HostMethods.windowDidChangeFocus,
+    parse: (params) => (params as Map)['focused'] == true,
+  );
 
   @override
   Future<void> showMessage(String message,
@@ -611,6 +709,10 @@ class _RpcWindow implements LumideWindow {
     });
     return result as String?;
   }
+
+  @override
+  LumideDisposable onDidChangeFocus(void Function(bool focused) callback) =>
+      _focusListeners.add(callback);
 }
 
 class _RpcWebviewPanel implements LumideWebviewPanel {
@@ -2147,10 +2249,23 @@ class _RpcLanguages implements LumideLanguages {
 }
 
 class _RpcTests implements LumideTests {
-  _RpcTests(this._session);
+  _RpcTests(this._session)
+      : _runEndListeners = _SubscribedListeners(
+          _session,
+          subscriptionMethod: PluginMethods.testsSetRunEndSubscription,
+          eventMethod: HostMethods.testsDidEndRun,
+          parse: (params) => LumideTestRunSummary.fromJson(params as Map),
+        );
 
   final RpcSession _session;
+  final _SubscribedListeners<LumideTestRunSummary> _runEndListeners;
   int _lastRunId = 0;
+
+  @override
+  LumideDisposable onDidEndRun(
+    void Function(LumideTestRunSummary summary) callback,
+  ) =>
+      _runEndListeners.add(callback);
 
   @override
   Future<LumideTestRun> createRun({
