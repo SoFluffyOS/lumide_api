@@ -800,6 +800,89 @@ class LumideLaunchEvent {
   }
 }
 
+/// Request sent when the host asks a provider to hot reload, or hot restart,
+/// one of its running launches.
+///
+/// The launch is named as the provider's [LumideLaunchEvent]s name it: by
+/// [providerId], [kind], [configurationId] and, when the host knows it,
+/// [workspaceFolder].
+class LumideLaunchReloadRequest {
+  const LumideLaunchReloadRequest({
+    required this.providerId,
+    required this.kind,
+    required this.configurationId,
+    this.workspaceFolder,
+    this.fullRestart = false,
+  });
+
+  factory LumideLaunchReloadRequest.fromJson(Map<dynamic, dynamic> json) {
+    return LumideLaunchReloadRequest(
+      providerId: json['providerId']?.toString() ?? '',
+      kind: LumideLaunchKind.fromName(json['kind']?.toString()),
+      configurationId: json['configurationId']?.toString() ?? '',
+      workspaceFolder: json['workspaceFolder']?.toString(),
+      fullRestart: json['fullRestart'] == true,
+    );
+  }
+
+  final String providerId;
+  final LumideLaunchKind kind;
+  final String configurationId;
+
+  /// The folder the launch runs in, as in [LumideLaunchEvent.workspaceFolder];
+  /// null when the host does not know it.
+  final String? workspaceFolder;
+
+  /// Restart the app, losing its state, rather than reload its code.
+  final bool fullRestart;
+
+  Map<String, Object?> toJson() {
+    return {
+      'providerId': providerId,
+      'kind': kind.name,
+      'configurationId': configurationId,
+      if (workspaceFolder != null) 'workspaceFolder': workspaceFolder,
+      'fullRestart': fullRestart,
+    };
+  }
+}
+
+/// How a reload or restart asked with [LumideLaunchReloadRequest] went.
+class LumideLaunchReloadResult {
+  const LumideLaunchReloadResult({
+    required this.ok,
+    this.message = '',
+    this.errors = const [],
+  });
+
+  factory LumideLaunchReloadResult.fromJson(Map<dynamic, dynamic> json) {
+    return LumideLaunchReloadResult(
+      ok: json['ok'] == true,
+      message: json['message']?.toString() ?? '',
+      errors: _stringList(json['errors']),
+    );
+  }
+
+  /// Whether the app runs the new code now.
+  final bool ok;
+
+  /// What the tool reported, such as `Reloaded 3 of 812 libraries`, or why
+  /// it failed: `Reload rejected: …`, or that no such launch runs.
+  final String message;
+
+  /// The errors the tool logged while reloading, such as compile errors,
+  /// each with its file and line where the tool gave them.
+  final List<String> errors;
+
+  Map<String, Object?> toJson() {
+    return {
+      'ok': ok,
+      if (message.isNotEmpty) 'message': message,
+      if (errors.isNotEmpty) 'errors': errors,
+    };
+  }
+}
+
 List<String> _stringList(Object? value) {
   if (value is List) {
     return value.map((item) => item.toString()).toList();

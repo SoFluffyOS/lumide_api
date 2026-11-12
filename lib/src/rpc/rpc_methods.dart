@@ -72,6 +72,9 @@ class HostMethods {
   static const launchDidEnd = 'launch/onDidEnd';
   static const launchDidAttach = 'launch/onDidAttach';
 
+  /// Hot reload or restart a running launch, and answer how it went.
+  static const launchReload = 'launch/reload';
+
   // SDK providers (IDE → Plugin)
   static const sdkListAvailable = 'sdk/listAvailable';
   static const sdkDiscover = 'sdk/discover';

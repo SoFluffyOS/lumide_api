@@ -751,6 +751,17 @@ abstract class LumideLaunch {
     Future<void> Function(LumideLaunchRequest request) callback,
   );
 
+  /// Handles host requests to hot reload, or hot restart, a running launch,
+  /// such as an agent's: answer whether it worked, with the errors the tool
+  /// logged meanwhile. The request names the launch as [didStart] did.
+  /// Hosts before 0.25.0 never ask. The default ignores the callback, and
+  /// Lumide then tells the asker the provider cannot reload.
+  void onReload(
+    Future<LumideLaunchReloadResult> Function(
+      LumideLaunchReloadRequest request,
+    ) callback,
+  ) {}
+
   /// Observes launch start events from the host.
   LumideDisposable onDidStart(void Function(LumideLaunchEvent event) callback);
 

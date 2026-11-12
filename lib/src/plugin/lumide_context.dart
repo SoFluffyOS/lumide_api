@@ -1842,6 +1842,18 @@ class _RpcLaunch implements LumideLaunch {
   }
 
   @override
+  void onReload(
+    Future<LumideLaunchReloadResult> Function(
+      LumideLaunchReloadRequest request,
+    ) callback,
+  ) {
+    _session.registerMethod(HostMethods.launchReload, (params) async {
+      final request = LumideLaunchReloadRequest.fromJson(params.value as Map);
+      return (await callback(request)).toJson();
+    });
+  }
+
+  @override
   LumideDisposable onDidStart(void Function(LumideLaunchEvent event) callback) {
     return addListener(_didStartCallbacks, callback);
   }

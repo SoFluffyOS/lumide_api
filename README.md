@@ -771,6 +771,7 @@ Key features:
 - **Workspace Configurations**: Validate and resolve entries from `.sofluffy/lumide/launch.json`.
 - **Configuration Import**: Match and convert configurations from other formats into Lumide configurations.
 - **Process Lifecycle Tracking**: Report when a launch starts or ends using `didStart` and `didEnd`.
+- **Reloads**: Hot reload or restart a running launch when Lumide asks, with `onReload`.
 
 `workspacePath` values in launch requests are canonical native filesystem paths
 (for example, `/home/me/app` or `C:\\Users\\me\\app`), not file URIs.
@@ -943,6 +944,30 @@ context.launch.onLaunch((request) async {
     workspaceFolder: config.workspaceFolder,
     exitCode: result.exitCode,
   ));
+});
+```
+
+#### Reloading a Launch
+
+Lumide asks a provider to hot reload, or hot restart, one of its running
+launches with `onReload`, such as when an agent changed the code. The request
+names the launch as your `didStart` event did; answer whether the app runs the
+new code, with the tool's message and the errors it logged meanwhile, such as
+compile errors. Without a handler, Lumide tells the asker the provider cannot
+reload. Hosts before 0.25.0 never ask.
+
+```dart
+context.launch.onReload((request) async {
+  final app = runningApps[request.configurationId];
+  if (app == null) {
+    return const LumideLaunchReloadResult(ok: false, message: 'Not running.');
+  }
+  final outcome = await app.reload(fullRestart: request.fullRestart);
+  return LumideLaunchReloadResult(
+    ok: outcome.succeeded,
+    message: outcome.message,
+    errors: outcome.errors,
+  );
 });
 ```
 

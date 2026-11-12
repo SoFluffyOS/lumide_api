@@ -11,10 +11,11 @@
 - **Agents API** — `context.agents.getAgents()` lists the coding agents Lumide runs, Agent Chats and terminal agents such as Claude Code, and `agents.onDidChangeState` reports when one starts working, waits for input, finishes, fails or ends, with its name, title, workspace folder, and the token usage Agent Chats report. Lumide only tracks them while a listener is registered. States and kinds a newer Lumide adds read as `unknown`, and agents without an id are skipped. Hosts before 0.25.0 list none and send no events.
 - **Test run ends** — `tests.onDidEndRun` reports every run that ends in the Tests pane, whichever plugin reported it: the Tests pane's passed, failed and skipped counts, its workspace folder, and whether the user, Rerun on Save or an agent started it (`unknown` for a trigger a newer Lumide adds). A run whose pane closes before it ends is reported then. Hosts before 0.25.0 send none.
 - **Window focus** — `window.onDidChangeFocus` reports when Lumide's window comes to the front or goes to the back, and `window.isFocused()` whether it is in front now. Hosts before 0.25.0 send no changes and answer true.
+- **Launch reloads** — `launch.onReload` handles Lumide's `launch/reload` request to hot reload, or hot restart, a running launch, named as its `didStart` event named it, such as when an agent changed the code. Answer with a `LumideLaunchReloadResult`: whether it worked, the tool's message, and the errors it logged meanwhile. Without a handler, Lumide tells the asker the provider cannot reload. Hosts before 0.25.0 never ask.
 - **SDK environment** — `LumideSdkInstallation.environment` holds variables for processes run with the installation, such as a Python environment's `VIRTUAL_ENV`. Lumide keeps them when the installation is selected.
 
 ### Breaking changes
-- **Custom implementations** — custom `LumideContext` implementations (e.g. test fakes) must implement `projects` and `agents`; custom `LumideTests` and `LumideWindow` implementations must implement `onDidEndRun`, `onDidChangeFocus` and `isFocused`, or extend the classes for their defaults. Callers are unaffected.
+- **Custom implementations** — custom `LumideContext` implementations (e.g. test fakes) must implement `projects` and `agents`; custom `LumideTests`, `LumideWindow` and `LumideLaunch` implementations must implement `onDidEndRun`, `onDidChangeFocus`, `isFocused` and `onReload`, or extend the classes for their defaults. Callers are unaffected.
 
 # 1.13.0
 
