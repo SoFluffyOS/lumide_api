@@ -1,4 +1,4 @@
-# Unreleased
+# 1.14.0
 
 ### New features
 - **Project templates** — declare `contributes.projectTemplates` in `plugin.yaml`, with `text`, `select`, `multiSelect` and `boolean` fields, and Lumide lists them in its New Project dialog. It starts the plugin with `onProjectTemplate:<id>` and calls `context.projects.onCreate`'s handler with the name, folder and values; with `packageName: true`, the user may give the package a different name from the folder's, in `request.packageName`; while the handler runs, the plugin may write to that folder without a file system permission. Hosts before 0.25.0 ignore templates.
